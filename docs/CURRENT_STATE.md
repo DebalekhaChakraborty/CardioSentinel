@@ -18,42 +18,45 @@ decide and why."
 
 ---
 
-**As of:** `origin/master` `64d5fc9` (local checkout: `3c8d433` on
-`research/t1-challenge-and-composition-v1`, now merged remotely), 2026-08-21
-**Working tree:** clean (aside from this file)
-**Open PRs:** 1 (#39)
-**Canonical T1 attempt:** not consumed
-**TEST partition:** sealed
+**As of:** `origin/master` `1bbbd47` (merge of PR #63), 2026-08-22
+**Working tree:** clean
+**Open PRs:** 0
+**Canonical T1 attempt:** **CONSUMED** — failed post-claim at stage 24
+**T1 measurement continuation:** **COMPLETED** — the single authorization is spent
+**Sealed B4/neural TEST:** unopened
 
-## Live flag — read before touching `t1_development_run.py` or PR #39
+---
 
-**Update, same session, second revision:** the `t1_development_run.py`
-rewrite tracked below went uncommitted → committed locally (`3c8d433`) →
-pushed and merged to master, all within this one audit session, as **PR #45,
-"T1: wire canonical composition root"** (`64d5fc91`, merged
-2026-08-21T18:18:23Z). `main()` in `src/cardiosentinel/neural/t1_development_run.py`
-now really does call `T1CanonicalDevelopmentExecutor.execute(...)` on
-`master`, composed by the new `t1_composition.py`, which — per PR #45's own
-description — "resolves the frozen artifacts from repository-defined
-locations, reconstructs the twelve frozen U1 out-of-fold fits without
-refitting them, binds the collaborators the driver threads."
+## Live flag — the T1 attempt is gone, and no second one exists
 
-This is the reassuring version of the outcome this section was warning
-about. PR #45's merged body states outright: *"This does not authorize
-execution. PR #39 remains the separate and final authorization event, and
-needs a rewrite rather than a rebase: its refusal prose asserts that nothing
-sequences the 29 stages and that no caller supplies a fold evaluator, both of
-which this PR makes false."* Whoever merged #45 already reached, in writing,
-the same conclusion this audit reached independently: PR #39 cannot be
-merged as it stands.
+The previous refresh of this file said *"the single canonical T1 attempt is
+**not** consumed."* **That is now false, and it was the most dangerous sentence
+this cache has ever carried.** Anything that reads a stale copy and plans around
+an available attempt is planning around something that no longer exists.
 
-Traced by hand on this pass, against the new master:
-`T1_EXECUTION_SPECIFICATION_AUTHORIZED` is still `False`,
-`require_canonical_execution_capability()` still checks it, and
-`cardiosentinel-runs/phase9-t1-development-v1` is still absent — so the
-single canonical T1 attempt is **not** consumed. PR #39 is still open,
-unmerged, unrewritten, and — by its own sibling PR's admission — not safe to
-merge as written. See §7.
+```
+Canonical attempt   t1-v1-development       executed 2026-08-21 at c538181
+                                            FAILED post-claim at stage 24
+                                            consumed, directory immutable
+Continuation        t1-v1-measurement-continuation
+                                            executed 2026-08-22 at 61704aa
+                                            under authorization b40b4ac
+                                            COMPLETED in 10 seconds
+                                            authorization spent, directory immutable
+```
+
+**§14 of the recovery amendment authorizes no second continuation, and none is
+predeclared.** `T1_CONTINUATION_AUTHORIZED` is `True` on disk but it is a spent
+token, not a live permission. There is no remaining T1 execution budget of any
+kind.
+
+The continuation took **two launches**. The first raised
+`TypeError: git_provenance() missing 1 required positional argument` at
+`runner.py:282`, six lines before `_claim()` at `runner.py:288`, so per §25 the
+attempt was **not** consumed and the authorization survived. PR #59 fixed the
+argument and added the seam test that should have preceded the first launch. Do
+not read that as a near miss handled well; read it as the same defect class that
+consumed the canonical attempt at stage 24 — stages tested, junctions not.
 
 ---
 
@@ -61,211 +64,226 @@ merge as written. See §7.
 
 | | |
 |---|---|
-| Repository | `tactics/Myocardial-Ischemia-Detection-by-Analysing-ECG-Signal` (GitHub: `DebalekhaChakraborty/Myocardial-Ischemia-Detection-by-Analysing-ECG-Signal`, renamed `CardioSentinel-AI`) |
-| `origin/master` | `64d5fc91c225266fb958c4f99752afc17714786d` — merge of PR #45, 2026-08-21T18:18:23Z |
-| Local checkout (this pass) | branch `research/t1-challenge-and-composition-v1` at `3c8d433` — pushed and merged remotely since; local branch ref not yet fast-forwarded to reflect it |
-| local `master` ref | `bbb78d8` — well behind `origin/master` now (stale local ref only; `git fetch` fixes it) |
-| Last fetch | 2026-08-21, this refresh |
-| Outer repo (`/home/AI_POC`) | HEAD `086ee2813…`, untouched by this pass |
+| Repository | `tactics/Myocardial-Ischemia-Detection-by-Analysing-ECG-Signal` (GitHub: `DebalekhaChakraborty/…`, renamed `CardioSentinel-AI`) |
+| `origin/master` | `1bbbd47020099327ae08cf0acab8ba5dc764c07a` — merge of PR #63, 2026-08-22 |
+| Working tree | clean |
+| Open PRs | **0** — #39 was **closed unmerged** 2026-08-21T19:23Z and replaced by #47 |
+| Outer repo (`/home/AI_POC`) | HEAD `086ee2813`, untouched by this pass |
+| Scientific interpreter | `/home/AI_POC/venvs/tactics/bin/python`, Python 3.12.6, 335 packages, `installed_packages_sha256 = b0fd6ea…` |
 
-### Working tree — clean
-
-As of this refresh, clean aside from this file. The rewrite of
-`t1_development_run.py` and the new `t1_composition.py` /
-`test_t1_composition.py` that were uncommitted a few minutes earlier in this
-session went local commit (`3c8d433`) → pushed → merged as PR #45 — see
-"Live flag" above.
-
-### Open PR — #39 "T1: authorize canonical development execution"
-
-Opened 2026-08-21 01:36 UTC, last touched 02:06 UTC, CI green (both checks),
-0 reviews, `gh`-reported mergeable state unknown. Scope as written: flips
-`T1_EXECUTION_SPECIFICATION_AUTHORIZED` `False → True` only; no protocol,
-spec, model, metric, or fold-logic bytes touched. Its own description:
-*"nothing sequences [the 29 stages] end to end … a verified preflight is
-therefore followed by an honest stop naming a missing capability, never a
-withheld permission."* That description is now confirmed false by the
-project's own later work: PRs #40–#45 built exactly that missing capability,
-and PR #45's merged body says outright that #39 "needs a rewrite rather than
-a rebase" before it can merge safely. Still open, still unrewritten, as of
-this refresh.
-
-### Recent history (last 20 commits)
+### Recent history (last 12 commits)
 
 ```
-64d5fc9 origin/master  Merge PR #45 — wire canonical composition root
-3c8d433 (local HEAD)   T1: compose the canonical execution graph and delegate
-c87be5d                T1: implement the final all-VALIDATION configuration selection
-9e16e32                T1: assemble subject evidence from the held-out evaluations
-b202840                T1: derive challenge membership from the canonical identity
-95254b7 origin/master  Merge PR #44 — t1-fold-evaluator-v1
-34abdc8                T1: implement the canonical fold evaluator
-a545666                Merge PR #43 — t1-assembly-collaborators-v1
-c578f21                T1: make the assembly collaborators answerable to the capability gate
-68478af                T1: add the label-bearing assembly collaborators
-e72c93a                T1: prove capability before the claim, not after it
-c7a458a                Merge PR #42 — t1-fold-evaluation-capability-v1
-74f4c94                T1: add the controlled fold evaluation capability
-bbb78d8 master (local) Merge PR #41 — t1-fold-authority-v1
-e6f5dfe                Merge PR #40 — t1-canonical-driver-v1
-bbefa38                T1: add the fold-scoped evaluation authority
-0639c9e                T1: add the canonical development execution driver
-5804e66                Merge PR #38 — t1-canonical-development-harness-v1
-f91c417                T1: skip canonical-claim tests outside the frozen interpreter
-2feb76c                T1: implement the canonical development harness
-2672a72                Merge PR #36 — t1-execution-harness-v1
-c472fba                T1: harden the episode-state engine against the merged execution spec
+1bbbd47  Merge PR #63 — T2 preregistered S4D vs GRU analysis plan
+b79185f  T2: preregistered S4D vs GRU outer validation analysis plan
+73358bc  Merge PR #62 — T1 post-hoc failure mode analysis
+c337404  T1: post-hoc failure mode analysis and interpretation
+9a03735  Merge PR #61 — T1 preregistered evidence report
+16c96f6  T1: generate the preregistered evidence report
+a878405  Merge PR #60 — analysis pre-registration + execution record
+6742291  Fix the primary estimate, the latency wording, and the exclusion list
+8a0132c  Pin the bootstrap's estimand before the values are read
+086161f  Add endpoint and claim hierarchy to the T1 analysis plan
+08152c8  Record T1 analysis pre-registration and continuation execution
+61704aa  Merge PR #59 — T1 claim-to-lock seam hardening  [continuation ran at this commit]
 ```
 
-CI has been green on the last 5 verified pushes to master (#38, #40, #41,
-#43, #44 — ~6 min each, two jobs). PR #45's own merged description reports
-full-suite 2,764 passed / 1 skipped and a clean `ruff check .`, not
-independently re-run by this audit.
+### PRs merged since the last refresh
+
+| PR | Subject |
+|---|---|
+| #46 | Docs sync — plan, scope, README |
+| #47 | Authorize canonical development execution (replaced the closed #39) |
+| #48–#50 | Recovery amendment V1.1 · diagnosable failure · held-out persistence |
+| #51–#52 | Attempt tripwires · recovery prerequisites and reconstructed receipt |
+| #53–#54 | Continuation safety framework · continuation evidence contract |
+| #55–#56 | Gated measurement execution engine · label authority integration |
+| #57–#58 | Pre-authorization record · **the authorization itself** |
+| #59 | Seam hardening — fixed the pre-claim `TypeError` |
+| #60 | Analysis pre-registration + execution-commit record |
+| #61 | **T1 descriptive report — first read of measured values** |
+| #62 | T1 post-hoc failure mode analysis |
+| #63 | T2 arm-comparison pre-registration |
 
 ## 2. Where this stands vs. the plan docs
 
-No file named `HANDBOOK` exists anywhere under `/home/AI_POC`. The closest
-things are `docs/IMPLEMENTATION_PLAN.md` / `docs/RESEARCH_SCOPE.md` (written
-2026-08-07, never revised) and the `CARDIOSENTINEL_HANDOFF_ECG{3…10}.md`
-session logs at the repo root's parent (freshest: ECG 10, itself written
-earlier on 2026-08-21, before the 5 PRs and the commit described above).
-
-`research/phase-3b-classical-baselines` is a real, long-closed branch
-(`87b5d39`, remote already deleted). The repository has gone through nine
-further phase boundaries since: 3B-2 (B4 architecture selection), P1
-(physiology), M1 (patient memory), M2 (contamination-safe update), U1
-(calibration/routing), T2 (longitudinal temporal), and three T1 sub-phases
-(frozen protocol → canonical harness → execution driver/evaluator, now
-"challenge and composition").
-
-`docs/IMPLEMENTATION_PLAN.md`, item by item:
+`docs/IMPLEMENTATION_PLAN.md` and `docs/RESEARCH_SCOPE.md` remain unrevised
+since 2026-08-07 and are now further behind than at the last refresh.
 
 | # | Item | Doc says | Reality |
 |---|---|---|---|
-| 1 | Dataset ingestion & annotation validation | complete | matches |
-| 2 | Signal-processing pipeline | complete | matches |
-| 3 | Reproducible baselines (B0–B3) | complete | matches |
-| 4 | Patient-adaptive memory | future work | **done** — M1L selected |
-| 5 | Physiology-guided model | future work | **done** — P1-B selected |
-| 6 | Uncertainty calibration | future work | **done** — U1 Platt selected |
-| 7 | Temporal episode reasoning | future work | **partial** — T2 done; T1 in progress, unexecuted |
-| 8 | Edge/cloud routing | future work | **done** — U1 selective routing implemented |
-| 9 | Edge benchmarking | future work | **partial** — latency/params measured on a benchmark host, not an edge device |
+| 1–3 | Ingestion · signal pipeline · baselines B0–B3 | complete | matches |
+| 4 | Patient-adaptive memory | future work | **done** — M1L retained, M2-G retained |
+| 5 | Physiology-guided model | future work | **done** — P1-B retained |
+| 6 | Uncertainty calibration | future work | **partial** — Platt retained, **router NOT retained** |
+| 7 | Temporal episode reasoning | future work | **done** — T2 selected, T1 executed and measured |
+| 8 | Edge/cloud routing | future work | **NOT done** — the router was explicitly rejected |
+| 9 | Edge benchmarking | future work | partial — benchmark host only, never on-device |
 | 10 | Final ablation & external validation | future work | matches — not started |
 
-`docs/RESEARCH_SCOPE.md` still reads *"no approved dataset integration, no
-validated labels, no model, no measured performance, no clinical validation,
-and no selected edge hardware target"* — every clause except the last two is
-now false. Neither doc is wrong about what it asserts; both are silent about
-six phases of work that happened after they were written.
-
-**Verdict:** the repository is ahead of every written plan on every axis, by
-roughly nine phase boundaries.
+**Item 8 is the correction that matters.** Any document claiming edge/cloud
+routing is complete is wrong: `U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md`
+records a **split** retention — calibration retained, the symmetric window-level
+selective router at `c_star = 0.90` **not** retained.
 
 ## 3. Experiment ladder
 
-| ID | Exists | Status | Git SHA | Metrics | Notes |
-|---|---|---|---|---|---|
-| B0 | yes | complete, TEST opened | `4f57ba3` | val AUPRC 0.0461 / AUROC 0.500 | constant-prior floor; v3 is canonical |
-| B1 | yes | complete, TEST opened | `4f57ba3` | val AUPRC 0.1173 / AUROC 0.790 | signal-only logreg |
-| B2 | yes | complete, TEST opened | `4f57ba3` | val AUPRC 0.1640 / AUROC 0.823 | + morphology, logreg |
-| B3 | yes | complete, TEST opened | `4f57ba3` | val AUPRC 0.1683 / AUROC 0.836 | morphology + HGB, best classical |
-| B4-A (CNN/TCN) | yes, as `B4_raw_compact_cnn_v1` | complete, rejected | `21a38ec` | pooled val AUPRC 0.316 | compact CNN; no TCN exists in-repo. Kept as reference, 87k params |
-| B4-B (CNN Transformer) | yes | **selected — official model** | `b27d528` | pooled val AUPRC 0.381 / subj-macro 0.401 | locked threshold 0.8329, 310k params |
-| B4-C (CNN SSM) | yes | complete, rejected | `b27d528` | pooled val AUPRC 0.338 | negative result, short-window only; 155k params |
-| B4-D (Hybrid) | not found | not started | — | — | only 3 candidates ever scoped (A/B/C) |
-| P1 | yes — P1A, P1B | **P1-B selected** | `7e02c22` | files present | physiology fusion beat plain neural head |
-| M1 | yes — v1 (2 failures) + v2 (M1S/D/L) | **M1L selected** | `8260b71` | M1S 0.365/0.912, M1D 0.381/0.912, M1L 0.385/0.908 (AUPRC/AUROC) | M1L wins on AUPRC, not AUROC — reads as pre-specified metric |
-| M2 | yes — 3 attempts | **M2-G selected** (recovery2) | `cdc3379` | M2-0 vs M2-G closely matched (~0.386/0.911 vs 0.386/0.912) | 2 earlier attempts failed with documented receipts |
-| U1 | yes | complete | `233a474` | files present, ECE not re-extracted | Platt calibration + selective routing selected |
-| U2 | not found | not started | — | — | no U2 anywhere; U-phase is U1 only |
-| T1 | harness + composition root yes, evidence no | **0 canonical attempts** | merged at `64d5fc9` (PR #45) | zero — VALIDATION unread, TEST sealed | full execution wiring now on master; sole remaining gate is PR #39 (needs a rewrite, see "Live flag") |
-| T2 | yes — training + one-shot outer validation | **causal_s4d_longitudinal_v1 selected** | `f4759e2` / `b0f189a` | training 0.629/0.972 → 0.640/0.972; outer val 0.00195/0.715 | outer validation is a consumed one-shot artifact |
-| E1 | not found | not started | — | — | only a benchmark-host latency measurement exists under B4; `edge/` is an empty package |
+| ID | Status | Evidence | Notes |
+|---|---|---|---|
+| B0–B3 | complete, **TEST opened** | `phase3b-classical-v3` | one-shot sealed-test access already spent in Phase 3B-1 |
+| B4-A | complete, **rejected** | `phase3b2-b4-v1` | `B4CompactCNN`, 87,089 params |
+| **B4-B** | **SELECTED encoder** | `phase3b2-architecture-v1` | `B4BTransformerCNN`, 309,809 params |
+| B4-C | complete, **rejected** | `phase3b2-architecture-v1` | `B4CSSMCNN`, 155,313 params |
+| P1 | **P1-B retained** | `phase4-p1-physiology-v1` | retained with a recorded rate-related FPR caveat |
+| M1 | **M1L retained** | `phase5-m1-dual-memory-v2` | v2 canonical; v1 has two documented stage-1 failures |
+| M2 | **M2-G retained** | `phase6-m2-development-v1` | canonical is **recovery2**; two earlier attempts have failure receipts |
+| U1 | **split retention** | `phase7-u1-development-v1` | Platt retained, router rejected |
+| T2 | **S4D retained** | `phase8-t2-development-v1` | training + one-shot outer VALIDATION, both arms scored |
+| **T1** | **executed and measured** | `phase9-t1-development-v1` (failed) + `phase9-t1-continuation-v1` (completed) | see §4 |
+| E1 | not started | — | `edge/` is a docstring; no inference path exists |
 
-Also present: three `cardiosentinel-runs/phase-3b-smoke-*` folders — CI/pipeline
-smoke fixtures, not scientific experiments.
+Also present: three `phase-3b-smoke-*` folders (CI fixtures, not science) and
+`cardiosentinel-runs/T1/T1_state_machine_v1/` which reads `status: COMPLETE`
+but is `run_class: harness_verification`, `protocol_evidence: false` — **not
+evidence.**
 
-## 4. Scientific lock audit
+## 4. T1 result — published, frozen
 
-Sampled every `EXPERIMENT_LOCK.json` across B0–T2 (~16 files):
+The measurement is complete and reported. `docs/T1_DESCRIPTIVE_REPORT_V1.md` is
+the authority; the values below are its headline, restated with the labelling
+its pre-registration requires.
 
-- **Git SHA** — 100%, every lock records one.
-- **Dirty state** — 100%, every lock records `"git_dirty": false`.
-- **Split SHA** — uniform: `66e25d77b6aaa25502974b4b60667b4c4b24d649bf9493666827c747a385ced7`, B0 through T2.
-- **Feature/dataset hash** — uniform: `f18785d520828cb171482926922346dda824c8868ed4b7f9be45897cd71d6eb5` (`ltstdb-baseline-v1`).
-- **Seed** — confirmed (`"seed": 2026`) for B4-A/B/C, P1A/B, M1S/D/L. Not found by a top-level key scan for B0–B3, M2, U1, T2 — may be under a different key; needs a manual check, not asserted missing.
-- **Config** — no lock exposes a literal `"config"` key; parameters appear inlined directly.
-- **Validation metrics** — present for every completed experiment.
-- **Test access** — opened only for B0–B3 (v3). Everything B4 onward carries explicit `"test_evidence_used": false` / `"sealed_test_state": "unopened"`. T1 has not read even VALIDATION yet.
+| | |
+|---|---|
+| **Registered primary** — subject-macro mean `episode_f1` | **0.2524** |
+| **95% subject-bootstrap interval** | **[0.0826, 0.4415]** |
+| `pooled_episode_f1` — episode-weighted, **descriptive, not what the interval brackets** | 0.3423 |
 
-## 5. Code maturity
+Twelve held-out LTSTDB subjects, cross-fitted, subject-disjoint. **Seven of
+twelve score zero**, and per `docs/T1_POST_HOC_ANALYSIS_V1.md` those zeros are
+two incomparable failure modes: three subjects (`s2005`, `s2020`, `s2023`) have
+**no reference episodes at all**, so their zero is a false-alarm penalty rather
+than a detection failure; four (`s2019`, `s2058`, `s2059`, `s3072`) missed real
+episodes. MCC and onset latency are undefined for exactly those seven and are
+reported as undefined, never zero-filled.
+
+**The document chain, in the order it was created:**
+
+1. `docs/T1_EVIDENCE_ANALYSIS_PLAN_V1.md` — pre-registration, §§1–6 written
+   before any value was read, §7 added at approval (still pre-read), §8 the
+   approval record
+2. `docs/T1_DESCRIPTIVE_REPORT_V1.md` — the first read of measured values
+3. `docs/T1_POST_HOC_ANALYSIS_V1.md` — explicitly labelled post-hoc
+
+That ordering is the point and should not be presented any other way.
+
+### What T1 does not support
+
+No improvement claim (one-armed measurement, no comparator) · no memory or SSM
+ablation · no external generalization · no subgroup claim · no test claim · no
+clinical claim · no significance claim · no deployment claim. **"Causal" here
+means temporal non-anticipation, never causal inference.**
+
+## 5. T2 — next gate, values unread
+
+`docs/T2_ARM_COMPARISON_ANALYSIS_PLAN_V1.md` (PR #63) pre-registers the S4D vs
+GRU comparison. **No T2 measured value has been read.**
+
+The evidence supports it without any new run: `T2_OUTER_VALIDATION_RESULT.json`
+carries `per_arm_evidence` for both arms, and the row stores are paired —
+one 492,904-row identity file and one label vector serve both arms, shared
+ordering digests, thresholds frozen before outer validation.
+
+**The load-bearing caveat:** the comparison **is** the selection rule
+(`selection_basis: pooled_primary_validation_auprc`). The paired contrast is
+unbiased; S4D's absolute figure on this set is not. The plan forbids any
+unbiased-absolute-performance claim.
+
+**Step 3 of that plan — the first read of T2 values — requires explicit human
+authorization and has not been given.**
+
+## 6. Code maturity
 
 | Layer | Location | Maturity |
 |---|---|---|
-| Models | `models/` | thin stub — only `baselines.py`; neural architectures actually live under `neural/` |
-| Trainers | `neural/*_experiment.py`, `*_development_run.py` | mature — one harness per phase |
-| Pipelines | `signal/` (11), `features/` (4), `data/` (8) | mature |
-| Inference path | — none found — | **not started** — no `predict()`/`infer()`/`serve()` anywhere; deploying B4-B today means reusing harness-internal scoring code |
-| Evaluation framework | `evaluation/` (8 files) | mature, shared across phases |
-| `neural/` package | 74 files | has absorbed what `edge/`, `episodes/`, `personalization/`, `uncertainty/` (each an empty `__init__.py`) look like they were meant to hold |
-| Test suite | `tests/` | 2,410 passed / 1 skipped (frozen interpreter) as of PR #39; 5 more PRs merged since, count not re-verified here |
+| Models | `models/` | thin — only `baselines.py`; neural architectures live in `neural/` |
+| Trainers | `neural/*_experiment.py`, `*_development_run.py` | mature, one harness per phase |
+| Pipelines | `signal/` · `features/` · `data/` | mature |
+| **Inference path** | — none — | **not started.** No `predict()`, no ONNX, no TorchScript, no serving |
+| Evaluation | `evaluation/` | mature, shared |
+| `neural/` | 83 modules, ~53.5k lines | has absorbed what `edge/`, `episodes/`, `personalization/`, `uncertainty/` were meant to hold — all four are still one-line docstrings |
+| Test suite | `tests/` | **3,062 collected** — see the defect below |
 
-**Can T1 canonical execution start immediately?** Mechanically, essentially
-all of it now: the 29-stage harness, driver, fold authority, fold evaluation
-capability, assembly collaborators, fold evaluator, and — as of PR #45 — the
-composition root itself are all merged to master. Procedurally, still no:
-the sole remaining gate is PR #39, and, per PR #45's own merged description,
-its refusal prose is now factually false and it "needs a rewrite rather than
-a rebase" before it can merge safely. It has not been rewritten as of this
-refresh.
+### ⚠️ The local suite is red and CI is green, for a structural reason
 
-## 6. Architecture maturity
+**13 tests fail locally and pass in CI.** Every one asserts that
+`cardiosentinel-runs/phase9-t1-continuation-v1` **does not exist**. It has
+existed since the continuation ran on 2026-08-22 at 16:18.
 
-| Stage | Status | Evidence |
-|---|---|---|
-| Signal pipeline | done | `signal/`, used by every phase |
-| CNN encoder | done | B4-A, also feeds B4-B/C |
-| Transformer / SSM | done | B4-B selected (short-window); T2 causal S4D (longitudinal) trained + outer-validated |
-| Physiology | done | P1-B selected |
-| Patient memory | done | M1L selected |
-| Calibration | done | U1 Platt + selective routing |
-| Temporal reasoning | partial | T2 (longitudinal) done; T1 (episodic/alerting) harness built, zero executions |
-| Edge deployment | not started | `edge/` empty; only benchmark-host latency numbers exist, explicitly not on-device |
+CI passes because `/cardiosentinel-runs/` is gitignored (`.gitignore:33`, 0
+tracked files), so a fresh checkout has no continuation directory and the
+assertions hold. **The suite is therefore green in CI and permanently red on any
+machine that holds the evidence**, which means a local run can no longer signal a
+real regression. All 13 are in `tests/neural`; `tests/neural` alone reports
+2,840 passed / 13 failed. This needs its own PR.
 
-T1 doesn't map onto one box above — it's a causal episode/alerting layer
-downstream of the model score stream, and it's the actual current frontier.
+## 7. Data preservation — **backed up 2026-08-22**
 
-## 7. Next steps
+Previously the largest unmanaged risk in the programme. Now closed.
 
-**A. Immediate:** PR #39 cannot be merged as written — that is now PR #45's
-own merged position, not just this audit's. Rewrite or replace #39 so its
-refusal prose matches a repository where the composition root already
-exists, before anyone merges it.
+| | |
+|---|---|
+| Destination | `s3://cardiosentinel-evidence-341181499761/snapshot-2026-08-22-1bbbd47/` (`us-east-1`) |
+| Contents | **786 objects, 24,779,296,980 bytes** — 785 evidence files + manifest |
+| Manifest | `MANIFEST_SHA256.txt`, sha256 `dd42385631ded57320116f82d14124c99d3ffb25ea4c6ec046c69b0d13d377f6` |
+| Protection | Versioning · Object Lock GOVERNANCE 365d · SSE-S3 AES256 · Block Public Access all-on |
+| Verification | object counts 4/4 match per tree · manifest round-trip identical · **16/16 sample re-hash passed** |
 
-**B. Required audits:** rewrite PR #39 against current master (`64d5fc9`)
-rather than rebasing it; re-run the ECG 9 eight-item authorization checklist
-against whatever commit ends up authorized; sync the local checkout and the
-local `master` ref, both now behind `origin/master`; the stage-recorder
-granularity note and the ECG 3 outer-repo index reconstruction are still
-open from earlier handoffs.
+Local footprint unchanged: `cardiosentinel-runs` 2.3 G / 365 files,
+`cardiosentinel-features` 16 G / 158, `cardiosentinel-data` 5.6 G / 261,
+`artifacts` 8 K / 1 — all gitignored, all on one disk (`/dev/sda1`, 86% used).
 
-**C. Experiments remaining:** T1 canonical execution (0 of 1 attempts used);
-final ablation / external validation (plan item 10); genuine edge/on-device
-benchmarking (item 9); U2, E1, B4-D as such don't exist — confirm whether
-they belong to a different plan version or were never scoped.
+**Restoring bytes is not enough.** S3 assigns its own `LastModified`, and mtimes
+are load-bearing evidence here — immutability is asserted as *"20 files at
+`2026-08-21T19:57:57`"*. The manifest carries `sha256 size mtime path`; a restore
+must replay them:
 
-**D. Risks:** the single canonical T1 attempt sits behind exactly one gate
-now — PR #39 — and that PR's own safety narrative is confirmed stale by its
-sibling PR's merged description, not just by this audit; TEST stays sealed
-until the T1 execution question is resolved; planning docs were silently
-stale enough to actively mislead if trusted over the repo (README.md,
-IMPLEMENTATION_PLAN.md, and RESEARCH_SCOPE.md were brought current this
-session); seed capture is unconfirmed for B0–B3/M2/U1/T2 locks.
+```bash
+while read -r sha size mtime path; do touch -d "@$mtime" "$path"; done < MANIFEST_SHA256.txt
+```
+
+## 8. Open defects and next steps
+
+**Defects**
+
+1. **13 stale tests** asserting the continuation root is absent (§6). Needs a PR.
+2. **The T1 report generator is untracked** — it lives only in a scratch
+   directory. Regenerating from a stale copy would silently revert the §9.2
+   latency correction merged in #62.
+3. `IMPLEMENTATION_PLAN.md` / `RESEARCH_SCOPE.md` still unrevised since
+   2026-08-07 (§2).
+
+**Next scientific steps, in order**
+
+1. **T2 analysis execution** — step 3 of the T2 plan, gated on human approval.
+2. **External validation strategy** — the milestone that decides whether any of
+   this generalizes. Everything rests on 12 validation subjects from one dataset
+   whose obvious second cohort, EDB, is provably contaminated with the first per
+   `CROSS_DATASET_PROVENANCE.md`.
+3. **Ablation package** — separate decision; each ablation needs new authorized
+   runs. The standing constraints bar *reruns of canonical runs*, not new,
+   separately-identified experiments.
+4. **Paper assembly** — realistically a methodology and measurement-integrity
+   paper with a worked application, not a performance paper.
+
+**Standing constraints, still in force:** no M2/U1/T2 rerun · no T1 fold retry ·
+no second continuation · never install, upgrade or downgrade packages in
+`tactics` · patient identity selects a namespace and a calibrator and is never a
+predictive feature · labels never determine memory-stream membership, ordering,
+or update eligibility · do not access sealed TEST.
 
 ---
 
-_Last refreshed: 2026-08-21, read-only pass against `origin/master` `64d5fc9`
-(local checkout `3c8d433`). To refresh, ask Claude to re-run the audit and
-rewrite this file — nothing here is meant to be trusted past its own "As of"
-line._
+_Last refreshed: 2026-08-22, read-only pass against `origin/master` `1bbbd47`.
+To refresh, ask Claude to re-run the audit and rewrite this file — nothing here
+is meant to be trusted past its own "As of" line._
