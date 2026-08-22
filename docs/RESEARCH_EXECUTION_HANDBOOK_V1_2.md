@@ -622,6 +622,195 @@ permission and authorizes no execution · superseded versions are retained, neve
 deleted · original numbering is preserved so citations resolve · **derived content
 is never presented as recovered content.**
 
+## §48 System and model inventory
+
+The pipeline, in execution order. Every retained component is named with its
+class and file so a claim can be traced to code.
+
+```
+LTSTDB waveform   10 s windows, 5 s stride, subject-disjoint 70/15/15, seed 2026
+  -> B4-B encoder            CNN + tiny Transformer
+  -> P1-B physiology fusion  ST-T morphology fusion
+  -> M1L long memory         dual-timescale patient baseline
+  -> M2-G gated update       contamination-safe update policy
+  -> U1 Platt calibration    g(s) = sigmoid(a*z(s) + b)  ->  p_t
+  -> T2 causal S4D           non-anticipative longitudinal score s_t
+  -> T1 episode state machine  NORMAL / WATCH / EVENT / RECOVERY
+```
+
+### 48.1 Component table
+
+| Component | Class | File | Params | Checkpoint | Status |
+|---|---|---|---|---|---|
+| B0–B3 classical | — | `models/baselines.py` | — | `model.joblib` 108 B – 789 KB | comparators |
+| B4-A | `B4CompactCNN` | `neural/model.py:66` | 87,089 | `model_selected.pt` 360 K | rejected |
+| **B4-B** | `B4BTransformerCNN` | `neural/candidates.py:159` | **309,809** | 1.3 M | **SELECTED** |
+| B4-C | `B4CSSMCNN` | `neural/candidates.py:296` | 155,313 | 632 K | rejected |
+| — shared stem | `SharedLocalFrontEnd` | `neural/candidates.py:70` | — | — | shared by B4-B/C |
+| — attention block | `PreNormTransformerBlock` | `neural/candidates.py:115` | — | — | `nn.MultiheadAttention` |
+| — SSM block | `DiagonalGatedSSMBlock` | `neural/candidates.py:204` | — | — | **not Mamba**; diagonal, time-invariant |
+| P1-A | `P1FusionHead` (control config) | `neural/physiology_fusion.py:305` | — | 36 K | control |
+| **P1-B** | `P1FusionHead` + `PhysiologyTransform` | `neural/physiology_fusion.py:305`, `:180` | — | 40 K | **retained**, FPR caveat |
+| M1S / M1D | `DualTimescaleMemory` | `neural/patient_memory.py:501` | — | 40 K / 44 K | rejected |
+| **M1L** | `DualTimescaleMemory`, `M1StreamMemory` | `neural/patient_memory.py:501`, `:599` | — | 40 K | **retained** |
+| M2-0 | `FrozenM1LScorer` | `neural/m2_scorer.py:169` | — | run artifacts | control |
+| **M2-G** | gate derivation | `neural/m2_gate_derivation.py` | — | run artifacts | **retained** |
+| **U1 calibration** | `U1Calibrator` | `neural/u1_calibration.py:211` | 2 (`a`, `b`) | run artifacts | **retained** |
+| U1 router | selective-routing policy | `neural/u1_selection.py` | — | preserved | **rejected** (§15) |
+| **T2 S4D** | `CausalS4DLongitudinal` | `neural/t2_models.py:261` | — | `T2_S4D_BEST_CHECKPOINT.pt` 188 K | **retained** |
+| T2 GRU | `CausalGRULongitudinal` | `neural/t2_models.py:108` | — | 240 K | comparator |
+| **T1** | frozen protocol, `next_state` | `neural/t1_protocol.py` + 20 `t1_*` modules | **none** | no checkpoint | **retained** |
+
+Trainable-parameter counts are frozen constants only for B4-B and B4-C
+(`candidates.py:51,53`). Other components' counts were never bound as constants
+and are **not asserted here**; checkpoint sizes are measured.
+
+### 48.2 Leakage guarantees, in code
+
+| Guarantee | Enforcement |
+|---|---|
+| Labels never reach the transition | `T1_FORBIDDEN_TRANSITION_INPUTS` blocks `label`, `target_family`, `subject_outcome`, `episode_identity`, `future_row`, `future_score`, `gru_score` and others |
+| Only frozen row inputs are readable | `T1_ALLOWED_ROW_INPUTS` — `stable_id`, `m2g_detector_score`, `detector_decision_d_t`, `oof_calibrated_probability_p_t`, `decision_error_uncertainty_u_t`, `s4d_temporal_evidence_s_t`, `score_present`, `elapsed_stream_seconds`, `elapsed_state_seconds` |
+| **Patient identity is never a predictive feature** | `t1_protocol.next_state` **never reads `row.stable_id`**. Its only other use is `T1_THRESHOLD_TIE_ORDER`, deterministic tie-breaking so quantiles are input-order-independent |
+| No future information | `next_state` is *"one causal step. Pure: it reads the current row and nothing ahead of it"* |
+| Folds are subject-disjoint | 12 folds, 12 distinct subjects, indices exactly `range(12)` |
+| Thresholds frozen upstream | `thresholds_generated_here: false`, `selection_performed_here: false`, `thresholds_source: promoted_fold_selection_artifacts` |
+
+**`stable_id` appears in the allow-list and is still not a feature.** It is
+present on the row; the transition never reads it. Both halves must be stated
+together or the allow-list reads as a contradiction.
+
+## §49 Scientific findings to date
+
+### 49.1 SUPPORTED
+
+- Episode-level detection on 12 held-out LTSTDB subjects, cross-fitted and
+  subject-disjoint: **subject-macro mean `episode_f1` = 0.2524**, 95%
+  subject-bootstrap **[0.0826, 0.4415]**
+- Between-subject variability, scoped exactly as the bootstrap's `claim_scope`
+- Pooled description: 163 reference episodes, 59 predicted runs, 38 matched, 21
+  unmatched predicted; 473,897 primary windows
+- Prospective architecture, physiology, memory and temporal-arm selections under
+  rules frozen before the deciding evidence existed
+- The measurement **consumed a persisted trace and ran no model** — four
+  zero-capability counters, sealed test unopened
+- End-to-end auditability of the evidence chain itself
+
+### 49.2 Two failure modes behind the seven zeros
+
+`_episode_f1 = 2 * matched / (predicted_event_runs + reference_episodes)` returns
+undefined **only** when that denominator is zero. A subject with no reference
+episodes but a firing prediction therefore scores a **defined** `0.0`.
+
+| Kind | Subjects | Ref ep. | Predicted runs | Meaning |
+|---|---|---|---|---|
+| **A — episode-free** | `s2005`, `s2020`, `s2023` | 0 | 7, 8, 1 | False-alarm burden on subjects with **nothing to detect** |
+| **B — missed** | `s2019`, `s2058`, `s2059`, `s3072` | 6, 3, 47, 1 | 0, 0, 0, 1 | Genuine detection failure |
+
+**They push the operating point in opposite directions.** Group A improves with
+*fewer* predicted runs, Group B with *more*. A single averaged score conceals
+that tension. `s3072` is a *matching* failure rather than a silence — one run
+that did not overlap its single episode.
+
+**Defined is not meaningful.** Availability analysis that asks only *"is this
+metric defined?"* misses this class entirely; the T1 pre-registration did, and
+§46.1 now requires both checks.
+
+### 49.3 Latency is a signed offset, not a delay
+
+`_onset_latency = (start_samples[run_begin] - start_samples[episode_begin]) / 250.0`.
+**6 of 38** matched-episode latencies are negative. Because
+`match_runs_to_episodes` pairs on **overlap alone** — `run_begin < end and begin <
+run_end`, no tolerance window, no bound on how early a run may start — and the
+artifacts store no run durations, a negative offset is equally consistent with a
+persistent `EVENT` state or a long-duration run. **It does not establish
+anticipation.**
+
+### 49.4 The T2 contrast is the selection rule
+
+`selection_basis: pooled_primary_validation_auprc`,
+`selected_arm: causal_s4d_longitudinal_v1`. The **paired contrast is unbiased** —
+same held-out rows, rule fixed in advance. The **winner's absolute figure is
+not**: S4D was chosen for having the higher value on this very set. The bias
+attaches to the maximum, not the contrast.
+
+The artifacts carry a **per-arm** bootstrap and **no interval on the difference**.
+The selection-independent comparisons — temporal descriptors, challenge,
+cold-start, all `is_selection_input: false` — are the only ones free of this
+conditioning.
+
+### 49.5 NOT SUPPORTED
+
+Improvement over any comparator · memory, encoder, SSM or calibration
+contribution · episode-level S4D-vs-GRU · external generalization · subgroup
+performance · test performance · clinical utility · deployment behaviour ·
+causal inference. See §24 and Appendix A.
+
+## §50 Roadmap and publication strategy
+
+### 50.1 Positioning — recommended: methodology paper
+
+| | **Option A — architecture performance paper** | **Option B — auditable ML methodology, ECG case study** |
+|---|---|---|
+| Contribution | The pipeline and its selections | The evidence machinery: negative capability, digest-bound provenance, consumed-attempt semantics, pre-registration, **a real post-claim failure and its authorized recovery** |
+| Results burden | Must carry the paper | The modest, un-rescued result is *evidence the method works* |
+| Reviewer risk | *"Compared to what?"*, *"n = 12"*, *"external validation?"*, *"which components matter?"* — **all currently fatal** | *"Is this just engineering?"* — answered by the stage-24 failure |
+| Required experiments | T1-disabled arm, memory ablation, encoder ablation, episode-level S4D-vs-GRU, an external cohort. **6–12 months** | **None.** Optionally the T2 analysis, which needs no new run |
+
+**Recommendation: Option B.** Not one of the seven research questions is
+affirmatively answered (§24), so Option A has no headline to carry. Option B is
+also the honest description of where the effort actually went. Framed as
+methodology, submission is weeks away; framed as performance, it is not
+reachable without runs that are currently unauthorized.
+
+### 50.2 Priority waves
+
+**Wave 1 — before submission**
+1. T2 arm-comparison analysis — pre-registered, **zero new runs**, human gate open
+2. Reproducibility package — track the report generator, environment lock,
+   manifest, restore procedure. Its absence is disqualifying for a methodology paper
+3. Documentation drift fixes — `IMPLEMENTATION_PLAN.md` items 6/7/8, `README.md`
+4. Repair the 13 stale tests (§47)
+
+**Wave 2 — strong improvement**
+5. Calibration reliability analysis — ECE/Brier from existing U1 artifacts, **no
+   new runs**; addresses RQ3's weakest evidence
+6. External validation strategy — a pre-registered contamination audit of
+   candidate cohorts, publishable before data arrives
+7. Ablation protocol design — written and frozen, executed later
+
+**Wave 3 — future**
+8. Ablation execution (each needs its own authorization) · 9. Inference pathway /
+deployment prototype · 10. E1 on-device benchmarking · 11. **The sealed neural
+test, last** (§43)
+
+### 50.3 Manuscript skeleton
+
+| Section | Source documents | Readiness |
+|---|---|---|
+| 1. Introduction | `RESEARCH_SCOPE.md`, §1 | needs writing |
+| 2. Related work | — | **missing entirely** |
+| 3.1 Problem and data | `DATASET_CONTRACT`, `DATA_SPLIT_POLICY`, `ANNOTATION_SEMANTICS`, `CROSS_DATASET_PROVENANCE`, §42 | near-complete |
+| 3.2 Signal pipeline | `SIGNAL_PROCESSING_CONTRACT` | complete |
+| 3.3 Architecture | `B4_*`, `P1_*`, `M1_*`, `M2_*`, `U1_*`, `T2_*`, §48 | complete |
+| 3.4 Episode layer | `T1_CAUSAL_EPISODE_STATE_PROTOCOL_V1`, `t1_episode_reasoning` | complete |
+| **4. Evidence framework** ★ | `EXPERIMENT_CONTRACT`, `RUNTIME_INTEGRITY_SENTINEL_V1`, §§40–47 | **the contribution — write from code** |
+| **5. Failure and recovery** ★ | `T1_EXECUTION_RECOVERY_AMENDMENT_V1_1`, `T1_FAILURE_RECEIPT_RECONSTRUCTED.json`, `T1_CONTINUATION_PREAUTHORIZATION` §10, §45 | **exceptional material, needs assembly** |
+| 6. Experimental setup | retention decisions, `METRICS_PROTOCOL`, §25 | complete |
+| 7. Results | `T1_DESCRIPTIVE_REPORT_V1`, §49 | complete; T2 pending the gate |
+| 8. Limitations | `T1_POST_HOC_ANALYSIS_V1` §3, §24, Appendix A | quotable verbatim |
+| 9. Discussion | — | **missing entirely** |
+| 10. Reproducibility | §47 | needs the package |
+
+★ marks the novel contribution. Sections 4 and 5 are where the writing effort
+belongs.
+
+**Title candidates.** *Auditable Machine Learning Research: Provenance,
+Pre-registration, and Consumed-Attempt Semantics in Ambulatory ECG Ischemia
+Detection* · *When the Run Fails: Authorized Recovery of a Consumed Measurement
+Under a Frozen Protocol* · *Negative Capability: Proving What a Model Pipeline
+Cannot Do*.
+
 ---
 
 ## Appendix A — Publication claim boundary
