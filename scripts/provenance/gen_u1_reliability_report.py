@@ -99,6 +99,13 @@ def fmt(value, places: int = 6) -> str:
     return str(value)
 
 
+def fmt_exact(value) -> str:
+    """Verbatim for values `fmt` would flatten -- `clamp_delta` is 1e-07."""
+    if value is None:
+        return UNDEFINED
+    return repr(value)
+
+
 def signed_gap(empirical, mean_probability):
     """Plan §3.1: `empirical - mean`. Positive means under-confident."""
     if empirical is None or mean_probability is None:
@@ -120,6 +127,65 @@ def degeneracy(reliability: dict) -> dict:
         "smallest": min(counts) if counts else None,
         "largest": max(counts) if counts else None,
     }
+
+
+def _contiguous(indices: list[int]) -> str:
+    """`[0, 1, 2]` -> `0-2`; a gap in the run is spelled out."""
+    if not indices:
+        return "none"
+    runs, start, previous = [], indices[0], indices[0]
+    for value in indices[1:]:
+        if value != previous + 1:
+            runs.append((start, previous))
+            start = value
+        previous = value
+    runs.append((start, previous))
+    return ", ".join(str(a) if a == b else f"{a}-{b}" for a, b in runs)
+
+
+def direction_note(reliability: dict) -> dict:
+    """Plan §3.1 fixed the sign convention so direction is reported, not left
+    to the reader to subtract. This reads the sign of the authorized gap; it
+    introduces no new quantity."""
+    entries = bin_rows(reliability)
+    gaps = [
+        (
+            index,
+            signed_gap(
+                entry.get("empirical_positive_fraction"), entry.get("mean_probability")
+            ),
+            int(entry.get("count", 0)),
+        )
+        for index, entry in enumerate(entries)
+    ]
+    defined = [(i, g, c) for i, g, c in gaps if g is not None]
+    positive = [i for i, g, _ in defined if g > 0]
+    negative = [i for i, g, _ in defined if g < 0]
+    widest = min(defined, key=lambda row: row[1], default=None)
+    heaviest = max(gaps, key=lambda row: row[2], default=None)
+    return {
+        "positive": _contiguous(positive),
+        "negative": _contiguous(negative),
+        "widest_index": None if widest is None else widest[0],
+        "widest_gap": None if widest is None else widest[1],
+        "widest_rows": None if widest is None else widest[2],
+        "heaviest_index": None if heaviest is None else heaviest[0],
+        "heaviest_rows": None if heaviest is None else heaviest[2],
+    }
+
+
+def direction_paragraph(out: list, reliability: dict, row_count) -> None:
+    note = direction_note(reliability)
+    out.append(
+        f"Gap is positive in bin(s) **{note['positive']}** — observed positive "
+        f"rate above predicted probability — and negative in bin(s) "
+        f"**{note['negative']}**. The widest negative gap is "
+        f"{fmt(note['widest_gap'])} at bin {note['widest_index']}, "
+        f"which carries {fmt(note['widest_rows'])} rows. The heaviest bin is "
+        f"{note['heaviest_index']}, carrying {fmt(note['heaviest_rows'])} of the "
+        f"family's {fmt(row_count)} rows."
+    )
+    out.append("")
 
 
 def bin_table(out: list, reliability: dict) -> None:
@@ -213,8 +279,11 @@ def build_report(root: pathlib.Path, *, git_sha: str = "unrecorded") -> str:
     w("finding. The uncalibrated baseline is the raw score treated as a")
     w("probability, which is what makes the comparison answerable.")
     w("")
-    w("| Family | NLL | Brier | ECE equal-width | ECE equal-mass | Rows |")
-    w("|---|---:|---:|---:|---:|---:|")
+    w(
+        "| Family | NLL | Brier | ECE equal-width | ECE equal-mass | Rows "
+        "| `clamp_delta` | `out_of_fold` |"
+    )
+    w("|---|---:|---:|---:|---:|---:|---:|---|")
     for family in FAMILY_ORDER:
         block = families[family]
         w(
@@ -222,8 +291,58 @@ def build_report(root: pathlib.Path, *, git_sha: str = "unrecorded") -> str:
             f"| {fmt(block.get('brier'))} "
             f"| {fmt(block['reliability_equal_width'].get(ECE_KEY))} "
             f"| {fmt(block['reliability_equal_mass'].get(ECE_KEY))} "
-            f"| {fmt(block.get('row_count'))} |"
+            f"| {fmt(block.get('row_count'))} "
+            f"| {fmt_exact(block.get('clamp_delta'))} "
+            f"| `{str(block.get('out_of_fold')).lower()}` |"
         )
+    w("")
+    w("**The baseline row is not a matched comparison, and the retention")
+    w("decision already said so.** `U1_OOF_CALIBRATION.json` carries the")
+    w("qualification in the artifact itself:")
+    w("")
+    semantics = families[BASELINE].get("baseline_semantics")
+    w(f"> `uncalibrated_baseline.baseline_semantics` — {semantics}")
+    w("")
+    w("Its `out_of_fold` and `development_evidence` are both")
+    w(f"`{str(families[BASELINE].get('out_of_fold')).lower()}`, against")
+    w(f"`{str(families[RETAINED].get('out_of_fold')).lower()}` for the retained")
+    w("family. Every comparison below inherits that asymmetry.")
+    w("")
+    w("The temperature-only row is **approximate**:")
+    w(f"`comparator_is_approximate` is `{str(calibration.get('comparator_is_approximate')).lower()}`")
+    w("and `true_logit_temperature_scaling_performed` is")
+    w(f"`{str(calibration.get('true_logit_temperature_scaling_performed')).lower()}`,")
+    w("because true logits were never persisted. Its two ECEs are identical for")
+    w("the reason the retention decision recorded: it over-predicts in every bin")
+    w("of both binnings, so both collapse to the same global mean gap.")
+    w("")
+    w("### 2.1 Protocol §16 condition 2 — restated, not re-decided")
+    w("")
+    w("Plan §3.2 requires the prespecified condition to appear beside the bins as")
+    w("context. U1 protocol §16 condition 2 is that **pooled OOF Brier and NLL")
+    w("are both lower than the uncalibrated baseline**.")
+    w("")
+    retained_block = families[RETAINED]
+    baseline_block = families[BASELINE]
+    w("| Scalar | Retained Platt | Uncalibrated baseline | Condition 2 |")
+    w("|---|---:|---:|---|")
+    for label, key in (
+        ("NLL", "negative_log_likelihood"),
+        ("Brier", "brier"),
+    ):
+        left = retained_block.get(key)
+        right = baseline_block.get(key)
+        holds = UNDEFINED if left is None or right is None else (
+            "lower" if float(left) < float(right) else "not lower"
+        )
+        w(f"| {label} | {fmt(left)} | {fmt(right)} | {holds} |")
+    w("")
+    w("Both scalars are already published in")
+    w("`U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md` §3, and the human")
+    w("retention decision recorded in its §2 was taken with them in hand:")
+    w("**calibration retained, the selective router at `c_star = 0.90` not")
+    w("retained.** This table restates that record. It does not re-decide it, and")
+    w("the baseline asymmetry noted above applies to both rows.")
     w("")
     w("**Improved ECE alone is not a success criterion.** The U1 protocol §16 says")
     w("so, and the family selection used NLL, not ECE: `ece_used` is")
@@ -239,12 +358,15 @@ def build_report(root: pathlib.Path, *, git_sha: str = "unrecorded") -> str:
     w("observed positive rate exceeded the predicted probability**, i.e. the")
     w("calibrator was under-confident in that bin.")
     w("")
+    retained_rows = families[RETAINED].get("row_count")
     w("### 3.1 Equal-width")
     w("")
     bin_table(out, families[RETAINED]["reliability_equal_width"])
+    direction_paragraph(out, families[RETAINED]["reliability_equal_width"], retained_rows)
     w("### 3.2 Equal-mass")
     w("")
     bin_table(out, families[RETAINED]["reliability_equal_mass"])
+    direction_paragraph(out, families[RETAINED]["reliability_equal_mass"], retained_rows)
     w("---")
     w("")
     w("## 4. Per-bin reliability — the uncalibrated baseline")
@@ -252,12 +374,15 @@ def build_report(root: pathlib.Path, *, git_sha: str = "unrecorded") -> str:
     w("Plan §4 rule 3: a calibration number without its baseline is not")
     w("interpretable, so the baseline is reported at the same resolution.")
     w("")
+    baseline_rows = families[BASELINE].get("row_count")
     w("### 4.1 Equal-width")
     w("")
     bin_table(out, families[BASELINE]["reliability_equal_width"])
+    direction_paragraph(out, families[BASELINE]["reliability_equal_width"], baseline_rows)
     w("### 4.2 Equal-mass")
     w("")
     bin_table(out, families[BASELINE]["reliability_equal_mass"])
+    direction_paragraph(out, families[BASELINE]["reliability_equal_mass"], baseline_rows)
     w("---")
     w("")
     w("## 5. Bin degeneracy — plan §3.3")
@@ -272,7 +397,33 @@ def build_report(root: pathlib.Path, *, git_sha: str = "unrecorded") -> str:
     w("")
     w("---")
     w("")
-    w("## 6. What this report does not support")
+    w("## 6. A limitation of the shape this plan fixed")
+    w("")
+    w("Plan §5 step 4: if the shape fixed in advance turns out to be wrong, that")
+    w("is recorded here as a limitation, not repaired by editing the plan. The")
+    w("plan is not modified.")
+    w("")
+    equal_width = degeneracy(families[RETAINED]["reliability_equal_width"])
+    w("Plan §3.3 chose four degeneracy statistics — empty bins, bins under")
+    w(f"{SPARSE_BIN_ROWS} rows, smallest and largest — to surface the fact that")
+    w("equal-width binning on a low-prevalence detector score concentrates mass")
+    w("at one end. On the retained calibrator's equal-width binning those")
+    w(f"statistics read {equal_width['empty_bins']} empty and")
+    w(f"{equal_width['sparse_bins']} sparse, which on its own reads as a healthy")
+    w("curve. The concentration is visible only in the smallest and largest")
+    w(f"columns: {fmt(equal_width['smallest'])} rows against")
+    w(f"{fmt(equal_width['largest'])}.")
+    w("")
+    w("**A count of sparse bins is the wrong summary for this evidence.** The")
+    w("share of mass in the heaviest bin would have been the right one, and the")
+    w("plan did not name it. It is not added here: choosing a statistic after")
+    w("seeing the values is the error the plan exists to prevent, and the two")
+    w("numbers a reader needs are both already in the table above. This is")
+    w("recorded so a future plan names the share in advance.")
+    w("")
+    w("---")
+    w("")
+    w("## 7. What this report does not support")
     w("")
     w("- **Nothing about TEST.** `test_accessed` is false and the B4/neural sealed")
     w("  test is unopened.")
@@ -289,7 +440,7 @@ def build_report(root: pathlib.Path, *, git_sha: str = "unrecorded") -> str:
     w("  `score_is_calibrated_probability: false`; a bounded sigmoid is not a")
     w("  probability, and nothing in this report may be attached to one.")
     w("")
-    w("## 7. Excluded analyses — plan §3.5")
+    w("## 8. Excluded analyses — plan §3.5")
     w("")
     w("Not done, and not to be done as a follow-up without a separate decision:")
     w("")
