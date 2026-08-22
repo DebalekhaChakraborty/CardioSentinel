@@ -19,6 +19,7 @@ from __future__ import annotations
 import hashlib
 import json
 import pathlib
+import subprocess
 import sys
 
 REPOSITORY_ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -48,6 +49,22 @@ SPARSE_BIN_ROWS = 30
 UNDEFINED = "*undefined*"
 
 ECE_KEY = "expected_calibration_error"
+
+
+def _git_sha() -> str:
+    """Plan §3.4 requires the commit the report was generated at.
+
+    Best-effort and never fatal, matching the T2 and W1 generators: a report
+    that fails to render because `git` is unavailable is worse than one that
+    records the commit as unrecorded.
+    """
+    try:
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=REPOSITORY_ROOT, capture_output=True, text=True, check=True,
+        ).stdout.strip()
+    except Exception:  # noqa: BLE001 - provenance is best-effort, never fatal
+        return "unrecorded"
 
 
 def _run_label(root: pathlib.Path) -> str:
@@ -290,7 +307,9 @@ def main(argv: list[str]) -> int:
         print(__doc__, file=sys.stderr)
         return 2
     destination = pathlib.Path(argv[1])
-    destination.write_text(build_report(RUN), encoding="utf-8")
+    destination.write_text(
+        build_report(RUN, git_sha=_git_sha()), encoding="utf-8"
+    )
     print(f"wrote {destination}")
     return 0
 

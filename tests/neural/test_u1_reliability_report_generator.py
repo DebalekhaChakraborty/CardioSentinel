@@ -215,3 +215,31 @@ def test_the_generator_opens_no_npz_store():
     assert "npz" not in {
         node.value for node in ast.walk(tree) if isinstance(node, ast.Constant)
     }
+
+
+def test_the_commit_reaches_the_report(run_root):
+    """Plan §3.4 requires the commit the report was generated at."""
+    report = GEN.build_report(run_root, git_sha="0123456789abcdef")
+    assert "| Generated at commit | `0123456789abcdef` |" in report
+
+
+def test_main_records_the_commit_rather_than_leaving_it_unrecorded(
+    run_root, tmp_path, monkeypatch
+):
+    """The default is `unrecorded`; `main` must not ship it.
+
+    Hermetic: the run root and the SHA lookup are both stubbed, so this
+    proves the wiring without reading the promoted artifacts.
+    """
+    monkeypatch.setattr(GEN, "RUN", run_root)
+    monkeypatch.setattr(GEN, "_git_sha", lambda: "deadbeefcafe")
+    destination = tmp_path / "report.md"
+    assert GEN.main(["gen", str(destination)]) == 0
+    written = destination.read_text(encoding="utf-8")
+    assert "`deadbeefcafe`" in written
+    assert "unrecorded" not in written
+
+
+def test_the_sha_lookup_resolves_in_this_repository():
+    sha = GEN._git_sha()
+    assert len(sha) == 40 and all(c in "0123456789abcdef" for c in sha), sha
