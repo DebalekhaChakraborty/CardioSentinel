@@ -15,7 +15,7 @@ the second arm.
 
 | | |
 |---|---|
-| Analysis executed at commit | `f998bf5e0797d076215873aae72300b59f007b6f` |
+| Analysis executed at commit | `9cee11f767d94e641ff48bea1323c3c0aa3d3c6e` |
 | Preserved state evidence | `t1_oof_state_evidence.npz` |
 | Digest, verified before any row was read | `72f13a8b29eafdd99801bb64dbf8b61f19717f3d7af777d74f21c9709dd28232` |
 | Rows in the consumed trace | 492,904 |
@@ -209,7 +209,7 @@ reason.
 
 ---
 
-## 5. What this does and does not answer
+## 6. What this does and does not answer
 
 **Answers.** Whether the T1 episode state machine changes episode-level
 agreement relative to a memoryless window rule, on identical rows, under
