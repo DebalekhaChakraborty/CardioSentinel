@@ -55,6 +55,23 @@ GRU = "causal_gru_longitudinal_v1"
 
 PLAN = "docs/T2_ARM_COMPARISON_ANALYSIS_PLAN_V1.md"
 PLAN_SHA256 = "84adf43b885d6dd3ecef3b678d1a2b89fc6e94f48ffdf8d2f0dc2bb0a7eba973"
+AMENDMENT = "docs/T2_ARM_COMPARISON_ANALYSIS_PLAN_AMENDMENT_V1_1.md"
+
+#: Amendment V1.1 §3.1. The two quantities the registered differences are
+#: computed from, and deliberately nothing else.
+DESCRIPTIVE_ABSOLUTE_METRIC = "auprc"
+
+#: Amendment V1.1 §2/§3, quoted verbatim wherever the values appear.
+COLD_START_WORDING = (
+    "Cold-start strata are reported as descriptive stratification summaries. "
+    "They do not constitute independent performance estimates and are not "
+    "used to support absolute model superiority claims."
+)
+ABSOLUTE_WORDING = (
+    "Absolute arm-level values are descriptive because the selected arm was "
+    "chosen using the same criterion. They are reported to give the primary "
+    "contrast a scale, not as unbiased estimates of either arm's performance."
+)
 
 #: Plan §0 and §0.2. Verified before a single value is read; a mismatch means
 #: the evidence is not the evidence the plan was written against.
@@ -242,10 +259,22 @@ def build_report(run: pathlib.Path) -> str:
     w("")
     w(f"**Step 3 of `{PLAN}`: the first read of T2 outer-validation measured")
     w("values.** Produced under explicit human authorization, to the reporting")
-    w("shape fixed in §2–§5 of that plan before any value was visible. The plan")
-    w("was not modified after the values became readable.")
+    w("shape fixed in §2–§5 of that plan before any value was visible.")
     w("")
-    w(f"Plan SHA-256 `{PLAN_SHA256}`.")
+    w("**The plan itself is unedited** and still digests")
+    w(f"`{PLAN_SHA256}`. Its estimands, its derived analysis and its claim")
+    w("boundaries are exactly as approved before the first read.")
+    w("")
+    w(f"**An amendment postdates that read.** `{AMENDMENT}`")
+    w(f"(`{_sha256(REPOSITORY_ROOT / AMENDMENT)}`) was written on 2026-08-22,")
+    w("**after** the values were visible, and is stated here rather than left to")
+    w("be inferred. It repairs an unreconciled conflict between plan §5.3, which")
+    w("required cold-start strata verbatim, and plan §3, which constrained")
+    w("absolute figures — a conflict the first execution resolved silently by")
+    w("dropping values. **The amendment only ever adds reporting.** It changes no")
+    w("estimand, authorizes no new computation, and revises no number: the")
+    w("primary contrast and the derived interval below are identical to those")
+    w("produced before it existed.")
     w("")
     w("**Every number below is read verbatim from a promoted artifact, with one")
     w("exception** named and authorized in advance by plan §4 and labelled")
@@ -345,14 +374,57 @@ def build_report(run: pathlib.Path) -> str:
     w("| **The paired contrast is unbiased** | Both arms were evaluated on the same held-out rows under a rule fixed in advance. Selecting on the outcome does not bias the *difference*. |")
     w("| **The winner's absolute figure is not** | The selected arm's own AUPRC on this set is optimistically biased, because it was chosen for having the higher value **on this very set**. The bias attaches to the maximum, not to the contrast. |")
     w("")
-    w("**Consequently this report does not print either arm's absolute pooled or")
-    w("subject-macro AUPRC.** Plan §2, §4 and §5 enumerate what may be reported —")
-    w("the contrast, the derived interval, the subject-macro difference and the")
-    w("selection-independent descriptors — and a per-arm absolute-performance table")
-    w("is not among them. Printing one would place an inadmissible number in the")
-    w("reader's hands next to the admissible ones. If the absolute figures are")
-    w("wanted for a manuscript, that is a separate decision with its own wording,")
-    w("not an omission to be quietly repaired here.")
+    w("### 2.2 Arm-level absolute AUPRC — descriptive (amendment §3)")
+    w("")
+    w(f"> {ABSOLUTE_WORDING}")
+    w("")
+    w("| Arm | pooled primary AUPRC | subject-macro AUPRC | contributing subjects | non-contributing |")
+    w("|---|---:|---:|---:|---:|")
+    degeneracy = set()
+    for arm in (S4D, GRU):
+        block = result["per_arm_evidence"][arm]
+        macro = block["subject_macro"].get(DESCRIPTIVE_ABSOLUTE_METRIC)
+        if isinstance(macro, dict):
+            value = macro.get("value")
+            contributing = macro.get("contributing_subject_count")
+            non_contributing = macro.get("non_contributing_subject_count")
+        else:
+            value, contributing, non_contributing = macro, None, None
+        degeneracy.add(non_contributing)
+        w(
+            f"| `{arm}` | {fmt(block['pooled'].get(DESCRIPTIVE_ABSOLUTE_METRIC))} "
+            f"| {fmt(value)} | {fmt(contributing)} | {fmt(non_contributing)} |"
+        )
+    w("")
+    excluded = sorted(v for v in degeneracy if v)
+    if excluded:
+        w(f"**The subject-macro figure is a mean over {fmt(contributing)} of 12")
+        w(f"subjects, not 12.** The artifact records {fmt(non_contributing)}")
+        w("non-contributing subjects for both arms, and it is the artifact's own")
+        w("count, not a derivation. A subject-macro mean quoted without that")
+        w("denominator reads as an average over the cohort when it is an average")
+        w("over the subset of it for which the metric is defined.")
+        w("")
+        w("This is the same distinction the T1 analysis had to make after the")
+        w("fact — `episode_f1` was *defined* for 12/12 subjects while three of")
+        w("them had zero reference episodes. **Defined is not meaningful.** It is")
+        w("stated here because the amendment surfaced the value; the")
+        w("pre-amendment report, which omitted the absolute, also omitted this.")
+        w("")
+        w("No claim is made about **which** subjects those are, or why. That")
+        w("would be a subgroup analysis and plan §5.3 forbids one.")
+        w("")
+    w("These give §2's contrast a scale. Reporting them does not license any")
+    w("sentence plan §3 forbids: *\"S4D achieved superior AUPRC\"* and *\"S4D was")
+    w("found to outperform GRU\"* remain prohibited, and the selected arm's")
+    w("absolute figure remains optimistically biased for the reason in §2.1.")
+    w("")
+    w("The remaining pooled and subject-macro metrics (`auroc`,")
+    w("`balanced_accuracy`, `f1`, `mcc`, `npv`, `ppv`, `sensitivity`,")
+    w("`specificity`) exist in the artifact and are **not** reported: no")
+    w("registered estimand is computed from them, and adding them after the")
+    w("values are visible would be the scope creep the amendment objects to.")
+    w("That boundary is a decision, not an accident.")
     w("")
     w("---")
     w("")
@@ -512,7 +584,8 @@ def build_report(run: pathlib.Path) -> str:
     w("")
     w("## 6. Secondary — challenge and cold-start evidence (plan §5.3)")
     w("")
-    w("Descriptive. No subgroup claim is made from either.")
+    w("Descriptive. No subgroup claim is made from either, and no stratum or")
+    w("subset is compared across arms as a finding.")
     w("")
     for arm in (S4D, GRU):
         block = result["per_arm_evidence"][arm]["challenge"]
@@ -555,11 +628,25 @@ def build_report(run: pathlib.Path) -> str:
         strata = block.get("strata") or {}
         if isinstance(strata, dict) and strata:
             w("")
-            w("| Stratum | Rows |")
-            w("|---|---:|")
+            w(f"> {COLD_START_WORDING}")
+            w("")
+            metric_keys = sorted(
+                {
+                    key
+                    for values in strata.values()
+                    if isinstance(values, dict)
+                    for key in (values.get("metrics") or {})
+                }
+            )
+            header = " | ".join(f"`{key}`" for key in metric_keys)
+            w(f"| Stratum | Rows | {header} |")
+            w("|---|---:|" + "---:|" * len(metric_keys))
             for stratum, values in sorted(strata.items()):
-                rows = values.get("row_count") if isinstance(values, dict) else values
-                w(f"| `{stratum}` | {fmt(rows)} |")
+                if not isinstance(values, dict):
+                    continue
+                metrics = values.get("metrics") or {}
+                cells = " | ".join(fmt(metrics.get(key)) for key in metric_keys)
+                w(f"| `{stratum}` | {fmt(values.get('row_count'))} | {cells} |")
         w("")
     w("---")
     w("")
