@@ -52,6 +52,14 @@ def _bins(count: int = 15, *, empty_at=(), sparse_at=()):
     return out
 
 
+def _bin(rows: int, mean, empirical) -> dict:
+    return {
+        "count": rows,
+        "mean_probability": mean,
+        "empirical_positive_fraction": empirical,
+    }
+
+
 def _family(name: str, *, nll: float, brier: float, **kwargs):
     return {
         "name": name,
@@ -272,9 +280,9 @@ def test_the_direction_of_the_gap_is_read_from_the_sign(run_root):
     note = GEN.direction_note(
         {
             "bins": [
-                {"count": 100, "mean_probability": 0.1, "empirical_positive_fraction": 0.2},
-                {"count": 900, "mean_probability": 0.5, "empirical_positive_fraction": 0.1},
-                {"count": 10, "mean_probability": 0.9, "empirical_positive_fraction": None},
+                _bin(100, 0.1, 0.2),
+                _bin(900, 0.5, 0.1),
+                _bin(10, 0.9, None),
             ]
         }
     )
@@ -282,6 +290,7 @@ def test_the_direction_of_the_gap_is_read_from_the_sign(run_root):
     assert note["negative"] == "1"
     assert note["widest_index"] == 1
     assert note["heaviest_index"] == 1 and note["heaviest_rows"] == 900
+    assert note["lightest_rows"] == 10
     assert "Gap is positive in bin(s)" in GEN.build_report(run_root)
 
 
@@ -306,3 +315,24 @@ def test_the_fixed_shape_limitation_is_recorded(run_root):
     report = GEN.build_report(run_root)
     assert "## 6. A limitation of the shape this plan fixed" in report
     assert "wrong summary for this evidence" in report
+
+
+def test_the_widest_gap_is_by_magnitude_not_by_minimum():
+    """An all-positive column has no minimum that is a widest negative gap."""
+    note = GEN.direction_note(
+        {
+            "bins": [
+                _bin(10, 0.1, 0.15),
+                _bin(10, 0.2, 0.60),
+            ]
+        }
+    )
+    assert note["negative"] == "none"
+    assert note["widest_index"] == 1
+
+
+def test_even_binnings_are_not_described_as_concentrated(run_root):
+    """Equal-mass bins are even by construction; the range says so."""
+    report = GEN.build_report(run_root)
+    assert "Bin counts run from" in report
+    assert "widest negative gap" not in report
