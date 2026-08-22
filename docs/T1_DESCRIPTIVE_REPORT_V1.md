@@ -314,6 +314,21 @@ A summary that reports only the pooled median conceals that the underlying
 distribution spans both signs. Any figure or sentence built on latency states
 the sign convention, and no latency summary is reported as a delay.
 
+**A negative offset does not establish anticipation.** `match_runs_to_episodes`
+pairs a run to an episode on **overlap alone** — `run_begin < end and begin <
+run_end` — with no tolerance window and no bound on how early a run may start.
+A negative offset is therefore equally consistent with:
+
+- a persistent `EVENT` state that was already active and merely overlaps the
+  episode, and
+- a long-duration detected run that spans the annotated onset.
+
+The artifacts record `onset_latency_seconds` but not run durations, so this
+evidence cannot distinguish those from genuine anticipation. **The terms
+"early detection", "warning time" and "predictive lead time" are therefore
+not used anywhere in this programme's reporting of T1**, and no latency figure
+is presented as a clinical anticipation interval.
+
 ---
 
 ## 10. What this study does not evaluate — plan §7.9
