@@ -27,8 +27,9 @@ from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
-# The two canonical namespaces. The second does not exist yet; naming it here
-# means a continuation attempt cannot be created by a test unnoticed either.
+# The two canonical namespaces. Both have since been executed and both are
+# immutable evidence; naming them here means neither can be created, extended or
+# disturbed by a test unnoticed.
 CANONICAL_ATTEMPT = (
     REPOSITORY_ROOT
     / "cardiosentinel-runs"
@@ -96,3 +97,8 @@ def assert_attempt_unconsumed() -> None:
 # the attempt is absent is the mistake this module was written to fix, and
 # assuming it is present is the same mistake facing the other way.
 ATTEMPT_PRESENT: bool = CANONICAL_ATTEMPT.exists()
+
+#: The same question for the continuation namespace, which is now also executed,
+#: also gitignored and also local-only. It exists so no test has to hard-code an
+#: answer that is true on exactly one of the two machines.
+CONTINUATION_PRESENT: bool = CONTINUATION_ROOT.exists()

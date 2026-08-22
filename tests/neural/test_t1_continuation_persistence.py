@@ -15,6 +15,7 @@ import json
 from pathlib import Path
 
 import pytest
+from _attempt_guard import assert_attempt_unconsumed
 
 from cardiosentinel.neural import t1_continuation_gate as G
 from cardiosentinel.neural import t1_continuation_labels as L
@@ -298,5 +299,5 @@ def test_labels_must_cover_every_trace_row():
         L.require_labels_cover_trace(labels, ["a", "b"], 0)
 
 
-def test_no_continuation_run_directory_was_created():
-    assert not S.CONTINUATION_RUN_ROOT.exists()
+def test_no_continuation_run_directory_was_created_by_this_module():
+    assert_attempt_unconsumed()

@@ -1,14 +1,35 @@
-"""Future outer-VALIDATION evaluator and descriptive metrics -- execution refused.
+"""The outer-VALIDATION evaluator and its descriptive metrics. **Already run.**
 
 Every entry point that would touch VALIDATION calls
 `require_outer_validation_authorized()` **first**, before path resolution,
-before the representation memmap and before any label read. The activation
-constant lives in `t2_persistence`, is `False`, and has no setter, flag or
-environment variable. This module exists so the semantics can be reviewed before
-scientific exposure, not so they can be run.
+before the representation memmap and before any label read. That ordering still
+holds and is still the point.
 
-The metric functions below are pure and are exercised synthetically. They
-compute nothing about the real corpus in this change set.
+**What is no longer true.** This docstring used to say "execution refused", that
+the activation constant is `False`, and that the metrics below "compute nothing
+about the real corpus". All three described the state of this module before its
+activation change set. Today:
+
+* `t2_persistence.T2_OUTER_VALIDATION_EXECUTION_AUTHORIZED` is **`True`**.
+* The one-shot outer VALIDATION **has been executed**, on the canonical TRAIN
+  artifacts, and its evidence is locked at
+  `cardiosentinel-runs/phase8-t2-development-v1/t2-v1-outer-validation/`.
+* The functions below therefore *have* computed against the real corpus.
+
+**What prevents a second run is not the activation constant.** It is the
+persistence claim: `t2_persistence.claim_*` refuses an attempt id that is
+already claimed, with `automatic_retry_permitted: False` and
+`automatic_alternate_name_permitted: False`, and re-claiming requires a
+documented human decision. Read the claim, not the flag, when you are asking
+whether this can run again.
+
+There is still no setter, argument or environment variable that bypasses
+`require_outer_validation_authorized()`.
+
+**The measured values are a separate gate.** Execution having happened does not
+mean the numbers may be read. `docs/T2_ARM_COMPARISON_ANALYSIS_PLAN_V1.md`
+governs the first read, and §3 of it carries the conditioning disclosure that
+makes S4D's absolute figure on this set inadmissible as a performance claim.
 """
 
 from __future__ import annotations
