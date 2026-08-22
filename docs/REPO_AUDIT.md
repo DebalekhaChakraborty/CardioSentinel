@@ -1,4 +1,16 @@
-# Repository Audit
+# Repository Audit — historical
+
+**This is a historical record of the *pre-reboot* repository, not a current
+audit.** It describes the 2020 B.Tech prototype as it stood on 2026-08-06,
+before the rebuild. That prototype is retained unchanged in
+[`legacy/college-v1/`](../legacy/college-v1/README.md).
+
+For the current state of the repository see
+[`CURRENT_STATE.md`](CURRENT_STATE.md), and for the research ladder see
+[`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md). Nothing below should be read
+as describing the present codebase.
+
+---
 
 Audit date: 2026-08-06. The pre-reboot repository contained 16 tracked files,
 all last updated in June 2020, with no package metadata, dependency lock, test

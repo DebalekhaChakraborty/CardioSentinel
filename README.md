@@ -71,10 +71,31 @@ Platt calibration is retained, and the window-level selective router at
 `c_star = 0.90` is explicitly **not** retained, so no routing policy is frozen
 or in force
 (see [`docs/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md`](docs/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md)).
-Longitudinal temporal modeling is trained and one-shot outer-validated. The
-causal episode-state layer has been executed and measured; its result is
+Longitudinal temporal modeling is trained, one-shot outer-validated, and
+analysed: the S4D and GRU arms are compared in
+[`docs/T2_ARM_COMPARISON_REPORT_V1.md`](docs/T2_ARM_COMPARISON_REPORT_V1.md).
+The predefined rule selected the causal S4D arm on the observed validation
+contrast; that contrast **is** the selection criterion, and its paired
+subject-bootstrap interval includes zero, so no claim of superior performance
+follows from it.
+
+The causal episode-state layer has been executed and measured; its result is
 reported in [`docs/T1_DESCRIPTIVE_REPORT_V1.md`](docs/T1_DESCRIPTIVE_REPORT_V1.md)
-and no further execution is authorized. See
+and no further execution is authorized. A window-only comparator was then
+pre-registered and run against it
+([`docs/W1_WINDOW_COMPARATOR_REPORT_V1.md`](docs/W1_WINDOW_COMPARATOR_REPORT_V1.md)):
+at the frozen operating point the episode state machine agrees with reference
+episodes substantially better than a memoryless rule does at that same point.
+That is the first research question this programme answers affirmatively, and
+the operating point is part of the claim — both arms ran at thresholds selected
+with the state machine in the loop, so it does not show that episode reasoning
+beats window-level alerting in general.
+
+External validation has been scoped but not performed. No independent
+ST-episode cohort exists in the public record; the audit and its consequences
+are in
+[`docs/EXTERNAL_VALIDATION_STRATEGY_V1.md`](docs/EXTERNAL_VALIDATION_STRATEGY_V1.md).
+The B4 neural sealed test remains unopened. See
 [`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md) for the current experiment
 ladder, open work, and known risks.
 
