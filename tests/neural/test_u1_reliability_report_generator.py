@@ -52,6 +52,14 @@ def _bins(count: int = 15, *, empty_at=(), sparse_at=()):
     return out
 
 
+def _bin(rows: int, mean, empirical) -> dict:
+    return {
+        "count": rows,
+        "mean_probability": mean,
+        "empirical_positive_fraction": empirical,
+    }
+
+
 def _family(name: str, *, nll: float, brier: float, **kwargs):
     return {
         "name": name,
@@ -215,3 +223,116 @@ def test_the_generator_opens_no_npz_store():
     assert "npz" not in {
         node.value for node in ast.walk(tree) if isinstance(node, ast.Constant)
     }
+
+
+def test_the_commit_reaches_the_report(run_root):
+    """Plan §3.4 requires the commit the report was generated at."""
+    report = GEN.build_report(run_root, git_sha="0123456789abcdef")
+    assert "| Generated at commit | `0123456789abcdef` |" in report
+
+
+def test_main_records_the_commit_rather_than_leaving_it_unrecorded(
+    run_root, tmp_path, monkeypatch
+):
+    """The default is `unrecorded`; `main` must not ship it.
+
+    Hermetic: the run root and the SHA lookup are both stubbed, so this
+    proves the wiring without reading the promoted artifacts.
+    """
+    monkeypatch.setattr(GEN, "RUN", run_root)
+    monkeypatch.setattr(GEN, "_git_sha", lambda: "deadbeefcafe")
+    destination = tmp_path / "report.md"
+    assert GEN.main(["gen", str(destination)]) == 0
+    written = destination.read_text(encoding="utf-8")
+    assert "`deadbeefcafe`" in written
+    assert "unrecorded" not in written
+
+
+def test_the_sha_lookup_resolves_in_this_repository():
+    sha = GEN._git_sha()
+    assert len(sha) == 40 and all(c in "0123456789abcdef" for c in sha), sha
+
+
+def test_clamp_delta_is_reported_and_not_flattened(run_root):
+    """Plan §3.1 names `clamp_delta`; six-place float rendering shows 0.000000."""
+    report = GEN.build_report(run_root)
+    assert "`clamp_delta`" in report
+    assert GEN.fmt_exact(1e-07) == "1e-07"
+    assert GEN.fmt_exact(None) == GEN.UNDEFINED
+
+
+def test_protocol_condition_two_is_restated_with_its_verdict(run_root):
+    """Plan §3.2 requires the prespecified condition beside the bins."""
+    report = GEN.build_report(run_root)
+    assert "## 2.1 Protocol §16 condition 2" in report
+    assert "pooled OOF Brier and NLL" in report
+    assert "restates that record" in report
+
+
+def test_the_baseline_asymmetry_is_carried_forward(run_root):
+    """The artifact says the baseline is a reference, not OOF evidence."""
+    report = GEN.build_report(run_root)
+    assert "not a matched comparison" in report
+    assert "baseline_semantics" in report
+
+
+def test_the_direction_of_the_gap_is_read_from_the_sign(run_root):
+    note = GEN.direction_note(
+        {
+            "bins": [
+                _bin(100, 0.1, 0.2),
+                _bin(900, 0.5, 0.1),
+                _bin(10, 0.9, None),
+            ]
+        }
+    )
+    assert note["positive"] == "0"
+    assert note["negative"] == "1"
+    assert note["widest_index"] == 1
+    assert note["heaviest_index"] == 1 and note["heaviest_rows"] == 900
+    assert note["lightest_rows"] == 10
+    assert "Gap is positive in bin(s)" in GEN.build_report(run_root)
+
+
+def test_contiguous_runs_are_collapsed():
+    assert GEN._contiguous([0, 1, 2]) == "0-2"
+    assert GEN._contiguous([0, 2, 3, 7]) == "0, 2-3, 7"
+    assert GEN._contiguous([]) == "none"
+
+
+def test_no_section_number_is_used_twice(run_root):
+    """ECG 14 shipped a report carrying two `## 5.` headings."""
+    import re
+
+    report = GEN.build_report(run_root)
+    numbers = re.findall(r"^## (\d+)\.", report, flags=re.MULTILINE)
+    assert numbers == sorted(numbers, key=int), numbers
+    assert len(numbers) == len(set(numbers)), numbers
+
+
+def test_the_fixed_shape_limitation_is_recorded(run_root):
+    """Plan §5 step 4: record it in the report, do not edit the plan."""
+    report = GEN.build_report(run_root)
+    assert "## 6. A limitation of the shape this plan fixed" in report
+    assert "wrong summary for this evidence" in report
+
+
+def test_the_widest_gap_is_by_magnitude_not_by_minimum():
+    """An all-positive column has no minimum that is a widest negative gap."""
+    note = GEN.direction_note(
+        {
+            "bins": [
+                _bin(10, 0.1, 0.15),
+                _bin(10, 0.2, 0.60),
+            ]
+        }
+    )
+    assert note["negative"] == "none"
+    assert note["widest_index"] == 1
+
+
+def test_even_binnings_are_not_described_as_concentrated(run_root):
+    """Equal-mass bins are even by construction; the range says so."""
+    report = GEN.build_report(run_root)
+    assert "Bin counts run from" in report
+    assert "widest negative gap" not in report
