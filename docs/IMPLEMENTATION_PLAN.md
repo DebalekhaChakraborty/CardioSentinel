@@ -57,6 +57,23 @@ addressed, not day-to-day status.
    modes (`T1_POST_HOC_ANALYSIS_V1.md`). No further T1 execution is authorized.
    The false-alarm-per-hour and temporal-IoU evaluation named in this item's
    scope was **never computed** and may not be reported.
+
+   The longitudinal half was subsequently analysed
+   (`T2_ARM_COMPARISON_REPORT_V1.md`, as amended by
+   `T2_ARM_COMPARISON_ANALYSIS_PLAN_AMENDMENT_V1_1.md`): the predefined rule
+   selected the causal S4D arm on the observed validation contrast, that
+   contrast **is** the selection criterion, and its paired subject-bootstrap
+   interval includes zero. No superiority claim follows.
+
+   The episodic half was given the comparator it lacked
+   (`W1_WINDOW_COMPARATOR_ANALYSIS_PLAN_V1.md` →
+   `W1_WINDOW_COMPARATOR_REPORT_V1.md`): a memoryless window-only rule, on
+   identical rows under identical frozen thresholds, scores materially lower
+   than the state machine, with a paired interval excluding zero. **This is the
+   programme's first affirmatively answered research question (RQ4), and it is
+   bounded** — both arms ran at an operating point selected with the state
+   machine in the loop, so it does not establish that episode reasoning beats
+   window-level alerting in general.
 8. **Edge/cloud routing:** confidence-aware policy evaluated without clinical
    claims. **Not delivered.** The window-level policy was evaluated under item 6
    and rejected — see item 6 for what that decision does and does not retain.
@@ -69,4 +86,14 @@ addressed, not day-to-day status.
    complete on a fixed benchmark host (`B4_RESOURCE_BENCHMARK_V1.md`);
    no on-device or edge-hardware measurement exists yet.
 10. **Final ablation and external validation:** pre-specified comparisons,
-    confounder analysis, and bounded reporting. Not started.
+    confounder analysis, and bounded reporting. The first ablation is done —
+    see item 7's window-only comparator. External validation is **scoped but
+    not performed** (`EXTERNAL_VALIDATION_STRATEGY_V1.md`), and the scoping
+    result is itself the finding: **no independent ST-episode cohort exists in
+    the public record.** EDB is available only as a *secondary* cohort — 15
+    records are excluded for documented LTSTDB overlap, the remaining 75 are
+    not proven independent, and its ~2-hour excerpts sit largely in the
+    cold-start regime where the model is weakest. STAFF III has gold-standard
+    occlusion timing but fails on sampling rate, lead set, recording duration,
+    annotation type and ischemia mechanism. No cohort has been acquired and no
+    contract has been changed.
