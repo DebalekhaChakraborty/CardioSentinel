@@ -130,6 +130,44 @@ def test_misaligned_arms_are_refused(truncate):
         PB.require_paired_inputs(*shortened)
 
 
+def test_numpy_array_inputs_are_accepted():
+    """The real caller hands numpy arrays, not lists.
+
+    `require_paired_inputs` used `not subjects`, which raises on an array of
+    more than one element instead of answering. Every synthetic test passed
+    lists, so the check was first reached at execution -- the junction defect
+    class that consumed the canonical T1 attempt at stage 24.
+    """
+    subjects, labels, s4d, gru = _corpus()
+    PB.require_paired_inputs(
+        np.asarray(subjects, dtype=str),
+        np.asarray(labels, dtype=np.int64),
+        np.asarray(s4d, dtype=np.float64),
+        np.asarray(gru, dtype=np.float64),
+    )
+
+
+def test_the_paired_bootstrap_runs_on_numpy_array_inputs():
+    subjects, labels, s4d, gru = _corpus()
+    result = PB.paired_subject_bootstrap_difference(
+        np.asarray(subjects, dtype=str),
+        np.asarray(labels, dtype=np.int64),
+        np.asarray(s4d, dtype=np.float64),
+        np.asarray(gru, dtype=np.float64),
+        replicates=20,
+        seed=T2_BOOTSTRAP_SEED,
+    )
+    assert result["successful_replicates"] > 0
+
+
+def test_empty_array_inputs_are_refused():
+    empty = np.asarray([], dtype=np.float64)
+    with pytest.raises(PB.T2PairedBootstrapError, match="empty"):
+        PB.require_paired_inputs(
+            np.asarray([], dtype=str), np.asarray([], dtype=np.int64), empty, empty
+        )
+
+
 def test_empty_inputs_are_refused():
     with pytest.raises(PB.T2PairedBootstrapError, match="empty"):
         PB.require_paired_inputs([], [], [], [])

@@ -146,9 +146,12 @@ def require_paired_inputs(
             f"Paired inputs must be row-aligned; lengths are {lengths}. One "
             "identity array and one label vector serve both arms."
         )
-    if not subjects:
+    # `len(...) == 0`, never `not subjects`: the real caller hands these numpy
+    # arrays, and truthiness on an array of more than one element raises rather
+    # than answering. The synthetic tests passed lists and never reached it.
+    if len(subjects) == 0:
         raise T2PairedBootstrapError("Paired inputs are empty.")
-    distinct = set(int(value) for value in labels)
+    distinct = {int(value) for value in labels}
     if not distinct <= {0, 1}:
         raise T2PairedBootstrapError(f"Labels must be binary; saw {sorted(distinct)}.")
 

@@ -18,6 +18,7 @@ entry.
 | `gen_t1_descriptive_report.py` | `docs/T1_DESCRIPTIVE_REPORT_V1.md` | #61, corrected §9.2 in #62 |
 | `gen_t1_post_hoc_analysis.py` | `docs/T1_POST_HOC_ANALYSIS_V1.md` | #62 |
 | `render_handbook_docx.py` | `docs/CardioSentinel_Research_Execution_Handbook_v1.2.docx` | #66 |
+| `gen_t2_arm_comparison_report.py` | `docs/T2_ARM_COMPARISON_REPORT_V1.md` | this PR |
 
 Source digests, as tracked:
 
@@ -25,9 +26,24 @@ Source digests, as tracked:
 178e16c08798cf6f811e1d762785a772a635a7f4e1edf0845ac2bf30f0343853  gen_t1_descriptive_report.py
 c90954403382a884823d110e5fec089fcdacefc4caaf07de65e0f61e7dbb13fe  gen_t1_post_hoc_analysis.py
 5b8104b42a0430d60302ef810318028c7e970689142f2797b250951e5d4c2487  render_handbook_docx.py
+1be3b4c01e4a4786ae02865af2770bc07a1ac9b941603614dce21902ed75b20d  gen_t2_arm_comparison_report.py
 ```
 
 ## Reproducing
+
+`gen_t2_arm_comparison_report.py` reads the promoted outer-validation artifacts
+under `cardiosentinel-runs/phase8-t2-development-v1/t2-v1-outer-validation/` and
+takes an optional run root as `argv[2]`, so it can be pointed at the evidence
+from a worktree that does not contain it. It runs the plan's one authorized
+derived analysis, which is 1,000 subject resamples scored twice over 473,897
+rows -- **about nine minutes**, single-threaded. That cost is inherent to the
+registered design, not a defect.
+
+Unlike the T1 generators it is not byte-reproducible into an identical file on a
+second run: it stamps the commit it was executed at. Every measured value is
+deterministic (seed 2026) and was verified identical across two independent
+runs; only the provenance line differs.
+
 
 The two T1 generators read the promoted continuation artifacts under
 `cardiosentinel-runs/phase9-t1-continuation-v1/t1-v1-measurement-continuation/`.
