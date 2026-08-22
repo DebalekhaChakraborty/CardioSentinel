@@ -33,7 +33,7 @@ artifact stores.
 |---|---|
 | Run | `t2-v1-outer-validation` |
 | Authorized git SHA of the run | `b0f189a57bea8bd28884e7e40be50136fd6e2927` |
-| Analysis executed at commit | `4faaf131315f3a612b7c9baf976229ee7c0e62de` |
+| Analysis executed at commit | `5c1da8ac7dd633260140f0548dc648637d040d8f` |
 | Partition | `validation` |
 | Attempts permitted | 1 |
 | Automatic retry performed | `false` |
@@ -235,6 +235,12 @@ conditional on the fitted temporal models**. It is not a confidence
 interval for a population parameter and it is not a hypothesis test. **No
 p-value and no significance language appears anywhere in this analysis.**
 
+**It is also an *unconditional* resample of the difference, not a
+post-selection inference interval:** the selection event — that the
+difference exceeded the tie tolerance — is not conditioned on, so this
+interval must not be read as the uncertainty *in the selection margin*.
+No such object was computed and the plan authorizes none.
+
 **Resolution caveat, registered before execution.** The resampling unit has
 12 members, so the percentile interval is coarse by construction and its
 tails are governed by a handful of subjects. It indicates between-subject
@@ -304,6 +310,13 @@ descriptive comparisons of temporal behaviour, they were not inputs to the
 choice of arm, and they are not aggregated into, or presented as support
 for, the §2 contrast. `episode_grouping_performed` is false for both arms:
 **no episode reasoning happens here.**
+
+**Neither arm is characterised as better or worse from these numbers.**
+Ranking them would need an alerting-cost model this programme does not
+have — how a fragmented run of alerts trades against a missed episode is
+precisely what RQ4 is unanswered about — so they are reported and left
+unranked. Words like *fragmented*, *chattery* or *stable* carry that
+ranking implicitly and are avoided here for the same reason.
 
 ---
 
