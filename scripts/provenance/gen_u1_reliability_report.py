@@ -161,8 +161,9 @@ def direction_note(reliability: dict) -> dict:
     defined = [(i, g, c) for i, g, c in gaps if g is not None]
     positive = [i for i, g, _ in defined if g > 0]
     negative = [i for i, g, _ in defined if g < 0]
-    widest = min(defined, key=lambda row: row[1], default=None)
+    widest = max(defined, key=lambda row: abs(row[1]), default=None)
     heaviest = max(gaps, key=lambda row: row[2], default=None)
+    counts = [count for _, _, count in gaps]
     return {
         "positive": _contiguous(positive),
         "negative": _contiguous(negative),
@@ -171,6 +172,7 @@ def direction_note(reliability: dict) -> dict:
         "widest_rows": None if widest is None else widest[2],
         "heaviest_index": None if heaviest is None else heaviest[0],
         "heaviest_rows": None if heaviest is None else heaviest[2],
+        "lightest_rows": min(counts) if counts else None,
     }
 
 
@@ -179,11 +181,11 @@ def direction_paragraph(out: list, reliability: dict, row_count) -> None:
     out.append(
         f"Gap is positive in bin(s) **{note['positive']}** — observed positive "
         f"rate above predicted probability — and negative in bin(s) "
-        f"**{note['negative']}**. The widest negative gap is "
-        f"{fmt(note['widest_gap'])} at bin {note['widest_index']}, "
-        f"which carries {fmt(note['widest_rows'])} rows. The heaviest bin is "
-        f"{note['heaviest_index']}, carrying {fmt(note['heaviest_rows'])} of the "
-        f"family's {fmt(row_count)} rows."
+        f"**{note['negative']}**. The widest gap is {fmt(note['widest_gap'])} at "
+        f"bin {note['widest_index']}, which carries {fmt(note['widest_rows'])} "
+        f"rows. Bin counts run from {fmt(note['lightest_rows'])} to "
+        f"{fmt(note['heaviest_rows'])} across the family's {fmt(row_count)} "
+        f"rows, the heaviest being bin {note['heaviest_index']}."
     )
     out.append("")
 
@@ -275,9 +277,10 @@ def build_report(root: pathlib.Path, *, git_sha: str = "unrecorded") -> str:
     w("")
     w("## 2. Family-level scalars — all three families")
     w("")
-    w("Restated from the retention decision as context for the bins, not as a new")
-    w("finding. The uncalibrated baseline is the raw score treated as a")
-    w("probability, which is what makes the comparison answerable.")
+    w("Restated from the retention decision as context for the bins, not as a")
+    w("new finding. The uncalibrated baseline is the raw score treated as a")
+    w("probability; it is what the question \"did calibration help?\" is asked")
+    w("against, subject to the qualification recorded immediately below.")
     w("")
     w(
         "| Family | NLL | Brier | ECE equal-width | ECE equal-mass | Rows "
@@ -303,15 +306,19 @@ def build_report(root: pathlib.Path, *, git_sha: str = "unrecorded") -> str:
     semantics = families[BASELINE].get("baseline_semantics")
     w(f"> `uncalibrated_baseline.baseline_semantics` — {semantics}")
     w("")
-    w("Its `out_of_fold` and `development_evidence` are both")
-    w(f"`{str(families[BASELINE].get('out_of_fold')).lower()}`, against")
-    w(f"`{str(families[RETAINED].get('out_of_fold')).lower()}` for the retained")
-    w("family. Every comparison below inherits that asymmetry.")
+    w(
+        "Its `out_of_fold` and `development_evidence` are both "
+        f"`{str(families[BASELINE].get('out_of_fold')).lower()}`, against "
+        f"`{str(families[RETAINED].get('out_of_fold')).lower()}` for the "
+        "retained family. Every comparison below inherits that asymmetry."
+    )
     w("")
-    w("The temperature-only row is **approximate**:")
-    w(f"`comparator_is_approximate` is `{str(calibration.get('comparator_is_approximate')).lower()}`")
-    w("and `true_logit_temperature_scaling_performed` is")
-    w(f"`{str(calibration.get('true_logit_temperature_scaling_performed')).lower()}`,")
+    w(
+        "The temperature-only row is **approximate**: `comparator_is_approximate` "
+        f"is `{str(calibration.get('comparator_is_approximate')).lower()}` and "
+        "`true_logit_temperature_scaling_performed` is "
+        f"`{str(calibration.get('true_logit_temperature_scaling_performed')).lower()}`,"
+    )
     w("because true logits were never persisted. Its two ECEs are identical for")
     w("the reason the retention decision recorded: it over-predicts in every bin")
     w("of both binnings, so both collapse to the same global mean gap.")
@@ -362,11 +369,15 @@ def build_report(root: pathlib.Path, *, git_sha: str = "unrecorded") -> str:
     w("### 3.1 Equal-width")
     w("")
     bin_table(out, families[RETAINED]["reliability_equal_width"])
-    direction_paragraph(out, families[RETAINED]["reliability_equal_width"], retained_rows)
+    direction_paragraph(
+        out, families[RETAINED]["reliability_equal_width"], retained_rows
+    )
     w("### 3.2 Equal-mass")
     w("")
     bin_table(out, families[RETAINED]["reliability_equal_mass"])
-    direction_paragraph(out, families[RETAINED]["reliability_equal_mass"], retained_rows)
+    direction_paragraph(
+        out, families[RETAINED]["reliability_equal_mass"], retained_rows
+    )
     w("---")
     w("")
     w("## 4. Per-bin reliability — the uncalibrated baseline")
@@ -378,11 +389,15 @@ def build_report(root: pathlib.Path, *, git_sha: str = "unrecorded") -> str:
     w("### 4.1 Equal-width")
     w("")
     bin_table(out, families[BASELINE]["reliability_equal_width"])
-    direction_paragraph(out, families[BASELINE]["reliability_equal_width"], baseline_rows)
+    direction_paragraph(
+        out, families[BASELINE]["reliability_equal_width"], baseline_rows
+    )
     w("### 4.2 Equal-mass")
     w("")
     bin_table(out, families[BASELINE]["reliability_equal_mass"])
-    direction_paragraph(out, families[BASELINE]["reliability_equal_mass"], baseline_rows)
+    direction_paragraph(
+        out, families[BASELINE]["reliability_equal_mass"], baseline_rows
+    )
     w("---")
     w("")
     w("## 5. Bin degeneracy — plan §3.3")
@@ -404,15 +419,17 @@ def build_report(root: pathlib.Path, *, git_sha: str = "unrecorded") -> str:
     w("plan is not modified.")
     w("")
     equal_width = degeneracy(families[RETAINED]["reliability_equal_width"])
-    w("Plan §3.3 chose four degeneracy statistics — empty bins, bins under")
-    w(f"{SPARSE_BIN_ROWS} rows, smallest and largest — to surface the fact that")
-    w("equal-width binning on a low-prevalence detector score concentrates mass")
-    w("at one end. On the retained calibrator's equal-width binning those")
-    w(f"statistics read {equal_width['empty_bins']} empty and")
-    w(f"{equal_width['sparse_bins']} sparse, which on its own reads as a healthy")
-    w("curve. The concentration is visible only in the smallest and largest")
-    w(f"columns: {fmt(equal_width['smallest'])} rows against")
-    w(f"{fmt(equal_width['largest'])}.")
+    w(
+        "Plan §3.3 chose four degeneracy statistics — empty bins, bins under "
+        f"{SPARSE_BIN_ROWS} rows, smallest and largest — to surface the fact "
+        "that equal-width binning on a low-prevalence detector score "
+        "concentrates mass at one end. On the retained calibrator's equal-width "
+        f"binning those statistics read {equal_width['empty_bins']} empty and "
+        f"{equal_width['sparse_bins']} sparse, which on its own reads as a "
+        "healthy curve. The concentration is visible only in the smallest and "
+        f"largest columns: {fmt(equal_width['smallest'])} rows against "
+        f"{fmt(equal_width['largest'])}."
+    )
     w("")
     w("**A count of sparse bins is the wrong summary for this evidence.** The")
     w("share of mass in the heaviest bin would have been the right one, and the")
