@@ -65,11 +65,16 @@ The B4 neural-architecture selection, frozen in
 candidates (compact CNN, CNN-Transformer, CNN-SSM) were trained and compared
 on validation, and B4-B (CNN-Transformer) is the selected official model
 (see [`docs/B4_GLOBAL_ENCODER_SELECTION_V1.md`](docs/B4_GLOBAL_ENCODER_SELECTION_V1.md)).
-Physiology fusion, patient-adaptive memory, contamination-safe memory
-updates, and calibration with selective routing are each complete and frozen;
-longitudinal temporal modeling is trained and one-shot outer-validated. A
-causal episode-state layer has a complete canonical execution harness with no
-attempts executed yet. See
+Physiology fusion, patient-adaptive memory, and contamination-safe memory
+updates are each complete and frozen. Calibration is a **split** retention:
+Platt calibration is retained, and the window-level selective router at
+`c_star = 0.90` is explicitly **not** retained, so no routing policy is frozen
+or in force
+(see [`docs/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md`](docs/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md)).
+Longitudinal temporal modeling is trained and one-shot outer-validated. The
+causal episode-state layer has been executed and measured; its result is
+reported in [`docs/T1_DESCRIPTIVE_REPORT_V1.md`](docs/T1_DESCRIPTIVE_REPORT_V1.md)
+and no further execution is authorized. See
 [`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md) for the current experiment
 ladder, open work, and known risks.
 
