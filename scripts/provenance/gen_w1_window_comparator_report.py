@@ -470,7 +470,7 @@ def build_report() -> str:
     w("")
     w("---")
     w("")
-    w("## 5. What this does and does not answer")
+    w("## 6. What this does and does not answer")
     w("")
     w("**Answers.** Whether the T1 episode state machine changes episode-level")
     w("agreement relative to a memoryless window rule, on identical rows, under")
