@@ -2,10 +2,22 @@
 
 **Step 3 of `docs/T2_ARM_COMPARISON_ANALYSIS_PLAN_V1.md`: the first read of T2 outer-validation measured
 values.** Produced under explicit human authorization, to the reporting
-shape fixed in §2–§5 of that plan before any value was visible. The plan
-was not modified after the values became readable.
+shape fixed in §2–§5 of that plan before any value was visible.
 
-Plan SHA-256 `84adf43b885d6dd3ecef3b678d1a2b89fc6e94f48ffdf8d2f0dc2bb0a7eba973`.
+**The plan itself is unedited** and still digests
+`84adf43b885d6dd3ecef3b678d1a2b89fc6e94f48ffdf8d2f0dc2bb0a7eba973`. Its estimands, its derived analysis and its claim
+boundaries are exactly as approved before the first read.
+
+**An amendment postdates that read.** `docs/T2_ARM_COMPARISON_ANALYSIS_PLAN_AMENDMENT_V1_1.md`
+(`859b07c15d160cd5610a52f1b101f4b63fe45efffb32c3938f98cef30fbf52fb`) was written on 2026-08-22,
+**after** the values were visible, and is stated here rather than left to
+be inferred. It repairs an unreconciled conflict between plan §5.3, which
+required cold-start strata verbatim, and plan §3, which constrained
+absolute figures — a conflict the first execution resolved silently by
+dropping values. **The amendment only ever adds reporting.** It changes no
+estimand, authorizes no new computation, and revises no number: the
+primary contrast and the derived interval below are identical to those
+produced before it existed.
 
 **Every number below is read verbatim from a promoted artifact, with one
 exception** named and authorized in advance by plan §4 and labelled
@@ -21,7 +33,7 @@ artifact stores.
 |---|---|
 | Run | `t2-v1-outer-validation` |
 | Authorized git SHA of the run | `b0f189a57bea8bd28884e7e40be50136fd6e2927` |
-| Analysis executed at commit | `4018435b44932403cd7fc4d0e0035cd244517773` |
+| Analysis executed at commit | `4faaf131315f3a612b7c9baf976229ee7c0e62de` |
 | Partition | `validation` |
 | Attempts permitted | 1 |
 | Automatic retry performed | `false` |
@@ -101,14 +113,42 @@ validation AUPRC, against a tie tolerance of 0.002000.
 | **The paired contrast is unbiased** | Both arms were evaluated on the same held-out rows under a rule fixed in advance. Selecting on the outcome does not bias the *difference*. |
 | **The winner's absolute figure is not** | The selected arm's own AUPRC on this set is optimistically biased, because it was chosen for having the higher value **on this very set**. The bias attaches to the maximum, not to the contrast. |
 
-**Consequently this report does not print either arm's absolute pooled or
-subject-macro AUPRC.** Plan §2, §4 and §5 enumerate what may be reported —
-the contrast, the derived interval, the subject-macro difference and the
-selection-independent descriptors — and a per-arm absolute-performance table
-is not among them. Printing one would place an inadmissible number in the
-reader's hands next to the admissible ones. If the absolute figures are
-wanted for a manuscript, that is a separate decision with its own wording,
-not an omission to be quietly repaired here.
+### 2.2 Arm-level absolute AUPRC — descriptive (amendment §3)
+
+> Absolute arm-level values are descriptive because the selected arm was chosen using the same criterion. They are reported to give the primary contrast a scale, not as unbiased estimates of either arm's performance.
+
+| Arm | pooled primary AUPRC | subject-macro AUPRC | contributing subjects | non-contributing |
+|---|---:|---:|---:|---:|
+| `causal_s4d_longitudinal_v1` | 0.388085 | 0.428152 | 9 | 3 |
+| `causal_gru_longitudinal_v1` | 0.294870 | 0.409737 | 9 | 3 |
+
+**The subject-macro figure is a mean over 9 of 12
+subjects, not 12.** The artifact records 3
+non-contributing subjects for both arms, and it is the artifact's own
+count, not a derivation. A subject-macro mean quoted without that
+denominator reads as an average over the cohort when it is an average
+over the subset of it for which the metric is defined.
+
+This is the same distinction the T1 analysis had to make after the
+fact — `episode_f1` was *defined* for 12/12 subjects while three of
+them had zero reference episodes. **Defined is not meaningful.** It is
+stated here because the amendment surfaced the value; the
+pre-amendment report, which omitted the absolute, also omitted this.
+
+No claim is made about **which** subjects those are, or why. That
+would be a subgroup analysis and plan §5.3 forbids one.
+
+These give §2's contrast a scale. Reporting them does not license any
+sentence plan §3 forbids: *"S4D achieved superior AUPRC"* and *"S4D was
+found to outperform GRU"* remain prohibited, and the selected arm's
+absolute figure remains optimistically biased for the reason in §2.1.
+
+The remaining pooled and subject-macro metrics (`auroc`,
+`balanced_accuracy`, `f1`, `mcc`, `npv`, `ppv`, `sensitivity`,
+`specificity`) exist in the artifact and are **not** reported: no
+registered estimand is computed from them, and adding them after the
+values are visible would be the scope creep the amendment objects to.
+That boundary is a decision, not an accident.
 
 ---
 
@@ -269,7 +309,8 @@ for, the §2 contrast. `episode_grouping_performed` is false for both arms:
 
 ## 6. Secondary — challenge and cold-start evidence (plan §5.3)
 
-Descriptive. No subgroup claim is made from either.
+Descriptive. No subgroup claim is made from either, and no stratum or
+subset is compared across arms as a finding.
 
 **`causal_s4d_longitudinal_v1` — challenge**
 
@@ -315,11 +356,13 @@ Descriptive. No subgroup claim is made from either.
 | `warmup_threshold_applied` | `false` |
 | `alternative_state_initialization` | `false` |
 
-| Stratum | Rows |
-|---|---:|
-| `0_5_minutes` | 1,798 |
-| `5_60_minutes` | 19,637 |
-| `over_60_minutes` | 452,462 |
+> Cold-start strata are reported as descriptive stratification summaries. They do not constitute independent performance estimates and are not used to support absolute model superiority claims.
+
+| Stratum | Rows | `auprc` | `auroc` | `balanced_accuracy` | `f1` | `false_negative` | `false_positive` | `mcc` | `negative_count` | `npv` | `positive_count` | `positive_prevalence` | `ppv` | `sensitivity` | `specificity` | `true_negative` | `true_positive` | `window_count` |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `0_5_minutes` | 1,798 | 0.001511 | 0.632165 | 0.500000 | 0.000000 | 1 | 0 | *undefined* | 1,797 | 0.999444 | 1 | 0.000556 | *undefined* | 0.000000 | 1.000000 | 1,797 | 0 | 1,798 |
+| `5_60_minutes` | 19,637 | 0.543960 | 0.909837 | 0.590877 | 0.303132 | 1,581 | 88 | 0.362371 | 17,693 | 0.917596 | 1,944 | 0.098997 | 0.804878 | 0.186728 | 0.995026 | 17,605 | 363 | 19,637 |
+| `over_60_minutes` | 452,462 | 0.384040 | 0.930908 | 0.641641 | 0.367642 | 13,818 | 6,358 | 0.356422 | 432,779 | 0.968613 | 19,683 | 0.043502 | 0.479833 | 0.297973 | 0.985309 | 426,421 | 5,865 | 452,462 |
 
 **`causal_gru_longitudinal_v1` — cold start**
 
@@ -329,11 +372,13 @@ Descriptive. No subgroup claim is made from either.
 | `warmup_threshold_applied` | `false` |
 | `alternative_state_initialization` | `false` |
 
-| Stratum | Rows |
-|---|---:|
-| `0_5_minutes` | 1,798 |
-| `5_60_minutes` | 19,637 |
-| `over_60_minutes` | 452,462 |
+> Cold-start strata are reported as descriptive stratification summaries. They do not constitute independent performance estimates and are not used to support absolute model superiority claims.
+
+| Stratum | Rows | `auprc` | `auroc` | `balanced_accuracy` | `f1` | `false_negative` | `false_positive` | `mcc` | `negative_count` | `npv` | `positive_count` | `positive_prevalence` | `ppv` | `sensitivity` | `specificity` | `true_negative` | `true_positive` | `window_count` |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `0_5_minutes` | 1,798 | 0.001946 | 0.714524 | 0.496105 | 0.000000 | 1 | 14 | -0.002090 | 1,797 | 0.999439 | 1 | 0.000556 | 0.000000 | 0.000000 | 0.992209 | 1,783 | 0 | 1,798 |
+| `5_60_minutes` | 19,637 | 0.489608 | 0.926041 | 0.562962 | 0.221390 | 1,678 | 193 | 0.248912 | 17,693 | 0.912504 | 1,944 | 0.098997 | 0.579521 | 0.136831 | 0.989092 | 17,500 | 266 | 19,637 |
+| `over_60_minutes` | 452,462 | 0.289255 | 0.917619 | 0.610490 | 0.267926 | 14,790 | 11,949 | 0.238112 | 432,779 | 0.966048 | 19,683 | 0.043502 | 0.290524 | 0.248590 | 0.972390 | 420,830 | 4,893 | 452,462 |
 
 ---
 
