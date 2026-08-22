@@ -20,7 +20,7 @@ import random
 from pathlib import Path
 
 import pytest
-from _attempt_guard import ATTEMPT_PRESENT
+from _attempt_guard import ATTEMPT_PRESENT, assert_attempt_unconsumed
 
 from cardiosentinel.neural import (
     t1_continuation_attestation as A,
@@ -574,8 +574,8 @@ def test_provenance_names_what_was_continued_and_consumed(tmp_path):
 # ---------------------------------------------------------------------------
 
 
-def test_no_continuation_run_directory_exists():
-    assert not S.CONTINUATION_RUN_ROOT.exists()
+def test_no_continuation_run_directory_is_created_by_this_module():
+    assert_attempt_unconsumed()
 
 
 def test_no_continuation_module_creates_a_directory_or_writes():

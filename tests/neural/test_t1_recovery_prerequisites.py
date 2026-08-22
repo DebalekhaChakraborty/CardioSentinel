@@ -15,9 +15,13 @@ Three groups, matching amendment §13:
   continuation is measuring something else.
 * **Recovery boundary** -- each of those failures is a refusal.
 
-Nothing here executes, authorizes or continues anything. There is no
-continuation module yet, by design: this file exists so that when there is one,
-the gates it must pass already exist and are already green.
+Nothing here executes, authorizes or continues anything. This file was written
+before the continuation capability existed, so that when it arrived the gates it
+must pass were already green. It has arrived, it ran once on 2026-08-22, and the
+gates are still the gates -- the amendment is unchanged, the consumed attempt is
+unchanged, and each recovery-boundary failure is still a refusal. What changed is
+that two of these tests used to prove their point by asserting the continuation
+did not exist, which stopped being a statement about the gates the moment it ran.
 """
 
 from __future__ import annotations
@@ -30,6 +34,7 @@ from pathlib import Path
 import pytest
 from _attempt_guard import ATTEMPT_PRESENT, assert_attempt_unconsumed
 
+from cardiosentinel.neural import t1_continuation_runner as RUNNER
 from cardiosentinel.neural import t1_execution_spec as SPEC
 from cardiosentinel.neural import t1_persistence as PERSIST
 from cardiosentinel.neural import t1_recovery_amendment as AMENDMENT
@@ -342,29 +347,43 @@ def test_the_canonical_attempt_cannot_be_claimed_again():
 
 
 # ---------------------------------------------------------------------------
-# 4. This PR builds no continuation
+# 4. These tests build no continuation
 # ---------------------------------------------------------------------------
 
 
-def test_no_continuation_run_directory_exists():
-    root = REPOSITORY_ROOT / AMENDMENT.CONTINUATION_RUN_ROOT_RELATIVE
-    assert not root.exists(), (
-        f"{root} exists; this change binds provenance and creates no attempt"
-    )
+def test_no_continuation_run_directory_is_created_by_this_module():
+    """The continuation ran on 2026-08-22; these tests still create nothing.
+
+    This asserted that the run root did not exist, which stated when it was
+    written rather than what it guards. The run root exists now, so the honest
+    invariant is that this module leaves it exactly as it found it.
+    """
+    assert_attempt_unconsumed()
 
 
-def test_no_continuation_module_exists_yet():
-    """The capability is the next PR, and its absence is deliberate here."""
+def test_the_continuation_capability_is_its_own_reviewed_module_set():
+    """The capability shipped, and it shipped where the gate can prove it.
+
+    This asserted that three candidate filenames did not exist, to keep the
+    capability out of the amendment's own change set. The capability has since
+    shipped under different names, so the negative half became vacuous: it
+    passed while guarding nothing. The names are still refused -- a module the
+    gate does not enumerate is a module the gate cannot prove anything about --
+    and the live half is now asserted alongside it.
+    """
     neural = Path(AMENDMENT.__file__).parent
-    for forbidden in (
+    for unused in (
         "t1_continuation.py",
         "t1_continuation_run.py",
         "t1_measurement_continuation.py",
     ):
-        assert not (neural / forbidden).exists(), (
-            f"{forbidden} exists; continuation capability belongs to a separate "
-            "reviewed change"
+        assert not (neural / unused).exists(), (
+            f"{unused} exists but no gate enumerates it; continuation capability "
+            "lives only in modules CONTINUATION_PROVEN_MODULES names"
         )
+    for module_name in RUNNER.CONTINUATION_PROVEN_MODULES:
+        filename = module_name.rsplit(".", 1)[1] + ".py"
+        assert (neural / filename).exists(), f"{filename} is proven but absent"
 
 
 def test_the_zero_counters_the_continuation_must_prove_are_recorded():

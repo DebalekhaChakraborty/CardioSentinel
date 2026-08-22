@@ -26,6 +26,7 @@ import textwrap
 from pathlib import Path
 
 import pytest
+from _attempt_guard import assert_attempt_unconsumed
 
 from cardiosentinel.neural import t1_assembly as ASSEMBLY
 from cardiosentinel.neural import t1_composition as COMP
@@ -307,7 +308,5 @@ def test_no_run_directory_is_created_by_these_tests():
     COMP._pooled_confusion(_run())
     COMP._pooled_episode_evidence(_run())
     assert canonical.exists() is existed
-    assert not (
-        REPOSITORY_ROOT / "cardiosentinel-runs" / "phase9-t1-continuation-v1"
-    ).exists()
+    assert_attempt_unconsumed()
     assert not (REPOSITORY_ROOT / "TEST_ATTEMPT.json").exists()
