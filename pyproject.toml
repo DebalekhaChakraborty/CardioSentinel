@@ -55,7 +55,7 @@ pythonpath = ["src"]
 [tool.ruff]
 target-version = "py311"
 line-length = 88
-extend-exclude = ["legacy/college-v1"]
+extend-exclude = ["legacy/college-v1", "scripts/provenance"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]

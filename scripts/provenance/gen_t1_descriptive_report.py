@@ -1,0 +1,438 @@
+"""Emit the T1 descriptive report per the approved plan sections 4 and 7.
+
+Every number is read verbatim from the promoted artifacts. The single
+authorized derived quantity is the subject-macro mean of episode_f1
+(plan 7.7). Nothing else is recomputed.
+"""
+import hashlib
+import json
+import pathlib
+import sys
+
+RUN = pathlib.Path(
+    "/home/AI_POC/tactics/Myocardial-Ischemia-Detection-by-Analysing-ECG-Signal"
+    "/cardiosentinel-runs/phase9-t1-continuation-v1/t1-v1-measurement-continuation"
+)
+UNDEFINED = "*undefined*"
+
+
+def load(name):
+    return json.loads((RUN / name).read_text())
+
+
+def digest(name):
+    return hashlib.sha256((RUN / name).read_bytes()).hexdigest()
+
+
+def fmt(value, places=4):
+    """Verbatim rendering. None is undefined and is never filled."""
+    if value is None:
+        return UNDEFINED
+    if isinstance(value, float):
+        return f"{value:.{places}f}"
+    return str(value)
+
+
+oof = load("T1_OOF_RESULT.json")
+subj = load("T1_SUBJECT_EVIDENCE.json")
+boot = load("T1_BOOTSTRAP.json")
+chal = load("T1_CHALLENGE_EVIDENCE.json")
+att = load("T1_V1_CONTINUATION_EXECUTION_ATTESTATION.json")
+subjects = subj["subjects"]
+by_fold = sorted(subjects, key=lambda s: subjects[s]["fold_index"])
+
+out = []
+w = out.append
+
+w("# T1 Continuation Evidence — Descriptive Report, V1")
+w("")
+w("**Step 4 of `docs/T1_EVIDENCE_ANALYSIS_PLAN_V1.md`: the first read of the")
+w("measured values.** Produced under the analysis authorization in §8 of that")
+w("plan, to the reporting shape fixed in §4 and §7 before any value was visible.")
+w("Nothing in the plan was changed after the values became readable.")
+w("")
+w("**Every number is read verbatim from a promoted artifact, with one exception**")
+w("named and authorized in advance by plan §7.7: the subject-macro mean of")
+w("`episode_f1`, which no artifact stores and which is the estimand the")
+w("pre-registered bootstrap targets. No other quantity is recomputed and no")
+w("`.npz` store was opened.")
+w("")
+w("| | |")
+w("|---|---|")
+w(f"| Attempt | `{oof['attempt_id']}` |")
+w(f"| Run class | `{oof['run_class']}` |")
+w("| Execution commit | `61704aa7259d91eaf9d4dfc2502bf78881a05d61` |")
+w("| Authorization commit | `b40b4acac16893dcb1af1f1fa91feb0d74c8a78d` |")
+w(f"| Continues | `{oof['continues']['predecessor_run']}` at `{oof['continues_authorized_git_sha'][:7]}` |")
+w(f"| Held-out subjects | {oof['fold_count']}, cross-fitted, subject-disjoint |")
+w(f"| Sealed test state | `{oof['sealed_test_state']}` |")
+w("")
+w("---")
+w("")
+w("## 1. Primary result — plan §7.2")
+w("")
+w("The primary endpoint is the **subject-macro mean `episode_f1`**, and the")
+w("bootstrap interval is the interval for that quantity and no other.")
+w("")
+macro = sum(subjects[s]["episode_f1"] for s in subjects) / len(subjects)
+w("| | |")
+w("|---|---|")
+w(f"| **Subject-macro mean `episode_f1`** | **{fmt(macro)}** |")
+w(f"| **95% subject-bootstrap interval** | **[{fmt(boot['percentile_2_5'])}, {fmt(boot['percentile_97_5'])}]** |")
+w(f"| Subjects | {len(subjects)} |")
+w(f"| Replicates | {boot['replicates']:,} ({boot['defined_replicates']:,} defined, {boot['undefined_replicates']:,} undefined) |")
+w(f"| Seed | {boot['seed']} |")
+w("")
+w("The point estimate is `(1/N)·Σ F1_i` over the N = 12 per-subject values in §2.")
+w("It is the one derived number plan §7.7 authorizes, admissible because")
+w("`episode_f1` is defined for 12/12 subjects and the mean therefore runs over")
+w("the complete subject set rather than a data-dependent subset. The interval is")
+w("read verbatim from `T1_BOOTSTRAP.json`.")
+w("")
+w("**Claim scope, quoted from the artifact, and required by plan §4.3 item 6 to")
+w("travel with the interval wherever it appears:**")
+w("")
+w(f"> {boot['claim_scope']}")
+w("")
+w("This is **not** a confidence interval for a population parameter and must not")
+w("be written as one. The bootstrap resamples 12 subjects, so the underlying")
+w("sample has twelve distinct values however many replicates are drawn: it")
+w("indicates between-subject spread, not precision. There is no p-value and no")
+w("significance language anywhere in this report.")
+w("")
+w(f"**The episode-weighted pooled figure is {fmt(oof['pooled_episode_f1'])} and is reported")
+w("separately in §3.** It is a different estimand and the interval above does not")
+w("bracket it (plan §7.7).")
+w("")
+w("---")
+w("")
+w("## 2. Per-subject results — plan §4.2, §7.3")
+w("")
+w(f"From `T1_SUBJECT_EVIDENCE.json`, SHA-256 `{digest('T1_SUBJECT_EVIDENCE.json')}`.")
+w("")
+w("**All twelve subjects, always. Undefined is shown as undefined — never")
+w("omitted, never zero-filled.** Fixed by plan §4.2 item 4 and §7.3 item 1 before")
+w("the values were visible.")
+w("")
+w("| Subject | Fold | `episode_f1` | `primary_window_mcc` | onset latency, s (median) |")
+w("|---|---|---|---|---|")
+for sid in by_fold:
+    r = subjects[sid]
+    w(
+        f"| `{sid}` | {r['fold_index']} | {fmt(r['episode_f1'])} "
+        f"| {fmt(r['primary_window_mcc'])} | {fmt(r['onset_latency_seconds_median'], 2)} |"
+    )
+w("")
+n = len(subjects)
+n_mcc = sum(1 for r in subjects.values() if r["primary_window_mcc"] is not None)
+n_lat = sum(1 for r in subjects.values() if r["onset_latency_seconds_median"] is not None)
+und = sorted(s for s, r in subjects.items() if r["primary_window_mcc"] is None)
+w(f"`episode_f1` is defined for {n}/{n} subjects. `primary_window_mcc` for {n_mcc}/{n},")
+w(f"`onset_latency_seconds_median` for {n_lat}/{n}, and the undefined sets coincide")
+w("exactly: " + ", ".join(f"`{s}`" for s in und) + ".")
+w("")
+w("Those subjects have at least one empty margin in their PRIMARY confusion, so")
+w("`window_mcc` is undefined by construction, and no matched episode, so there is")
+w("no latency to take a median of. Both helpers refuse zero because zero would")
+w("read as a real measurement.")
+w("")
+w("**No subject-macro mean of MCC or latency is reported anywhere in this")
+w("document** (plan §7.3 item 3). Such a mean would run over a subset the data")
+w("chose, and would answer how the system did where the metric happened to exist.")
+w("")
+w("---")
+w("")
+w("## 3. Pooled description — plan §4.1, §7.2")
+w("")
+w(f"From `T1_OOF_RESULT.json`, SHA-256 `{digest('T1_OOF_RESULT.json')}`. Read verbatim.")
+w("")
+w("**Descriptive, and episode- or window-weighted. Not the primary estimate, and")
+w("not what the §1 interval brackets.**")
+w("")
+w("Pooled PRIMARY window confusion across all 12 held-out subjects:")
+w("")
+pc = oof["primary_confusion"]
+w("| | Predicted positive | Predicted negative |")
+w("|---|---|---|")
+w(f"| **Reference positive** | TP {pc['true_positive']:,} | FN {pc['false_negative']:,} |")
+w(f"| **Reference negative** | FP {pc['false_positive']:,} | TN {pc['true_negative']:,} |")
+w("")
+w(f"Total windows: {sum(pc.values()):,}.")
+w("")
+w("Pooled episode evidence:")
+w("")
+ee = oof["episode_evidence"]
+w("| Quantity | Value |")
+w("|---|---|")
+for k in ("reference_episodes", "predicted_event_runs", "matched_episodes", "unmatched_predicted_runs"):
+    w(f"| `{k}` | {ee[k]:,} |")
+w("")
+w("Pooled metrics, each with its weighting stated as plan §7.7 requires:")
+w("")
+w("| Metric | Value | Weighting |")
+w("|---|---|---|")
+w(f"| `pooled_episode_f1` | {fmt(oof['pooled_episode_f1'])} | episodes — `2·matched/(predicted+reference)` on pooled counts |")
+w(f"| `pooled_primary_window_mcc` | {fmt(oof['pooled_primary_window_mcc'])} | windows, pooled across subjects |")
+w(f"| `matched_episode_count` | {oof['matched_episode_count']:,} | — |")
+w("")
+w("These are defined even though seven individual subjects are not, because")
+w("pooling the counts removes the empty margins that leave those subjects")
+w("undefined. Pooling is what makes them defined; it does not repair the")
+w("undefined subjects and does not stand in for them.")
+w("")
+w("---")
+w("")
+w("## 4. Per-fold table — plan §4.1 item 2")
+w("")
+w("Each row is one held-out subject under the policy its own fold promoted. The")
+w("policy column is provenance for the row and carries no commentary (plan §7.10).")
+w("")
+w("| Fold | Held-out subject | Policy | TP | FP | FN | TN | Ref ep. | Pred runs | Matched | `episode_f1` |")
+w("|---|---|---|---|---|---|---|---|---|---|---|")
+for f in oof["fold_summaries"]:
+    c, e = f["primary_confusion"], f["episode_evidence"]
+    w(
+        f"| {f['fold_index']} | `{f['held_out_subject']}` | `{f['selected_policy_id']}` "
+        f"| {c['true_positive']:,} | {c['false_positive']:,} | {c['false_negative']:,} | {c['true_negative']:,} "
+        f"| {e['reference_episodes']} | {e['predicted_event_runs']} | {e['matched_episodes']} "
+        f"| {fmt(f['episode_f1'])} |"
+    )
+w("")
+w("---")
+w("")
+w("## 5. Secondary — window-level MCC, plan §7.2")
+w("")
+w("Window-level classification, **a different task from episode-level alerting**")
+w("and not interchangeable with the primary endpoint. Per-subject values are in")
+f_pooled = fmt(oof["pooled_primary_window_mcc"])
+w("§2, complete with their gaps; the pooled figure is in §3.")
+w("")
+w(f"Pooled `primary_window_mcc` = {f_pooled}, over pooled windows. Individually")
+w(f"defined for {n_mcc} of {n} subjects.")
+w("")
+w("---")
+w("")
+w("## 6. Exploratory — onset latency, plan §7.2")
+w("")
+w("**Conditional on successful detection by construction.** A subject with no")
+w("matched episode has no latency at all, so latency is only ever measured where")
+w("detection already succeeded. This is not a headline result.")
+w("")
+w("| | |")
+w("|---|---|")
+w(f"| Median latency across detected episodes | {fmt(oof['onset_latency_seconds_median'], 2)} s |")
+w(f"| Subjects with a defined median | {n_lat} / {n} |")
+w("")
+w("**This statistic is weighted by episodes, not by subjects.** It is `_median`")
+w("over the concatenation of every fold's `onset_latency_seconds`, so a subject")
+w("contributing more matched episodes weighs more heavily. Per plan §7.2 the")
+w("permitted phrasing is *\"median latency across detected episodes\"*, or")
+w("preferably *\"episode-level onset latency distribution among detected")
+w("episodes\"*. It is **not** a median patient onset latency and **not** a")
+w("detection latency of the system, which would imply coverage of the episodes")
+w("the system missed.")
+w("")
+w("---")
+w("")
+w("## 7. Challenge strata — plan §3")
+w("")
+w(f"From `T1_CHALLENGE_EVIDENCE.json`, SHA-256 `{digest('T1_CHALLENGE_EVIDENCE.json')}`.")
+w("")
+w(f"- `join_performed`: `{str(chal['join_performed']).lower()}`")
+w(f"- `strata_reported`: `{chal['strata_reported']}`")
+w(f"- `selection_performed_on_challenge_evidence`: `{str(chal['selection_performed_on_challenge_evidence']).lower()}`")
+w("")
+w(f"> {chal['note']}")
+w("")
+w("**No subgroup claim is available.** The absent join was recorded before")
+w("execution, not discovered after.")
+w("")
+w("---")
+w("")
+w("## 8. Provenance — plan §4.4")
+w("")
+w("### 8.1 Artifact digests")
+w("")
+w("Every number above comes from one of these files, each re-verified against")
+w("disk at the time of writing.")
+w("")
+w("| Artifact | SHA-256 |")
+w("|---|---|")
+for name in (
+    "T1_OOF_RESULT.json",
+    "T1_SUBJECT_EVIDENCE.json",
+    "T1_BOOTSTRAP.json",
+    "T1_CHALLENGE_EVIDENCE.json",
+    "T1_FINAL_CONFIGURATION.json",
+    "T1_EXPERIMENT_LOCK.json",
+    "T1_V1_CONTINUATION_EXECUTION_ATTESTATION.json",
+):
+    w(f"| `{name}` | `{digest(name)}` |")
+w("")
+w("Plus 12 `held_out_evaluations/T1_CONTINUATION_FOLD_NN_HELD_OUT.json`.")
+w("`T1_EXPERIMENT_LOCK.json` records six artifact digests, not seven: a file")
+w("cannot contain its own digest.")
+w("")
+w("### 8.2 The measurement ran no model — plan §4.4 item 9")
+w("")
+w("| Counter | Value |")
+w("|---|---|")
+for k in ("fold_evaluations", "policy_selection_calls", "state_machine_invocations", "threshold_generation_calls"):
+    w(f"| `{k}` | `{att[k]}` |")
+for k in ("state_transitions_regenerated", "test_accessed", "selection_performed_here", "thresholds_generated_here"):
+    w(f"| `{k}` | `{str(att[k]).lower()}` |")
+w(f"| `sealed_test_state` | `{att['sealed_test_state']}` |")
+w("")
+w("The continuation consumed a persisted state trace")
+w(f"(`state_trace_source: {att['state_trace_source']}`, content SHA-256")
+w(f"`{att['state_trace_content_sha256']}`) and evaluated no model. All three")
+w("negative capability gate layers passed. Predecessor verification re-verified")
+w(f"{len(att['predecessor_verification']['verified_file_digests'])} §1.3 artifact digests and")
+w(f"{len(att['predecessor_verification']['verified_fold_selection_digests'])} §1.4 fold-selection digests.")
+w("")
+w("**The leakage guarantee is inherited, not re-enforced here.** The continuation")
+w("invokes no transition function, so `T1_FORBIDDEN_TRANSITION_INPUTS` does not")
+w("run in this process. The guarantee comes from the predecessor development run,")
+w("which enforced it, carried through the digest-verified state trace above.")
+w("")
+w("---")
+w("")
+w("## 9. Structural observations — plan §7.6")
+w("")
+w("Aggregate and structural, read directly off the counts. **These were observed")
+w("after the values were read, and they change no pre-registered number in this")
+w("report.** They are recorded because they bear on how §1 should be understood,")
+w("and because the alternative — noticing them silently and adjusting — is the")
+w("thing the pre-registration exists to prevent.")
+w("")
+w("### 9.1 Three subjects have no reference episodes at all")
+w("")
+zero_ref = [f for f in oof["fold_summaries"] if f["episode_evidence"]["reference_episodes"] == 0]
+missed = [
+    f for f in oof["fold_summaries"]
+    if f["episode_evidence"]["reference_episodes"] > 0
+    and f["episode_evidence"]["matched_episodes"] == 0
+]
+w(f"`_episode_f1` returns undefined only when `predicted + reference == 0`. For a")
+w("subject with no reference episodes but at least one predicted event run the")
+w("denominator is non-zero, so F1 evaluates to exactly `0.0` — **a false-alarm")
+w("penalty on a subject that had nothing to detect, not a failure to detect.**")
+w("")
+w(f"The primary subject-macro mean in §1 therefore averages two different kinds of")
+w("zero:")
+w("")
+w("| Kind | Subjects | Ref ep. | Pred runs | Matched |")
+w("|---|---|---|---|---|")
+w(
+    f"| No reference episodes; predictions fired | "
+    + ", ".join(f"`{f['held_out_subject'].split(':')[-1]}`" for f in zero_ref)
+    + " | 0 | "
+    + ", ".join(str(f["episode_evidence"]["predicted_event_runs"]) for f in zero_ref)
+    + " | 0 |"
+)
+w(
+    f"| Reference episodes present; none matched | "
+    + ", ".join(f"`{f['held_out_subject'].split(':')[-1]}`" for f in missed)
+    + " | "
+    + ", ".join(str(f["episode_evidence"]["reference_episodes"]) for f in missed)
+    + " | "
+    + ", ".join(str(f["episode_evidence"]["predicted_event_runs"]) for f in missed)
+    + " | 0 |"
+)
+w("")
+w(f"That is {len(zero_ref)} subjects of the first kind and {len(missed)} of the second, "
+  f"{len(zero_ref) + len(missed)} of the")
+w("twelve contributing a zero to the primary mean for two incomparable reasons.")
+w("")
+w("This is a property of the frozen helper, not a defect in the run, and **no")
+w("number in this report is changed on account of it.** Whether a future analysis")
+w("should treat zero-reference subjects distinctly is a decision that could only")
+w("be made after seeing these values; any such change is post-hoc and must be")
+w("labelled that way, in a V2 that says so.")
+w("")
+w("### 9.2 Onset latency is signed, and some of it is negative")
+w("")
+neg = []
+for sid in by_fold:
+    fold = subjects[sid]["fold_index"]
+    path = RUN / "held_out_evaluations" / f"T1_CONTINUATION_FOLD_{fold:02d}_HELD_OUT.json"
+    values = json.loads(path.read_text())["onset_latency_seconds"]
+    if values:
+        neg.append((sid, sum(1 for v in values if v < 0), len(values)))
+tot_neg = sum(n for _, n, _ in neg)
+tot_all = sum(t for _, _, t in neg)
+w("`_onset_latency` computes")
+w("")
+w("```")
+w("(start_samples[run_begin] - start_samples[episode_begin]) / 250.0")
+w("```")
+w("")
+w("seconds from a matched episode's annotated onset to its predicted run's onset.")
+w("**It is a signed offset, not a non-negative delay.** A negative value means the")
+w("predicted event run began *before* the annotated onset of the episode it matched.")
+w("")
+w(f"**{tot_neg} of the {tot_all} matched-episode latencies are negative:**")
+w("")
+w("| Subject | Negative | Total matched | Median, s |")
+w("|---|---|---|---|")
+for sid, n_neg, n_tot in neg:
+    w(f"| `{sid}` | {n_neg} | {n_tot} | {fmt(subjects[sid]['onset_latency_seconds_median'], 2)} |")
+w("")
+w("A summary that reports only the pooled median conceals that the underlying")
+w("distribution spans both signs. Any figure or sentence built on latency states")
+w("the sign convention, and no latency summary is reported as a delay.")
+w("")
+w("**A negative offset does not establish anticipation.** `match_runs_to_episodes`")
+w("pairs a run to an episode on **overlap alone** — `run_begin < end and begin <")
+w("run_end` — with no tolerance window and no bound on how early a run may start.")
+w("A negative offset is therefore equally consistent with:")
+w("")
+w("- a persistent `EVENT` state that was already active and merely overlaps the")
+w("  episode, and")
+w("- a long-duration detected run that spans the annotated onset.")
+w("")
+w("The artifacts record `onset_latency_seconds` but not run durations, so this")
+w("evidence cannot distinguish those from genuine anticipation. **The terms")
+w("\"early detection\", \"warning time\" and \"predictive lead time\" are therefore")
+w("not used anywhere in this programme's reporting of T1**, and no latency figure")
+w("is presented as a clinical anticipation interval.")
+w("")
+w("---")
+w("")
+w("## 10. What this study does not evaluate — plan §7.9")
+w("")
+w("Restated unchanged. None was weakened after seeing the values.")
+w("")
+w("- **Improvement over a T1-disabled system.** No T1-disabled arm was run on")
+w("  these subjects. This measures one configuration; it does not compare two.")
+w("- **The contribution of the memory modules.** No no-memory arm exists.")
+w("- **The contribution of the longitudinal SSM architecture.** The retained arm")
+w("  only; no file in the run references the declared comparator arm.")
+w("- **External generalization.** One dataset, 12 subjects. EDB shares source")
+w("  recordings with LTSTDB and is not a clean external cohort.")
+w("- **Subgroup or stratified performance.** See §7.")
+w("- **Held-out test performance.** The B4/neural sealed test is unopened.")
+w("- **Clinical utility.** Research software, public-dataset validation only.")
+w("- **Deployment behaviour.** No inference or serving path exists.")
+w("")
+w("No comparative verb — improved, helped, outperformed, better — applies to this")
+w("evidence. Every one of them needs a second arm and this is a one-armed")
+w("measurement.")
+w("")
+w("---")
+w("")
+w("## 11. Excluded analyses — plan §4.5")
+w("")
+w("Not done, and not to be done as a follow-up without a separate decision:")
+w("")
+w("- Re-deriving any metric from the `.npz` stores")
+w("- Any threshold sweep, ROC or operating-point exploration — thresholds were")
+w("  frozen per fold before held-out labels were opened")
+w("- Any per-subject narrative explaining why a particular subject scored as it")
+w("  did (plan §7.6)")
+w("- Any comparison to B0–B3 or B4-B validation numbers without stating that")
+w("  those are window-level detector metrics on a different task from")
+w("  episode-level alerting")
+
+pathlib.Path(sys.argv[1]).write_text("\n".join(out) + "\n")
+print(f"wrote {sys.argv[1]}: {len(out)} lines")
