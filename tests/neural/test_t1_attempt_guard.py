@@ -60,7 +60,7 @@ def test_the_guard_fails_when_a_promoted_artifact_changes_size(monkeypatch, tmp_
 
 
 def test_the_guard_watches_the_continuation_namespace_too(monkeypatch, tmp_path):
-    """The continuation attempt does not exist yet and must not appear unnoticed."""
+    """A continuation attempt must not appear or change unnoticed."""
     continuation = tmp_path / "phase9-t1-continuation-v1"
     monkeypatch.setattr(GUARD, "CONTINUATION_ROOT", continuation)
     monkeypatch.setattr(GUARD, "SESSION_BASELINE", GUARD.attempt_fingerprint())
@@ -72,17 +72,22 @@ def test_the_guard_watches_the_continuation_namespace_too(monkeypatch, tmp_path)
 def test_the_fingerprint_covers_both_namespaces():
     """The fingerprint reports both namespaces, whichever exists here.
 
-    The consumed attempt is gitignored and local-only: present on the frozen
-    interpreter where the science ran, absent on CI. Asserting it is present
-    would be this module's own mistake facing the other way, so the assertion
-    is on the shape of the answer and on the namespace that must be empty
-    everywhere.
+    Both attempts are gitignored and local-only: present on the frozen
+    interpreter where the science ran, absent on CI. Asserting either one is
+    present would be this module's own mistake facing the other way, and
+    asserting the continuation is *absent* was that mistake -- it held until the
+    authorized continuation ran on 2026-08-22 and was permanently false after.
+    So the assertion is on the shape of the answer and on agreement with the
+    two presence constants, which are read from disk rather than assumed.
     """
     canonical, continuation = GUARD.attempt_fingerprint()
     assert canonical[0] is GUARD.ATTEMPT_PRESENT
     assert isinstance(canonical[1], tuple)
-    assert continuation[0] is False, "a continuation run directory exists"
-    assert continuation[1] == ()
+    assert continuation[0] is GUARD.CONTINUATION_PRESENT
+    assert isinstance(continuation[1], tuple)
+    # An absent namespace fingerprints as empty; a present one must not, or the
+    # guard would be watching a directory it cannot see the contents of.
+    assert bool(continuation[1]) is GUARD.CONTINUATION_PRESENT
 
 
 def test_the_guard_is_applied_to_every_test_in_this_package():
