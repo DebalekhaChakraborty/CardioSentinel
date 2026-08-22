@@ -10,10 +10,19 @@ canonical U1 claim did, and the runtime-integrity sentinel is the existing one.
 STOPS. Nothing is deleted, reset, renamed, re-rooted, reseeded or retried, and
 there is no alternate suite name to fall back on.
 
-**Outer VALIDATION is not merely unimplemented here -- it is refused.** The
-activation constant below is the only switch, it is `False`, and there is no
-environment variable, flag or argument that can move it. A future activation
-change set flips it after the TRAIN-only artifacts are human-reviewed.
+**Outer VALIDATION is activated, and it has run.** This paragraph used to say
+the activation constant "is `False`" and that outer VALIDATION was refused. The
+activation change set recorded in
+`docs/T2_TRAIN_ARTIFACT_REVIEW_AND_OUTER_ACTIVATION_V1.md` flipped it after the
+TRAIN-only artifacts were reviewed, and the one-shot run has since executed and
+locked. `T2_OUTER_VALIDATION_EXECUTION_AUTHORIZED` is **`True`**; the comment
+above it explains what that does and does not license. There is still no
+environment variable, flag or argument that can move it.
+
+**Activation is not the re-run guard.** The claim is. `t2-v1-outer-validation`
+is consumed exactly as `t2-v1-training` is, on the same "the directory is the
+claim" rule, and re-claiming needs a documented human decision. Ask the claim,
+not the flag.
 """
 
 from __future__ import annotations

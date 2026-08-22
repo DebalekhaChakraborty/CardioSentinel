@@ -2,9 +2,11 @@
 
 These tests prove the engine exists and refuses. They never execute a
 continuation, never create a run directory, and never open a real held-out
-label. The continuation is authorized once; a post-claim failure consumes it and
-no second one is predeclared, so every gate that can be green before it starts
-is green before it starts.
+label. The continuation was authorized once, it ran on 2026-08-22, and it
+completed; the authorization is spent and no second one is predeclared. So these
+tests prove refusal against a run root that now exists, and they check that they
+left it exactly as they found it rather than that it is absent -- see
+``_attempt_guard`` for why the second claim is not the one worth making.
 """
 
 from __future__ import annotations
@@ -16,6 +18,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _attempt_guard import assert_attempt_unconsumed
 
 from cardiosentinel.neural import t1_continuation_gate as G
 from cardiosentinel.neural import t1_continuation_results as R
@@ -103,13 +106,13 @@ def committed_authorization_value() -> bool:
 def test_preflight_refuses_at_the_first_stage_and_touches_nothing():
     with pytest.raises(S.T1ContinuationPermissionError):
         RUN.preflight()
-    assert not S.CONTINUATION_RUN_ROOT.exists()
+    assert_attempt_unconsumed()
 
 
 def test_execute_refuses_before_resolving_anything(tmp_path):
     with pytest.raises(S.T1ContinuationPermissionError):
         RUN.execute_continuation(tmp_path)
-    assert not S.CONTINUATION_RUN_ROOT.exists()
+    assert_attempt_unconsumed()
     assert list(tmp_path.iterdir()) == []
 
 
@@ -425,8 +428,8 @@ def test_every_run_level_artifact_carries_both_provenance_blocks(block):
 # ---------------------------------------------------------------------------
 
 
-def test_no_continuation_directory_was_created():
-    assert not S.CONTINUATION_RUN_ROOT.exists()
+def test_no_continuation_directory_was_created_by_this_module():
+    assert_attempt_unconsumed()
 
 
 def test_the_consumed_attempt_is_never_addressed_for_writing():
@@ -501,13 +504,12 @@ def test_continuation_refuses_before_claim_when_not_authorized(tmp_path, monkeyp
     # 1. It refused for the right reason -- permission, not a downstream error.
     assert "not authorized" in str(excinfo.value)
 
-    # 2. No continuation directory, and no claim inside it.
-    assert not S.CONTINUATION_RUN_ROOT.exists()
-    assert not (S.CONTINUATION_RUN_ROOT / S.CONTINUATION_ATTEMPT_ID).exists()
-
-    # 3. No artifact file of any kind.
-    for name in R.CONTINUATION_RESULT_ARTIFACTS + (S.CONTINUATION_ATTESTATION_NAME,):
-        assert not (S.CONTINUATION_RUN_ROOT / S.CONTINUATION_ATTEMPT_ID / name).exists()
+    # 2 & 3. No claim was made and no artifact was written. The run root and the
+    #    completed attempt inside it are exactly as this session found them --
+    #    which is what the old "the directory does not exist" and "no artifact
+    #    file exists" assertions were fired to prove, and the only form of that
+    #    proof which survives the attempt having been executed.
+    assert_attempt_unconsumed()
 
     # 4. No label access, and no claim or promotion attempted.
     assert reached == [], f"unauthorized run reached {reached}"

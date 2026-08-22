@@ -21,7 +21,11 @@ artifacts, the attestation and the experiment lock.
 
 *The run root is sandboxed.* Every module that reads `CONTINUATION_RUN_ROOT` is
 redirected into a temporary directory, and the test asserts afterwards that the
-real one is still absent. Nothing here can claim the authorized identity.
+real one is exactly as this session found it. Nothing here can claim the
+authorized identity. That assertion used to read "the real one is still
+absent", which was true until the authorized continuation ran on 2026-08-22 and
+permanently false after -- the sandbox-leak question is whether the real root
+*changed*, and it always was.
 
 *The labels are synthetic.* The trace is the real persisted one -- it is
 label-free by construction, so consuming it costs nothing -- but the held-out
@@ -44,7 +48,7 @@ import sys
 from pathlib import Path
 
 import pytest
-from _attempt_guard import ATTEMPT_PRESENT
+from _attempt_guard import ATTEMPT_PRESENT, assert_attempt_unconsumed
 
 from cardiosentinel.neural import t1_continuation_spec as S
 
@@ -188,8 +192,10 @@ def test_the_claim_to_lock_seam_executes_end_to_end(tmp_path):
     # No artifact claims a policy was run.
     assert "policy_runs" not in json.dumps(result)
 
-    # And the authorized identity was never touched.
-    assert not S.CONTINUATION_RUN_ROOT.exists(), "the sandbox leaked"
+    # And the authorized identity was never touched. The real run root holds a
+    # completed attempt; "the sandbox leaked" means it CHANGED, not that it
+    # exists.
+    assert_attempt_unconsumed()
 
 
 @pytest.mark.skipif(not ATTEMPT_PRESENT, reason="consumed attempt is local-only")
@@ -235,5 +241,6 @@ def test_authorized_git_sha_passes_the_repository_root():
         assert call.args[0].id == "REPOSITORY_ROOT"
 
 
-def test_the_real_continuation_root_is_still_absent():
-    assert not S.CONTINUATION_RUN_ROOT.exists()
+def test_the_real_continuation_root_is_untouched_by_this_module():
+    """The sandbox never reached the authorized identity."""
+    assert_attempt_unconsumed()

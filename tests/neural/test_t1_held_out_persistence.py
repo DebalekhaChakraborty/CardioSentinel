@@ -27,6 +27,7 @@ import textwrap
 from pathlib import Path
 
 import pytest
+from _attempt_guard import assert_attempt_unconsumed
 
 from cardiosentinel.neural import t1_development_run as R
 from cardiosentinel.neural import t1_execution_spec as SPEC
@@ -400,7 +401,5 @@ def test_the_consumed_attempt_is_untouched_by_these_tests():
     assert not (canonical / PERSIST.HELD_OUT_TRACE_DIR).exists(), (
         "these tests wrote into the consumed canonical attempt"
     )
-    assert not (
-        REPOSITORY_ROOT / "cardiosentinel-runs" / "phase9-t1-continuation-v1"
-    ).exists()
+    assert_attempt_unconsumed()
     assert not (REPOSITORY_ROOT / "TEST_ATTEMPT.json").exists()

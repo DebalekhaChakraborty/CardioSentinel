@@ -15,13 +15,21 @@ has already made, or a firewall bypass.
 
 **There is no activation switch for training.** The human authorization
 mechanism is the exact merged Git SHA supplied through `--expected-git-sha`,
-matching the reviewed one-shot pattern P1, M1, M2 and U1 already use. The route
-is complete; it simply remains unexecuted until a human runs it against a merged
-commit.
+matching the reviewed one-shot pattern P1, M1, M2 and U1 already use.
 
-`--execute-canonical-outer-validation` exists so the route can be reviewed, and
-it refuses: the activation state is `False`, and the refusal fires before any
-VALIDATION path, array or label is touched.
+**Both routes have been executed.** This docstring used to say the training
+route "remains unexecuted", and that `--execute-canonical-outer-validation`
+refuses because "the activation state is `False`". Neither is true now. The
+canonical TRAIN attempt ran and locked at `t2-v1-training`; the activation
+change set then flipped
+`t2_persistence.T2_OUTER_VALIDATION_EXECUTION_AUTHORIZED` to `True`, and the
+one-shot outer VALIDATION ran and locked at `t2-v1-outer-validation`. Both
+attempt ids are consumed: the directory is the claim, and re-claiming either
+needs a documented human decision, not a flag.
+
+The authorization ordering is unchanged and still binding --
+`require_outer_validation_authorized()` fires before any VALIDATION path, array
+or label is touched.
 
 **The choreography, and why it is in this order.** Preflight proves Git, the
 protocol bytes, the execution-spec bytes and that the claim is unconsumed --
