@@ -1,9 +1,49 @@
 # CardioSentinel
 
-CardioSentinel is a research-software foundation for patient-adaptive,
-uncertainty-aware, edge-oriented investigation of transient ischemic ST episodes
-in ambulatory ECG. It is not a medical device and does not provide diagnosis,
-treatment, or medical recommendations.
+**An evidence-grounded intelligent physical system for adaptive ECG
+monitoring.** CardioSentinel senses a physiological stream, reasons over it with
+patient-adaptive temporal models, explains its own alerts from frozen
+provenance, and refuses to state claims its evidence does not support.
+
+It is **not a medical device** and does not provide diagnosis, treatment, or
+medical recommendations.
+
+## What the system does
+
+| | |
+|---|---|
+| **Causal temporal modelling** | a diagonal state-space model carrying state across windows, plus a frozen four-state episode machine |
+| **Patient-aware adaptation** | dual-timescale memory that scores each window *before* updating from it |
+| **Contamination-safe learning** | a six-condition admission gate; abnormal windows never move the patient baseline |
+| **Evidence-backed alerts** | every alert carries the checkpoint, calibrator, threshold policy and experiment lock behind it |
+| **Research traceability** | 16 experiment locks; provenance reachable from any alert by graph traversal |
+| **AI-assisted explanation** | agents that translate evidence into language, with a publication claim boundary enforced in code |
+
+**Run the simulation** — replays a stored LTSTDB recording as a live stream:
+
+```bash
+cardiosentinel edge simulate s20201 --seconds 2400   # ECG -> alerts, ~61x real time
+cardiosentinel agent why s20201                      # why did it alert?
+cardiosentinel agent research "Why was S4D selected instead of GRU?"
+```
+
+## What the system does NOT do
+
+This list is load-bearing and is enforced in code by
+`agents/claims.py`, which encodes 18 of the handbook's forbidden claims:
+
+- **No diagnosis.** Detection only, and no clinical utility is claimed.
+- **No deployment.** There is no serving path, no ONNX, no TorchScript.
+- **No edge-hardware result.** The runtime is a **laptop simulation replaying a
+  stored recording**. There is no sensor and no acquisition path. RQ5 is open.
+- **No generalisation beyond LTSTDB.** One dataset, twelve validation subjects,
+  and no independent cohort exists in the public record.
+- **No test-set performance.** The neural sealed test is **unopened**.
+
+**State:** `ips-agentic-runtime-v1.0` at `origin/master` `9f38f47`. The
+authoritative record is
+[`docs/CardioSentinel_Research_Execution_Handbook_v1.4.md`](docs/CardioSentinel_Research_Execution_Handbook_v1.4.md);
+architecture is [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Project evolution
 

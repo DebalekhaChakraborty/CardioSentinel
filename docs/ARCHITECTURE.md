@@ -14,7 +14,6 @@ that is complete — somewhere else.
 
 ```
 src/cardiosentinel/
-  edge/             2 lines   "Future edge execution, routing, and hardware benchmark contracts."
   episodes/         2 lines   "Future temporal reasoning for ST-event and episode construction."
   personalization/  2 lines   "Future contamination-safe patient baseline and adaptation components."
   uncertainty/      2 lines   "Future calibrated uncertainty estimation and confidence controls."
@@ -30,7 +29,53 @@ retention). Personalization **is** implemented (`patient_memory.py` plus 17
 All of it lives in `neural/`, organised by **experiment ID** rather than by
 concern. `neural/` is 86 files and 54,073 lines — **46% of the codebase**.
 
-Only `edge/` is honest: that work genuinely does not exist.
+**`edge/` was on that list until `ips-agentic-runtime-v1.0`, and is not any
+more.** It now holds the IPS runtime, and `agents/` — which did not exist at
+all when this document was first written — holds the agentic layer. Both are
+described in §0.1.
+
+---
+
+## 0.1 The two packages that stopped being stubs
+
+```
+src/cardiosentinel/
+  edge/     7 files  1,428 lines   the IPS runtime
+  agents/   9 files  2,049 lines   the agentic layer
+```
+
+| `edge/` | |
+|---|---|
+| `representation.py` | the bridge: `CausalWindow` → the 146-d representation the retained models consume |
+| `artifacts.py` | the single controlled loader; nothing else in `edge/` opens a checkpoint |
+| `session.py` | `StreamingInferenceSession`, holding five pieces of causal state |
+| `alerts.py` | contiguous `EVENT` runs → `AlertEvent` |
+| `replay.py` · `cli.py` | laptop replay driver and `cardiosentinel edge simulate` |
+
+| `agents/` | |
+|---|---|
+| `claims.py` | the publication claim boundary as code — 18 Appendix A patterns |
+| `evidence.py` | Evidence Agent: why an alert fired, deterministic |
+| `graph.py` | evidence graph, closed node kinds and edge relations |
+| `context.py` · `explain.py` · `providers.py` | Patient Explanation Agent and its deterministic fallback |
+| `research.py` | Evidence-Grounded Research Assistant, curated objects only |
+
+**What is established:** a replay-based ECG stream running on a laptop CPU at
+roughly 61× real time, producing alerts that carry the provenance of every
+frozen component that produced them.
+
+**What is NOT established, and the claim boundary is unchanged:**
+
+- **Embedded hardware deployment.** A laptop is not edge hardware. Appendix A
+  claim 5 stands and **RQ5 remains open**.
+- **Real acquisition.** This replays a stored recording. There is no sensor and
+  no acquisition path.
+- **Power, thermal or memory-pressure behaviour.** Never measured on any device.
+- **Deployment readiness.** No serving path, no ONNX, no TorchScript. Appendix A
+  claim 2 stands.
+
+The permitted description is *"laptop-based edge simulation using streaming
+physiological replay"* — no more than that.
 
 ---
 
@@ -142,7 +187,9 @@ SAFETY / GOVERNANCE    neural/sealed_test.py, *_gate.py, runtime_sentinel.py,
 | **W1** | `neural/w1_window_comparator.py` | 268 | Executed · ablation arm |
 | Evaluation | `evaluation/` | 1,965 | Implemented · Tested |
 | Governance | `sealed_test`, gates, sentinel | ~2,600 | **Active** |
-| Edge / E1 | `edge/` | **2** | **Planned only** |
+| **IPS runtime** | `edge/` | **1,428** | **Implemented — replay simulation only (§0.1)** |
+| **Agentic layer** | `agents/` | **2,049** | **Implemented** |
+| Edge hardware / E1 | — | 0 | **Not started.** RQ5 open |
 | §16 multi-task · RQ6 · HMM/CRF | — | **0** | **Never begun** |
 
 **Totals at `d5a86ce`:** 250 tracked `.py` files · 117,104 LOC · 102 test files
@@ -172,8 +219,9 @@ SAFETY / GOVERNANCE    neural/sealed_test.py, *_gate.py, runtime_sentinel.py,
 Stated so nobody looks for it:
 
 - **No serving path.** No inference endpoint, no deployment, no on-device code.
-- **No edge implementation.** `B4_RESOURCE_BENCHMARK_V1` numbers are from a
-  fixed benchmark host, not edge hardware.
+- **No edge *hardware* implementation.** `B4_RESOURCE_BENCHMARK_V1` numbers are
+  from a fixed benchmark host, and the runtime in `edge/` runs on a laptop.
+  Neither is an edge measurement.
 - **No routing policy in force.** The only one built was evaluated and rejected.
 - **No external cohort.** Only LTSTDB is on disk; EDB is contracted, audited and
   deliberately never downloaded.
