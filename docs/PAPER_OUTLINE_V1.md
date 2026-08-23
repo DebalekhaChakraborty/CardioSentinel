@@ -197,11 +197,48 @@ distinction explicit: **pre-registration does not make predictions correct, it
 makes them checkable**, and a programme that only ever reports confirmed
 predictions has not demonstrated the difference.
 
-**9.5 The cost, stated plainly.** This apparatus is expensive. Six failure
-records, fourteen consumed budgets, and roughly one merged governance document
-per experiment. **A reader deciding whether to adopt it deserves the bill, not
-just the benefits** — including the cases where the discipline blocked an
-analysis that would probably have been fine.
+**9.5 The cost, stated plainly.** **A reader deciding whether to adopt this
+apparatus deserves the bill, not just the benefits.** Counts alone will not let
+them price it, so the section names line items.
+
+**The volume.** As of `origin/master` `d5a86ce`, `docs/` holds **16,517 lines
+against 63,330 lines of source** — **one line of governance prose for every 3.83
+lines of code** — across **42 versioned protocol, decision, plan, amendment and
+report documents** out of 59 in the directory. *(Pinned to that commit
+deliberately: this outline lives in `docs/` and would otherwise count itself.)*
+The ratio is uncomfortable and it is the honest figure; understating it would
+read as defensive.
+
+**The largest single line item is the stage-24 recovery, and it is the most
+instructive.** A canonical attempt was consumed and **not retried**. Re-measuring
+work the machine had already computed once cost a **625-line amendment**, **nine
+new modules totalling 3,165 lines**, **five test files**, and a **separate human
+authorization**. Under a conventional regime it would have been an afternoon's
+re-run. **This is where the discipline hurt most, and it was still right** — but
+the paper has to show the size of the bill before that sentence means anything.
+
+**A case where the discipline withheld a better number.** U1's pre-registration
+fixed four degeneracy statistics. Once the values were visible it was obvious
+that the one that told the story — share of mass in the heaviest bin — was not
+among them. **It was recorded as a limitation and not added**, because choosing a
+statistic after seeing the values is what the pre-registration existed to
+prevent. The report is worse than it could have been, deliberately.
+
+**A case where over-restriction actively produced a worse report.** The first T2
+execution resolved a conflict between two plan sections by **silently dropping
+both arms' absolute AUPRC**, and the same instinct dropped 17 metric keys across
+3 strata and 2 arms. That omission removed the scale a reader needs to interpret
+a difference of 0.093215 — and it **concealed that the subject-macro figure was a
+mean over 9 of 12 subjects.** An amendment reversed it. **The failure mode was
+not slowness; it was a silent, unregistered reporting decision taken at execution
+time — precisely what pre-registration exists to prevent, produced by the
+discipline's own over-caution.** A method that can fail that way is a more
+honest thing to hand a reader than one that only ever fails by being slow.
+
+**This section must not end by arguing the cost was worth it.** Its power is
+that it declines to. If §§9.6 and 9.7 do their work the reader reaches that
+conclusion unaided; the moment §9.5 reaches for it, the section becomes advocacy
+and loses the credibility it exists to buy.
 
 **9.6 What we would do differently.** The stage-24 lesson — junctions, not just
 stages — and the U1 lesson that a pre-registration must name the statistic that
@@ -218,6 +255,21 @@ corroborate it against.**
 Environment lock, artifact manifest, restore procedure, and the tracked
 generators. **The restore procedure must replay mtimes**, because immutability
 here is asserted in terms of file times and object storage assigns its own.
+
+**Reproducibility is not free at execution time either, and this section should
+not read as though it is.** A tracked generator has to reproduce its tracked
+document byte-for-byte, so every correction to a report means a full
+regeneration rather than an edit. The T2 report needed **five regenerations at
+roughly nine minutes each**, two of them caused by defects in the generator
+itself. That cost is inherent to the guarantee, not a defect in it — and a
+reader planning to adopt the practice should see it before they commit.
+
+**Also to be recorded here rather than discovered later:** a preservation
+guarantee degrades silently. An expired credential turns a verified backup into
+an unverified claim without anything failing, so the package needs a
+re-verification procedure with a date attached, and the honest state when it
+cannot be run is *"not verified as of <date>"* — never verified, and never
+lost.
 
 ---
 
