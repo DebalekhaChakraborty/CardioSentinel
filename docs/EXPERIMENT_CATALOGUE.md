@@ -4,7 +4,7 @@ Part of **Research Baseline v1.0**. Complete inventory as of `origin/master`
 `d5a86ce`.
 
 **The consumed/available ledger is canonical in
-`CardioSentinel_Research_Execution_Handbook_v1.3.md` §51.** This document does
+`CardioSentinel_Research_Execution_Handbook_v1.4.md` §51.** This document does
 not restate it. Two ledgers drifting apart is the exact failure v1.2 just
 demonstrated, and the handbook's is the better one: it tracks fifteen budgets at
 the level of *access* — including M1's and M2's failed attempts as budgets in
@@ -103,6 +103,37 @@ spent tokens** — the re-run guard is the persistence claim, not the flag.
 **There is no remaining cheap move.** Every derived analysis that needed no new
 authorization has been run. Anything further requires a new authorization, a
 re-scoring run, or data the project does not have.
+
+---
+
+## 5.1 IPS runtime phase — built, not experimented
+
+**New after `research-freeze-v1.0`.** These consumed **no** one-shot budget,
+ran no model training and produced no new metric, so they are not experiments
+and do not appear in the §1 ledger. They are recorded here because a reader
+looking for "what happened after the science froze" should find it.
+
+| Work | Merged | What it produced | Budget consumed |
+|---|---|---|---|
+| Edge representation bridge | #82 | live `CausalWindow` → 146-d representation; verified against the frozen corpus to 6 ULP | **none** |
+| Streaming runtime | #83 | `StreamingInferenceSession`; ECG chunk → alert at ~61× real time | **none** |
+| Evidence Agent + claim guard | #84 | alert explanation; 18 Appendix A patterns executable | **none** |
+| Evidence graph | #85 | 35-node provenance graph reaching the experiment locks | **none** |
+| Patient Explanation Agent | #86 | guarded generation with deterministic fallback | **none** |
+| Research Assistant | #87 | six curated evidence objects, no document access | **none** |
+
+**Validation performed, all against already-published evidence:**
+
+- **Representation equality** — 64 rows, 13 records, 3 channels: physiology half
+  bit-exact, embedding half within 6 ULP of float32.
+- **M2 order preservation** — `replay_stream` byte-identical before and after
+  the `step()` extraction, `sha256 8830a2e1…`, plus 555 M2 tests.
+- **Null-result reproduction** — replaying `s20591` produces zero alerts, which
+  reproduces the published finding that s2059 has 47 reference episodes and
+  **0 predicted runs**.
+
+**E1 remains not started.** The runtime is a laptop replay simulation; no edge
+hardware measurement exists and RQ5 is open.
 
 ---
 
