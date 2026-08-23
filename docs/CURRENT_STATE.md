@@ -9,54 +9,38 @@ Commentary can go in a `Notes` subsection if needed, but treat everything else
 here as disposable output, not source of truth — **the repository is the
 source of truth; this file is a cache of it.**
 
-`docs/IMPLEMENTATION_PLAN.md` and `docs/RESEARCH_SCOPE.md` are the project's
-narrative plan and have not been revised since 2026-08-07. This file exists
-because those two drifted far enough from reality that a 2026-08-21 audit had
-to reconstruct actual state from `cardiosentinel-runs/` and git history by
-hand. Read this file for "where are we," and the `_V1` docs for "what did we
-decide and why."
+Read this file for *"where are we"*. Read the `_V1` documents for *"what did we
+decide and why"*. Read
+`docs/CardioSentinel_Research_Execution_Handbook_v1.3.md` for the programme's
+governing account of itself, `docs/ARCHITECTURE.md` for where the code actually
+lives, and `docs/EXPERIMENT_CATALOGUE.md` for what has been spent.
 
 ---
 
-**As of:** `origin/master` `1bbbd47` (merge of PR #63), 2026-08-22
+**As of:** `origin/master` `d5a86ce` (merge of PR #78), 2026-08-23
 **Working tree:** clean
-**Open PRs:** 0
+**Open PRs:** 1 — #80, Research Baseline v1.0
 **Canonical T1 attempt:** **CONSUMED** — failed post-claim at stage 24
 **T1 measurement continuation:** **COMPLETED** — the single authorization is spent
-**Sealed B4/neural TEST:** unopened
+**T2 outer validation:** **CONSUMED and ANALYSED** — values published
+**Sealed B4/neural TEST:** **unopened — the last irreversible budget**
 
 ---
 
-## Live flag — the T1 attempt is gone, and no second one exists
+## Live flag — every free move has been spent
 
-The previous refresh of this file said *"the single canonical T1 attempt is
-**not** consumed."* **That is now false, and it was the most dangerous sentence
-this cache has ever carried.** Anything that reads a stale copy and plans around
-an available attempt is planning around something that no longer exists.
+Since the previous refresh the programme has run out of cheap options. Every
+derived analysis that required no new authorization has now been executed:
+the T2 arm comparison, the T2 paired bootstrap, the W1 window comparator, and
+the U1 per-bin reliability read.
 
-```
-Canonical attempt   t1-v1-development       executed 2026-08-21 at c538181
-                                            FAILED post-claim at stage 24
-                                            consumed, directory immutable
-Continuation        t1-v1-measurement-continuation
-                                            executed 2026-08-22 at 61704aa
-                                            under authorization b40b4ac
-                                            COMPLETED in 10 seconds
-                                            authorization spent, directory immutable
-```
+**Nothing further can be run without one of three things:** a new human
+authorization, a re-scoring run, or data the project does not have.
 
-**§14 of the recovery amendment authorizes no second continuation, and none is
-predeclared.** `T1_CONTINUATION_AUTHORIZED` is `True` on disk but it is a spent
-token, not a live permission. There is no remaining T1 execution budget of any
-kind.
-
-The continuation took **two launches**. The first raised
-`TypeError: git_provenance() missing 1 required positional argument` at
-`runner.py:282`, six lines before `_claim()` at `runner.py:288`, so per §25 the
-attempt was **not** consumed and the authorization survived. PR #59 fixed the
-argument and added the seam test that should have preceded the first launch. Do
-not read that as a near miss handled well; read it as the same defect class that
-consumed the canonical attempt at stage 24 — stages tested, junctions not.
+The flags `T1_CONTINUATION_AUTHORIZED` and
+`T2_OUTER_VALIDATION_EXECUTION_AUTHORIZED` are both `True` on disk. **Both are
+spent tokens, not live permissions.** The re-run guard is the persistence claim
+— an attempt directory that already exists is refused — not the flag.
 
 ---
 
@@ -64,226 +48,173 @@ consumed the canonical attempt at stage 24 — stages tested, junctions not.
 
 | | |
 |---|---|
-| Repository | `tactics/Myocardial-Ischemia-Detection-by-Analysing-ECG-Signal` (GitHub: `DebalekhaChakraborty/…`, renamed `CardioSentinel-AI`) |
-| `origin/master` | `1bbbd47020099327ae08cf0acab8ba5dc764c07a` — merge of PR #63, 2026-08-22 |
-| Working tree | clean |
-| Open PRs | **0** — #39 was **closed unmerged** 2026-08-21T19:23Z and replaced by #47 |
-| Outer repo (`/home/AI_POC`) | HEAD `086ee2813`, untouched by this pass |
-| Scientific interpreter | `/home/AI_POC/venvs/tactics/bin/python`, Python 3.12.6, 335 packages, `installed_packages_sha256 = b0fd6ea…` |
+| `origin/master` | `d5a86ce0a2577a6b03c4ebd33c1706deaac90f63` — merge of PR #78 |
+| Working tree | clean, no untracked non-ignored files |
+| Open PRs | #80 (Research Baseline v1.0) |
+| Tracked Python | 250 files · 117,104 LOC |
+| Tests | 102 files · 2,689 definitions |
+| Documents | 64 |
+| Evidence on disk | `cardiosentinel-runs` 2.3 GB · `cardiosentinel-data` 5.6 GB · `cardiosentinel-features` 16 GB (all gitignored) |
 
-### Recent history (last 12 commits)
+### Merged since the previous refresh (`1bbbd47`)
 
 ```
-1bbbd47  Merge PR #63 — T2 preregistered S4D vs GRU analysis plan
-b79185f  T2: preregistered S4D vs GRU outer validation analysis plan
-73358bc  Merge PR #62 — T1 post-hoc failure mode analysis
-c337404  T1: post-hoc failure mode analysis and interpretation
-9a03735  Merge PR #61 — T1 preregistered evidence report
-16c96f6  T1: generate the preregistered evidence report
-a878405  Merge PR #60 — analysis pre-registration + execution record
-6742291  Fix the primary estimate, the latency wording, and the exclusion list
-8a0132c  Pin the bootstrap's estimand before the values are read
-086161f  Add endpoint and claim hierarchy to the T1 analysis plan
-08152c8  Record T1 analysis pre-registration and continuation execution
-61704aa  Merge PR #59 — T1 claim-to-lock seam hardening  [continuation ran at this commit]
+#66 handbook rename + .docx          #73 W1 pre-registration + arm
+#67 track document generators        #74 W1 report — RQ4 answered
+#68 IMPLEMENTATION_PLAN/README drift #75 external validation strategy
+#69 13 stale tests + firewall docs   #76 W1 section renumber
+#70 T2 paired bootstrap (no values)  #77 README/PLAN/REPO_AUDIT refresh
+#71 U1 reliability plan + generator  #78 U1 per-bin reliability report
+#72 T2 arm-comparison report
 ```
 
-### PRs merged since the last refresh
-
-| PR | Subject |
-|---|---|
-| #46 | Docs sync — plan, scope, README |
-| #47 | Authorize canonical development execution (replaced the closed #39) |
-| #48–#50 | Recovery amendment V1.1 · diagnosable failure · held-out persistence |
-| #51–#52 | Attempt tripwires · recovery prerequisites and reconstructed receipt |
-| #53–#54 | Continuation safety framework · continuation evidence contract |
-| #55–#56 | Gated measurement execution engine · label authority integration |
-| #57–#58 | Pre-authorization record · **the authorization itself** |
-| #59 | Seam hardening — fixed the pre-claim `TypeError` |
-| #60 | Analysis pre-registration + execution-commit record |
-| #61 | **T1 descriptive report — first read of measured values** |
-| #62 | T1 post-hoc failure mode analysis |
-| #63 | T2 arm-comparison pre-registration |
+---
 
 ## 2. Where this stands vs. the plan docs
 
-`docs/IMPLEMENTATION_PLAN.md` and `docs/RESEARCH_SCOPE.md` remain unrevised
-since 2026-08-07 and are now further behind than at the last refresh.
+`docs/IMPLEMENTATION_PLAN.md` was refreshed in #68 and #77 and is **current**.
+`docs/README.md` and `docs/REPO_AUDIT.md` were refreshed in #77.
+`docs/RESEARCH_SCOPE.md` has not been revised since 2026-08-07 and does not
+need to be: the objective it states is unchanged.
 
-| # | Item | Doc says | Reality |
-|---|---|---|---|
-| 1–3 | Ingestion · signal pipeline · baselines B0–B3 | complete | matches |
-| 4 | Patient-adaptive memory | future work | **done** — M1L retained, M2-G retained |
-| 5 | Physiology-guided model | future work | **done** — P1-B retained |
-| 6 | Uncertainty calibration | future work | **partial** — Platt retained, **router NOT retained** |
-| 7 | Temporal episode reasoning | future work | **done** — T2 selected, T1 executed and measured |
-| 8 | Edge/cloud routing | future work | **NOT done** — the router was explicitly rejected |
-| 9 | Edge benchmarking | future work | partial — benchmark host only, never on-device |
-| 10 | Final ablation & external validation | future work | matches — not started |
+**The handbook is now v1.3.** v1.2 is superseded but tracked and unedited, on
+purpose — it is the document that recorded "not one of the seven research
+questions is affirmatively answered", and that statement is now evidence of a
+moment rather than a fact.
 
-**Item 8 is the correction that matters.** Any document claiming edge/cloud
-routing is complete is wrong: `U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md`
-records a **split** retention — calibration retained, the symmetric window-level
-selective router at `c_star = 0.90` **not** retained.
+---
 
 ## 3. Experiment ladder
 
-| ID | Status | Evidence | Notes |
+| ID | Status | Evidence | Outcome |
 |---|---|---|---|
-| B0–B3 | complete, **TEST opened** | `phase3b-classical-v3` | one-shot sealed-test access already spent in Phase 3B-1 |
-| B4-A | complete, **rejected** | `phase3b2-b4-v1` | `B4CompactCNN`, 87,089 params |
-| **B4-B** | **SELECTED encoder** | `phase3b2-architecture-v1` | `B4BTransformerCNN`, 309,809 params |
-| B4-C | complete, **rejected** | `phase3b2-architecture-v1` | `B4CSSMCNN`, 155,313 params |
-| P1 | **P1-B retained** | `phase4-p1-physiology-v1` | retained with a recorded rate-related FPR caveat |
-| M1 | **M1L retained** | `phase5-m1-dual-memory-v2` | v2 canonical; v1 has two documented stage-1 failures |
-| M2 | **M2-G retained** | `phase6-m2-development-v1` | canonical is **recovery2**; two earlier attempts have failure receipts |
-| U1 | **split retention** | `phase7-u1-development-v1` | Platt retained, router rejected |
-| T2 | **S4D retained** | `phase8-t2-development-v1` | training + one-shot outer VALIDATION, both arms scored |
-| **T1** | **executed and measured** | `phase9-t1-development-v1` (failed) + `phase9-t1-continuation-v1` (completed) | see §4 |
-| E1 | not started | — | `edge/` is a docstring; no inference path exists |
+| B0–B3 | complete | `phase3b-classical-v3` | sealed test **CONSUMED** |
+| B4-A / B4-B / B4-C | complete | `phase3b2-*` | **B4-B selected** |
+| P1 | complete | `phase4-p1-physiology-v1` | **P1-B retained**, FPR caveat |
+| M1 | complete | `phase5-m1-dual-memory-v2` | **M1L retained** |
+| M2 | complete | `phase6-m2-development-v1` | **M2-G retained** |
+| U1 | **split retention** | `phase7-u1-development-v1` | Platt retained, **router rejected** |
+| T2 | complete and **analysed** | `phase8-t2-development-v1` | S4D selected; contrast interval spans zero |
+| T1 | complete and **analysed** | `phase9-t1-*` | measured, reported |
+| W1 | complete | derived — no run directory | **RQ4 supported (bounded)** |
+| E1 | not started | — | `edge/` is a docstring |
 
-Also present: three `phase-3b-smoke-*` folders (CI fixtures, not science) and
-`cardiosentinel-runs/T1/T1_state_machine_v1/` which reads `status: COMPLETE`
-but is `run_class: harness_verification`, `protocol_evidence: false` — **not
-evidence.**
+Full ledger with the consumed/available column: `docs/EXPERIMENT_CATALOGUE.md`.
 
-## 4. T1 result — published, frozen
+---
 
-The measurement is complete and reported. `docs/T1_DESCRIPTIVE_REPORT_V1.md` is
-the authority; the values below are its headline, restated with the labelling
-its pre-registration requires.
+## 4. Published results
 
-| | |
+| Experiment | Headline | Interval |
+|---|---|---|
+| **T1** | subject-macro `episode_f1` **0.2524** | [0.0826, 0.4415] |
+| **T2** | `pooled_auprc_difference` **0.093215** | **[-0.015229, 0.148951]** — includes zero |
+| **W1** | T1 − W **0.1921** | **[0.0505, 0.3455]** — excludes zero |
+| **U1** | Platt NLL **0.143708** / Brier **0.040344** | vs baseline 0.231705 / 0.063567 |
+
+**T2's difference IS the selection criterion**, not an independent discovery.
+**W1's answer is bounded** by an operating point selected with the state machine
+in the loop. **U1's baseline is not an out-of-fold artifact** — the artifact says
+so.
+
+Each headline carries a caveat about what its denominator actually is; the
+pattern is recorded as a finding in handbook §49.4.
+
+---
+
+## 5. Research questions
+
+| RQ | Status |
 |---|---|
-| **Registered primary** — subject-macro mean `episode_f1` | **0.2524** |
-| **95% subject-bootstrap interval** | **[0.0826, 0.4415]** |
-| `pooled_episode_f1` — episode-weighted, **descriptive, not what the interval brackets** | 0.3423 |
+| RQ1 memory reduces false alarms | **Open** |
+| RQ2 personalization contamination-safe | **Partial** |
+| RQ3 uncertainty routing | **Negative** — router rejected |
+| **RQ4 episode reasoning** | **Supported (bounded)** |
+| RQ5 edge efficiency · RQ6 distillation · RQ7 confounder-aware | **Open** |
 
-Twelve held-out LTSTDB subjects, cross-fitted, subject-disjoint. **Seven of
-twelve score zero**, and per `docs/T1_POST_HOC_ANALYSIS_V1.md` those zeros are
-two incomparable failure modes: three subjects (`s2005`, `s2020`, `s2023`) have
-**no reference episodes at all**, so their zero is a false-alarm penalty rather
-than a detection failure; four (`s2019`, `s2058`, `s2059`, `s3072`) missed real
-episodes. MCC and onset latency are undefined for exactly those seven and are
-reported as undefined, never zero-filled.
+**RQ4 is the programme's first affirmative answer.** *"(bounded)"* may not be
+dropped when quoting it.
 
-**The document chain, in the order it was created:**
+**Still unanswered and not an RQ:** what the S4D architecture contributed. T2's
+interval spans zero and `s4d_temporal_evidence_s_t` feeds both W1 arms.
 
-1. `docs/T1_EVIDENCE_ANALYSIS_PLAN_V1.md` — pre-registration, §§1–6 written
-   before any value was read, §7 added at approval (still pre-read), §8 the
-   approval record
-2. `docs/T1_DESCRIPTIVE_REPORT_V1.md` — the first read of measured values
-3. `docs/T1_POST_HOC_ANALYSIS_V1.md` — explicitly labelled post-hoc
-
-That ordering is the point and should not be presented any other way.
-
-### What T1 does not support
-
-No improvement claim (one-armed measurement, no comparator) · no memory or SSM
-ablation · no external generalization · no subgroup claim · no test claim · no
-clinical claim · no significance claim · no deployment claim. **"Causal" here
-means temporal non-anticipation, never causal inference.**
-
-## 5. T2 — next gate, values unread
-
-`docs/T2_ARM_COMPARISON_ANALYSIS_PLAN_V1.md` (PR #63) pre-registers the S4D vs
-GRU comparison. **No T2 measured value has been read.**
-
-The evidence supports it without any new run: `T2_OUTER_VALIDATION_RESULT.json`
-carries `per_arm_evidence` for both arms, and the row stores are paired —
-one 492,904-row identity file and one label vector serve both arms, shared
-ordering digests, thresholds frozen before outer validation.
-
-**The load-bearing caveat:** the comparison **is** the selection rule
-(`selection_basis: pooled_primary_validation_auprc`). The paired contrast is
-unbiased; S4D's absolute figure on this set is not. The plan forbids any
-unbiased-absolute-performance claim.
-
-**Step 3 of that plan — the first read of T2 values — requires explicit human
-authorization and has not been given.**
+---
 
 ## 6. Code maturity
 
-| Layer | Location | Maturity |
-|---|---|---|
-| Models | `models/` | thin — only `baselines.py`; neural architectures live in `neural/` |
-| Trainers | `neural/*_experiment.py`, `*_development_run.py` | mature, one harness per phase |
-| Pipelines | `signal/` · `features/` · `data/` | mature |
-| **Inference path** | — none — | **not started.** No `predict()`, no ONNX, no TorchScript, no serving |
-| Evaluation | `evaluation/` | mature, shared |
-| `neural/` | 83 modules, ~53.5k lines | has absorbed what `edge/`, `episodes/`, `personalization/`, `uncertainty/` were meant to hold — all four are still one-line docstrings |
-| Test suite | `tests/` | **3,062 collected** — see the defect below |
+Strongest: governance. One-shot claims, negative-capability proofs (AST plus
+`sys.modules`), frozen dependency digests, immutable attempt directories,
+pre-registration workflow, tracked provenance generators.
 
-### ⚠️ The local suite is red and CI is green, for a structural reason
+Weakest: the top-level package tree misrepresents the codebase. `edge/`,
+`episodes/`, `personalization/` and `uncertainty/` are two-line docstring stubs,
+while the work lives in `neural/` — 86 files, 54,073 LOC, 46% of the code. Two of
+those four stubs describe research that is complete elsewhere. See
+`docs/ARCHITECTURE.md`.
 
-**13 tests fail locally and pass in CI.** Every one asserts that
-`cardiosentinel-runs/phase9-t1-continuation-v1` **does not exist**. It has
-existed since the continuation ran on 2026-08-22 at 16:18.
+---
 
-CI passes because `/cardiosentinel-runs/` is gitignored (`.gitignore:33`, 0
-tracked files), so a fresh checkout has no continuation directory and the
-assertions hold. **The suite is therefore green in CI and permanently red on any
-machine that holds the evidence**, which means a local run can no longer signal a
-real regression. All 13 are in `tests/neural`; `tests/neural` alone reports
-2,840 passed / 13 failed. This needs its own PR.
+## 7. Data preservation — **snapshot exists, mirror NOT re-verified today**
 
-## 7. Data preservation — **backed up 2026-08-22**
+A full evidence mirror was created and verified on 2026-08-22:
 
-Previously the largest unmanaged risk in the programme. Now closed.
+```
+s3://cardiosentinel-evidence-341181499761/snapshot-2026-08-22-1bbbd47/
+786 objects · 24,779,296,980 bytes
+Versioning · Object Lock GOVERNANCE 365 days · SSE-S3 · public access blocked
+```
 
-| | |
-|---|---|
-| Destination | `s3://cardiosentinel-evidence-341181499761/snapshot-2026-08-22-1bbbd47/` (`us-east-1`) |
-| Contents | **786 objects, 24,779,296,980 bytes** — 785 evidence files + manifest |
-| Manifest | `MANIFEST_SHA256.txt`, sha256 `dd42385631ded57320116f82d14124c99d3ffb25ea4c6ec046c69b0d13d377f6` |
-| Protection | Versioning · Object Lock GOVERNANCE 365d · SSE-S3 AES256 · Block Public Access all-on |
-| Verification | object counts 4/4 match per tree · manifest round-trip identical · **16/16 sample re-hash passed** |
+**As of 2026-08-23 the AWS session has expired and the mirror could not be
+re-verified.** That is a statement about this moment, not about the snapshot:
+Object Lock GOVERNANCE with a 365-day retention was confirmed at creation, and
+nothing has been deleted. **Re-authenticate before relying on it, and do not
+record it as verified until you have.**
 
-Local footprint unchanged: `cardiosentinel-runs` 2.3 G / 365 files,
-`cardiosentinel-features` 16 G / 158, `cardiosentinel-data` 5.6 G / 261,
-`artifacts` 8 K / 1 — all gitignored, all on one disk (`/dev/sda1`, 86% used).
+The local evidence tree is **unchanged since the snapshot**. The T2 analysis and
+W1 both wrote only to `docs/`; `find -newermt` over the run directories after
+each returned nothing.
 
-**Restoring bytes is not enough.** S3 assigns its own `LastModified`, and mtimes
-are load-bearing evidence here — immutability is asserted as *"20 files at
-`2026-08-21T19:57:57`"*. The manifest carries `sha256 size mtime path`; a restore
-must replay them:
+**Restoring bytes is not restoring evidence state.** S3 assigns its own
+`LastModified`, and immutability here is asserted in timestamps. A restore must
+replay the manifest:
 
 ```bash
 while read -r sha size mtime path; do touch -d "@$mtime" "$path"; done < MANIFEST_SHA256.txt
 ```
 
+---
+
 ## 8. Open defects and next steps
 
-**Defects**
+### Defects
 
-1. **13 stale tests** asserting the continuation root is absent (§6). Needs a PR.
-2. **The T1 report generator is untracked** — it lives only in a scratch
-   directory. Regenerating from a stale copy would silently revert the §9.2
-   latency correction merged in #62.
-3. `IMPLEMENTATION_PLAN.md` / `RESEARCH_SCOPE.md` still unrevised since
-   2026-08-07 (§2).
+1. **AWS session expired** — S3 mirror unverified as of 2026-08-23 (§7).
+2. **Four empty packages** advertise an architecture the code does not use.
+   Repair named in `docs/ARCHITECTURE.md` §5, deliberately not done during the
+   freeze.
+3. **Seven scratch worktrees** remain registered from the ECG 14 session, all on
+   merged branches with no uncommitted work.
+4. The ECG 3 outer-repo index reconstruction still merits a human glance.
 
-**Next scientific steps, in order**
+### Next steps
 
-1. **T2 analysis execution** — step 3 of the T2 plan, gated on human approval.
-2. **External validation strategy** — the milestone that decides whether any of
-   this generalizes. Everything rests on 12 validation subjects from one dataset
-   whose obvious second cohort, EDB, is provably contaminated with the first per
-   `CROSS_DATASET_PROVENANCE.md`.
-3. **Ablation package** — separate decision; each ablation needs new authorized
-   runs. The standing constraints bar *reruns of canonical runs*, not new,
-   separately-identified experiments.
-4. **Paper assembly** — realistically a methodology and measurement-integrity
-   paper with a worked application, not a performance paper.
+Under **Research Baseline v1.0** (handbook §51) the repository is frozen for
+documentation, analysis of existing evidence, and paper drafting. No new
+experiment, no architecture change, no threshold generation, no sealed-test
+access.
 
-**Standing constraints, still in force:** no M2/U1/T2 rerun · no T1 fold retry ·
-no second continuation · never install, upgrade or downgrade packages in
-`tactics` · patient identity selects a namespace and a calibrator and is never a
-predictive feature · labels never determine memory-stream membership, ordering,
-or update eligibility · do not access sealed TEST.
+1. Merge #80 — completes the baseline.
+2. **Related Work and Discussion** — do not exist in any form; the long pole.
+3. Evidence map and paper outline.
+4. **Do not open the B4 sealed test.** Handbook §43 now argues this on evidence:
+   the headline contrast spans zero, and no cohort exists to corroborate a test
+   number.
+
+Leaving the freeze requires a named experiment with a pre-registered protocol,
+as T1, T2, U1 and W1 each had. The two candidates are the **T2-score ablation**
+(what did S4D contribute?) and the **RQ1 no-memory arm** — both require a
+re-scoring run, neither can reuse the W1 trick.
 
 ---
 
-_Last refreshed: 2026-08-22, read-only pass against `origin/master` `1bbbd47`.
-To refresh, ask Claude to re-run the audit and rewrite this file — nothing here
-is meant to be trusted past its own "As of" line._
+_Last refreshed: 2026-08-23, read-only pass against `origin/master` `d5a86ce`._
