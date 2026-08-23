@@ -24,6 +24,27 @@ def add_agent_commands(subparsers: Any) -> None:  # noqa: ANN401 - argparse acti
     explain.add_argument("--feature-root", default=str(DEFAULT_FEATURE_ROOT))
     explain.add_argument("--json", action="store_true")
 
+    graph = commands.add_parser(
+        "graph", help="Emit the provenance graph for a record's alerts."
+    )
+    graph.add_argument("record")
+    graph.add_argument("--channel", type=int, default=0)
+    graph.add_argument("--seconds", type=float, default=2400.0)
+    graph.add_argument("--source-root", default=str(DEFAULT_SOURCE_ROOT))
+    graph.add_argument("--run-root", default=str(DEFAULT_RUN_ROOT))
+    graph.add_argument("--feature-root", default=str(DEFAULT_FEATURE_ROOT))
+    graph.add_argument(
+        "--format",
+        choices=("json", "mermaid", "lineage"),
+        default="json",
+        help="json is the language-model substrate; mermaid is a figure.",
+    )
+    graph.add_argument(
+        "--of",
+        default="measurement:p_t",
+        help="Node to trace with --format lineage.",
+    )
+
     boundary = commands.add_parser(
         "check-claims", help="Check text against the publication claim boundary."
     )
@@ -33,6 +54,8 @@ def add_agent_commands(subparsers: Any) -> None:  # noqa: ANN401 - argparse acti
 def run_agent_command(args: argparse.Namespace) -> int:
     if args.agent_command == "check-claims":
         return _check_claims(args)
+    if args.agent_command == "graph":
+        return _graph(args)
     return _explain(args)
 
 
@@ -91,4 +114,50 @@ def _explain(args: argparse.Namespace) -> int:
         if index:
             print("\n" + "-" * 72 + "\n")
         print(agent.render(record))
+    return 0
+
+
+def _graph(args: argparse.Namespace) -> int:
+    from ..edge.artifacts import EdgeArtifactError
+    from ..edge.replay import replay_record
+    from .evidence import EvidenceAgent
+    from .graph import build_evidence_graph, summarise_lineage
+
+    try:
+        result = replay_record(
+            args.record,
+            channel_index=args.channel,
+            max_seconds=args.seconds,
+            source_root=args.source_root,
+            run_root=args.run_root,
+            feature_root=args.feature_root,
+        )
+    except EdgeArtifactError as error:
+        print(f"refused: {error}")
+        return 2
+
+    if not result.alerts:
+        print(f"{args.record}: no alert raised, so there is no graph to build.")
+        return 0
+
+    agent = EvidenceAgent(result.provenance)
+    graphs = [
+        build_evidence_graph(
+            agent.explain(alert, result.observations, index=index),
+            run_root=args.run_root,
+        )
+        for index, alert in enumerate(result.alerts)
+    ]
+
+    for index, graph in enumerate(graphs):
+        if index:
+            print()
+        if args.format == "json":
+            print(graph.to_json())
+        elif args.format == "mermaid":
+            print(graph.to_mermaid())
+        else:
+            print(f"{graph.root}  lineage of {args.of}:")
+            for line in summarise_lineage(graph, args.of):
+                print(f"  {line}")
     return 0
