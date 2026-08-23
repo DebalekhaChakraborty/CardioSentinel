@@ -61,6 +61,12 @@ def add_agent_commands(subparsers: Any) -> None:  # noqa: ANN401 - argparse acti
     )
     explain_why.add_argument("--json", action="store_true")
 
+    research = commands.add_parser(
+        "research", help="Ask about a research decision, from curated evidence."
+    )
+    research.add_argument("question", nargs="?", help="Omit to list known topics.")
+    research.add_argument("--json", action="store_true")
+
     boundary = commands.add_parser(
         "check-claims", help="Check text against the publication claim boundary."
     )
@@ -74,6 +80,8 @@ def run_agent_command(args: argparse.Namespace) -> int:
         return _graph(args)
     if args.agent_command == "why":
         return _why(args)
+    if args.agent_command == "research":
+        return _research(args)
     return _explain(args)
 
 
@@ -237,4 +245,35 @@ def _why(args: argparse.Namespace) -> int:
         print()
         print(textwrap.fill(explanation.text, 76, initial_indent="  ",
                             subsequent_indent="  "))
+    return 0
+
+
+def _research(args: argparse.Namespace) -> int:
+    from .research import (
+        RESEARCH_REGISTRY,
+        ResearchAssistantAgent,
+        ResearchQuestionError,
+        find_evidence,
+    )
+
+    if not args.question:
+        print("Curated research topics -- the assistant answers only these:")
+        for item in RESEARCH_REGISTRY:
+            print(f"  {item.topic:26s} {item.question}")
+        print(
+            "\nIt does not search documents, does not embed them, and does "
+            "not speculate."
+        )
+        return 0
+
+    try:
+        evidence = find_evidence(args.question)
+    except ResearchQuestionError as error:
+        print(f"refused: {error}")
+        return 1
+
+    if args.json:
+        print(json.dumps(evidence.as_dict(), indent=2, default=str))
+        return 0
+    print(ResearchAssistantAgent().answer(args.question))
     return 0
