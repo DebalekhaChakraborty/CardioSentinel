@@ -11,13 +11,14 @@ source of truth; this file is a cache of it.**
 
 Read this file for *"where are we"*. Read the `_V1` documents for *"what did we
 decide and why"*. Read
-`docs/CardioSentinel_Research_Execution_Handbook_v1.3.md` for the programme's
+`docs/CardioSentinel_Research_Execution_Handbook_v1.4.md` for the programme's
 governing account of itself, `docs/ARCHITECTURE.md` for where the code actually
 lives, and `docs/EXPERIMENT_CATALOGUE.md` for what has been spent.
 
 ---
 
-**As of:** `origin/master` `d5a86ce` (merge of PR #78), 2026-08-23
+**As of:** `origin/master` `9f38f47` (merge of PR #88), 2026-08-23 ·
+tag `ips-agentic-runtime-v1.0`
 **Working tree:** clean
 **Open PRs:** 1 — #80, Research Baseline v1.0
 **Canonical T1 attempt:** **CONSUMED** — failed post-claim at stage 24
@@ -48,7 +49,8 @@ spent tokens, not live permissions.** The re-run guard is the persistence claim
 
 | | |
 |---|---|
-| `origin/master` | `d5a86ce0a2577a6b03c4ebd33c1706deaac90f63` — merge of PR #78 |
+| `origin/master` | `9f38f478cde93ed9264ea121b58f2d1f51292c91` — merge of PR #88 |
+| Tags | `research-freeze-v1.0` (science frozen) · `ips-agentic-runtime-v1.0` (agentic layer complete) |
 | Working tree | clean, no untracked non-ignored files |
 | Open PRs | #80 (Research Baseline v1.0) |
 | Tracked Python | 250 files · 117,104 LOC |
@@ -97,7 +99,9 @@ moment rather than a fact.
 | T2 | complete and **analysed** | `phase8-t2-development-v1` | S4D selected; contrast interval spans zero |
 | T1 | complete and **analysed** | `phase9-t1-*` | measured, reported |
 | W1 | complete | derived — no run directory | **RQ4 supported (bounded)** |
-| E1 | not started | — | `edge/` is a docstring |
+| **IPS runtime** | **implemented** | `edge/`, 1,428 lines | replay simulation on a laptop; **not edge hardware** |
+| **Agentic layer** | **implemented** | `agents/`, 2,049 lines | evidence, graph, explanation, research assistant |
+| E1 edge hardware | not started | — | RQ5 open; a laptop is not an edge device |
 
 Full ledger with the consumed/available column: `docs/EXPERIMENT_CATALOGUE.md`.
 
@@ -146,7 +150,8 @@ Strongest: governance. One-shot claims, negative-capability proofs (AST plus
 `sys.modules`), frozen dependency digests, immutable attempt directories,
 pre-registration workflow, tracked provenance generators.
 
-Weakest: the top-level package tree misrepresents the codebase. `edge/`,
+Weakest: the top-level package tree still partly misrepresents the codebase.
+`edge/` and `agents/` now hold real code (see `ARCHITECTURE.md` §0.1);
 `episodes/`, `personalization/` and `uncertainty/` are two-line docstring stubs,
 while the work lives in `neural/` — 86 files, 54,073 LOC, 46% of the code. Two of
 those four stubs describe research that is complete elsewhere. See
@@ -217,4 +222,5 @@ re-scoring run, neither can reuse the W1 trick.
 
 ---
 
-_Last refreshed: 2026-08-23, read-only pass against `origin/master` `d5a86ce`._
+_Last refreshed: 2026-08-23, against `origin/master` `9f38f47`, after the IPS
+runtime and agentic layer merged (#82-#88)._
