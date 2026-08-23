@@ -67,6 +67,12 @@ def add_agent_commands(subparsers: Any) -> None:  # noqa: ANN401 - argparse acti
     research.add_argument("question", nargs="?", help="Omit to list known topics.")
     research.add_argument("--json", action="store_true")
 
+    arch = commands.add_parser(
+        "architecture", help="Explain why a candidate architecture was selected."
+    )
+    arch.add_argument("question", nargs="?", help="Omit to list candidates.")
+    arch.add_argument("--json", action="store_true")
+
     boundary = commands.add_parser(
         "check-claims", help="Check text against the publication claim boundary."
     )
@@ -82,6 +88,8 @@ def run_agent_command(args: argparse.Namespace) -> int:
         return _why(args)
     if args.agent_command == "research":
         return _research(args)
+    if args.agent_command == "architecture":
+        return _architecture(args)
     return _explain(args)
 
 
@@ -276,4 +284,35 @@ def _research(args: argparse.Namespace) -> int:
         print(json.dumps(evidence.as_dict(), indent=2, default=str))
         return 0
     print(ResearchAssistantAgent().answer(args.question))
+    return 0
+
+
+def _architecture(args: argparse.Namespace) -> int:
+    from .architecture import (
+        ARCHITECTURE_REGISTRY,
+        ArchitectureQuestionError,
+        ArchitectureSelectionAgent,
+        find_candidate,
+    )
+
+    if not args.question:
+        print("Candidate architectures with a recorded lifecycle:")
+        for item in ARCHITECTURE_REGISTRY:
+            print(f"  {item.key:12s} {item.status:26s} {item.name}")
+        print(
+            "\nThe agent explains recorded selections. It does not recommend "
+            "architectures and does not evaluate new ones."
+        )
+        return 0
+
+    try:
+        candidate = find_candidate(args.question)
+    except ArchitectureQuestionError as error:
+        print(f"refused: {error}")
+        return 1
+
+    if args.json:
+        print(json.dumps(candidate.as_dict(), indent=2, default=str))
+        return 0
+    print(ArchitectureSelectionAgent().explain(args.question))
     return 0
