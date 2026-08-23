@@ -124,3 +124,95 @@ def test_the_package_does_not_depend_on_an_external_mirror():
     checksum = (REPRO / "CHECKSUM_MANIFEST.md").read_text(encoding="utf-8")
     assert "not verified" in checksum
     assert "Nothing in this package depends on that mirror" in checksum
+
+
+# --------------------------------------------------------------------------
+# Usability. Integrity proves the bundle is intact; these prove it WORKS.
+# --------------------------------------------------------------------------
+
+
+BUNDLE_RUNS = BUNDLE / "runs"
+BUNDLE_FEATURES = BUNDLE / "features"
+
+
+def test_the_bundle_alone_loads_every_runtime_component():
+    """The claim `RUN_DEMO.md` makes, executed.
+
+    **This runs everywhere**, including a fresh CI checkout, because the bundle
+    is committed and no ECG record is needed to load artifacts. It is the test
+    that would have failed when `.gitignore` silently dropped three
+    checkpoints — integrity checks passed at that point, because the manifest
+    and the missing files agreed with each other.
+    """
+    from cardiosentinel.edge.artifacts import load_runtime_artifacts
+
+    artifacts = load_runtime_artifacts(
+        "ltstdb:s2020", run_root=BUNDLE_RUNS, feature_root=BUNDLE_FEATURES
+    )
+    provenance = artifacts.provenance()
+
+    assert provenance["encoder_architecture"] == "B4BTransformerCNN"
+    assert provenance["m2_arm"] == "M2-G"
+    assert provenance["u1_family"] == "platt_logistic_on_recovered_logit"
+    assert provenance["t2_arm"] == "CausalS4DLongitudinal"
+    assert provenance["t1_policy_id"] == "qw0.9_qe0.99_FAST"
+    assert provenance["t1_held_out_subject"] == "ltstdb:s2020"
+    assert provenance["sealed_test_state"] == "unopened"
+    assert provenance["test_accessed"] is False
+    # The digest a reviewer can compare against the merged corpus manifest.
+    assert provenance["physiology_transform_sha256"].startswith("cc6bd3a3")
+
+
+def test_the_bundle_refuses_an_unvalidated_subject():
+    """The boundary travels with the bundle, not just with the research tree."""
+    from cardiosentinel.edge.artifacts import EdgeArtifactError, load_runtime_artifacts
+
+    with pytest.raises(EdgeArtifactError, match="not one of the twelve"):
+        load_runtime_artifacts(
+            "ltstdb:s2001", run_root=BUNDLE_RUNS, feature_root=BUNDLE_FEATURES
+        )
+
+
+DEMO_RECORD = ROOT / "cardiosentinel-data" / "ltstdb" / "1.0.0" / "s20201.hea"
+
+
+@pytest.mark.skipif(
+    not DEMO_RECORD.is_file(),
+    reason=(
+        "cardiosentinel-data/ltstdb/1.0.0/s20201 absent. The ECG record is "
+        "downloaded from PhysioNet per DATA_ACCESS.md and is not distributed "
+        "here; the bundle-only loader test above still runs."
+    ),
+)
+def test_the_documented_reviewer_path_runs_end_to_end():
+    """ECG -> alert -> evidence -> explanation, from the bundle, as documented."""
+    from cardiosentinel.agents.evidence import EvidenceAgent
+    from cardiosentinel.agents.explain import DETERMINISTIC, PatientExplanationAgent
+    from cardiosentinel.agents.graph import build_evidence_graph
+    from cardiosentinel.edge.replay import replay_record
+
+    result = replay_record(
+        "s20201",
+        max_seconds=1800.0,
+        source_root=ROOT / "cardiosentinel-data" / "ltstdb" / "1.0.0",
+        run_root=BUNDLE_RUNS,
+        feature_root=BUNDLE_FEATURES,
+    )
+    assert result.observations, "no windows were produced"
+    assert result.alerts, "s20201 should raise at least one alert in 30 minutes"
+
+    evidence = EvidenceAgent(result.provenance).explain(
+        result.alerts[0], result.observations, index=0
+    )
+    assert evidence.alert_id.startswith("EVT-s20201")
+    assert len(evidence.gate) == 6
+
+    graph = build_evidence_graph(evidence, run_root=BUNDLE_RUNS)
+    lineage = [node.node_id for node in graph.lineage("measurement:p_t")]
+    assert "component:calibration" in lineage
+
+    explanation = PatientExplanationAgent(None).explain(graph)
+    # No provider is configured in CI or in a reviewer's clone by default.
+    assert explanation.explanation_mode == DETERMINISTIC
+    assert explanation.fallback_reason == "no provider configured"
+    assert "does not establish a diagnosis" in explanation.text
