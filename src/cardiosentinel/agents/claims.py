@@ -193,10 +193,22 @@ def find_violations(text: str) -> tuple[ClaimViolation, ...]:
     return tuple(found)
 
 
+#: The canonical closing sentence for any patient-facing explanation.
+#:
+#: One string, registered once. Every renderer and every generator brief uses
+#: it verbatim rather than inventing a variant, because a variant would trip
+#: the guard and each author would then be tempted to word around the boundary
+#: instead of stating it.
+SYSTEM_BEHAVIOUR_ONLY: str = (
+    "This describes system behaviour only and does not establish a diagnosis."
+)
+
+
 #: Curated constant text that names a forbidden claim in order to disclaim it.
 #: Reviewed by a human once, not generated per alert. Registering a string here
 #: is a deliberate act; it is not a way to silence the guard on generated prose.
 APPROVED_DISCLAIMERS: tuple[str, ...] = (
+    SYSTEM_BEHAVIOUR_ONLY,
     "a diagnosis -- this is detection, and the programme's scope is detection",
     "anticipation of an episode -- matching is overlap-only, with no tolerance "
     "window and no stored run durations",
@@ -214,6 +226,19 @@ def strip_approved_disclaimers(text: str) -> str:
     return text
 
 
+def audit(text: str) -> tuple[ClaimViolation, ...]:
+    """Violations in `text`, ignoring registered disclaimers.
+
+    **Use this, not `find_violations`, whenever the text may legitimately end
+    with an approved disclaimer** -- which is every explanation this system
+    produces. `enforce` and the generative path both call it, so the two cannot
+    disagree about what compliant text looks like. They did once: the
+    generative path checked raw text while the fallback stripped disclaimers,
+    so a model that followed its brief exactly was rejected for doing so.
+    """
+    return find_violations(strip_approved_disclaimers(text))
+
+
 def enforce(text: str) -> str:
     """Return `text`, or raise if it breaks the claim boundary.
 
@@ -221,7 +246,7 @@ def enforce(text: str) -> str:
     cannot phrase an answer within the boundary must fail loudly rather than
     quietly publish the claim.
     """
-    violations = find_violations(strip_approved_disclaimers(text))
+    violations = audit(text)
     if violations:
         detail = "\n".join(f"  - {violation}" for violation in violations)
         raise ClaimBoundaryError(
