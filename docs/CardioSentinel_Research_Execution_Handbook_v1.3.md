@@ -1,6 +1,6 @@
 # CardioSentinel Research Execution Handbook, V1.3
 
-**Status:** revision of v1.2 · **Date:** 2026-08-22 · **Against:** `origin/master` `d5a86ce`
+**Status:** revision of v1.2 · **Date:** 2026-08-23 · **Against:** `origin/master` `d5a86ce`
 
 ---
 
@@ -98,7 +98,7 @@ ranked hierarchy is verbatim handbook text should be withdrawn.
 | 1.0 | 7 Aug 2026 | Initial handbook: phases, architecture candidates, experiment tiers, paper strategy, frozen benchmark state, B0–B3 execution status |
 | 1.1 | 8 Aug 2026 | B0–B3 closed; B4-A train/validation locked; B4-B/B4-C validation-only selection gate restored; live execution pointers and step reference cards (§35–§38) added |
 | 1.2 | 22 Aug 2026 | **Execution truth through Phase 9.** B4-B selected; P1/M1/M2/U1/T2 retained with U1 split; T1 executed, failed post-claim, recovered under single-use authorization, measured and published. Adds §39–§47: document governance, experiment contract, negative capability, attempt semantics, recovery protocol, pre-registration, reporting discipline, preservation, amendment process. Corrects the §10.2 citation record (§0.2) |
-| **1.3** | **22 Aug 2026** | **The evidence layer closes and RQ4 is answered.** T2 arm comparison read and published; W1 window-only comparator executed, answering RQ4 **Supported (bounded)** and refuting two registered predictions; U1 per-bin reliability read; external validation audited to a negative finding. Replaces §24 outright, re-argues §50 from the changed premise, corrects Appendix A claim 6, and adds **§51**, the experiment ledger with a consumed column |
+| **1.3** | **23 Aug 2026** | **The evidence layer closes and RQ4 is answered.** T2 arm comparison read and published; W1 window-only comparator executed, answering RQ4 **Supported (bounded)** and refuting two registered predictions; U1 per-bin reliability read; external validation audited to a negative finding. Replaces §24 outright, re-argues §50 from the changed premise, corrects Appendix A claim 6, and adds **§51**, the experiment ledger with a consumed column |
 
 ### 0.4 What v1.3 changes, and what it leaves alone
 
@@ -426,7 +426,7 @@ policy at §45.
 
 # New sections added in v1.2
 
-## §39 Current execution snapshot — 22 August 2026
+## §39 Current execution snapshot — 23 August 2026
 
 **`origin/master` `d5a86ce` · working tree clean**
 
@@ -1241,7 +1241,7 @@ the prospectivity of the B4-B selection is substantiable on request.
 _Research Execution Handbook v1.3 — a revision of v1.2 (22 Aug 2026), which was
 a revision of v1.1 (8 Aug 2026). Section numbering §1–§38 preserved from v1.1;
 §39–§47 new in v1.2; §48–§50 added in v1.2; **§51 new in v1.3**. Revised against
-`origin/master` `d5a86ce` on 2026-08-22._
+`origin/master` `d5a86ce` on 2026-08-23._
 
 _**This handbook grants no scientific permission and authorizes no execution.**
 It describes budgets that are already spent and one that is not. Nothing in it
