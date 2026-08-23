@@ -34,6 +34,11 @@ rather than left standing on the old one.
    test. Everything else is consumed. §51 is the ledger, and it is the most
    decision-relevant page in this document.
 
+**One finding generalises past ECG.** Three headline numbers — T1's
+subject-macro `episode_f1`, T2's subject-macro AUPRC, U1's ECE — each concealed
+a denominator that was not what it looked like, in three different experiments,
+found by three different checks, and never by the metric itself. §49.8.
+
 **What the programme actually owns** is an evidence apparatus: pre-registration
 that recorded refuted predictions as refuted, one-shot gates that were honoured
 under pressure, a real post-claim failure and its authorized recovery, and
@@ -991,7 +996,34 @@ pre-registered, or the number is uninterpretable** — and an unstratified EDB r
 would produce a bad number for a reason that has nothing to do with
 generalization.
 
-### 49.8 NOT SUPPORTED
+### 49.8 Three headline numbers whose denominator is not what it looks like
+
+**This is a finding, not a limitations list**, and it is the one a methodology
+paper can generalise from. Three of the programme's headline figures came from
+three different experiments, three different teams of assumptions, and three
+different metrics — and all three concealed the same defect until someone looked
+underneath.
+
+| Experiment | The headline | What the denominator actually is |
+|---|---|---|
+| **T1** | subject-macro `episode_f1` **0.2524** over 12 subjects | **Defined for 12, meaningful for 9.** Three subjects have *no reference episodes at all*, so their zero is a false-alarm penalty, not a detection failure — and it pushes the operating point in the *opposite* direction from the four genuine misses (§49.2) |
+| **T2** | subject-macro AUPRC **0.428152** | A mean over **9 of 12** subjects, both arms. `non_contributing_subject_count: 3` is in the artifact (§49.4) |
+| **U1** | ECE equal-width **0.016991** | Carried by one bin: equal-width bin 0 holds **398,513 of 473,897 rows**. The calibrator is well-behaved where almost all the mass is and over-predicts badly where a clinician would act (§49.6) |
+
+**Three for three.** Each was found by a different check, none by the metric
+itself, and in each case the summary statistic was *correctly computed* — the
+arithmetic was never wrong. **Availability analysis that asks only "is this
+metric defined?" catches none of them.** §46.1 requires both checks because T1
+taught the lesson; T2 and U1 are the evidence that the lesson generalises past
+the experiment that produced it.
+
+**The methodological claim this supports** — and it is a claim about method, not
+about ECG — is that a scalar summary over a heterogeneous population needs its
+contributing-unit count reported beside it as a matter of course, not as a
+caveat added when someone happens to check. Appendix A claim 23 makes that
+binding for this programme.
+
+### 49.9 NOT SUPPORTED
 
 Memory, encoder, SSM or calibration **contribution** · episode-level
 S4D-vs-GRU · **external generalization** · subgroup performance · test
