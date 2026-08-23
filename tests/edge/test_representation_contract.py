@@ -141,6 +141,7 @@ def test_window_representation_slices_the_two_halves():
     values = np.arange(REPRESENTATION_DIM, dtype=np.float32)
     representation = WindowRepresentation(
         values=values,
+        morphology_valid=1.0,
         stable_id="ltstdb:s20041:0:0:2500",
         record_id="s20041",
         subject_id="ltstdb:s2004",
@@ -166,3 +167,31 @@ def test_channel_identity_can_be_overridden_for_channel_selected_reads():
         stable_id_for(window, channel_index=1)
         == "ltstdb:s20041:1:5272500:5275000"
     )
+
+
+def test_the_raw_validity_flag_is_carried_not_the_standardised_one():
+    """G6 admission reads a 0/1 reliability signal, not a z-score.
+
+    The frozen physiology transform standardises every column including
+    `morphology_valid`, so taking it from the standardised vector fails G6 on
+    every window and the patient memory silently never adapts. This pins the
+    field's presence and its raw semantics.
+    """
+    representation = WindowRepresentation(
+        values=np.zeros(REPRESENTATION_DIM, dtype=np.float32),
+        morphology_valid=1.0,
+        stable_id="ltstdb:s20041:0:0:2500",
+        record_id="s20041",
+        subject_id="ltstdb:s2004",
+        channel_index=0,
+        start_sample=0,
+        end_sample=2500,
+        contains_filter_warmup=False,
+    )
+    assert representation.morphology_valid == 1.0
+    # The standardised column is a different quantity and must not be mistaken
+    # for it: here the whole vector is zero while the raw flag is one.
+    assert representation.physiology[
+        __import__("cardiosentinel.features", fromlist=["MORPHOLOGY_V1"])
+        .MORPHOLOGY_V1.names.index("morphology_valid")
+    ] == 0.0
