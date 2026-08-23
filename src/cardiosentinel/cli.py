@@ -43,9 +43,11 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
     subparsers.add_parser("info", help="Print factual project metadata.")
 
+    from .agents.cli import add_agent_commands
     from .edge.cli import add_edge_commands
 
     add_edge_commands(subparsers)
+    add_agent_commands(subparsers)
     data_parser = subparsers.add_parser(
         "data", help="Inspect and validate local WFDB datasets."
     )
@@ -143,6 +145,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
+    if args.command == "agent":
+        from .agents.cli import run_agent_command
+
+        return run_agent_command(args)
     if args.command == "edge":
 
         from .edge.cli import run_edge_command
