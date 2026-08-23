@@ -41,3 +41,10 @@ models/checkpoints/
 .ipynb_checkpoints/
 .vscode/
 .idea/
+
+# The curated IPS demo reproduction bundle is committed deliberately: 1.63 MiB,
+# selected by scripts/provenance/select_demo_bundle.py and verified by
+# reproducibility/verify_reproducibility.py. It is the only place model
+# artifacts are tracked, and it exists so a reviewer can reproduce the
+# demonstration from a clone plus one public ECG record.
+!reproducibility/demo_bundle/**

@@ -1,0 +1,60 @@
+{
+  "axis_shift": {
+    "bootstrap_permitted": true,
+    "challenge_window_count": 3000,
+    "evidence_status": "quantitative_secondary",
+    "false_positive_count": 214,
+    "false_positive_fraction": 0.07133333333333333,
+    "frozen_metric": {
+      "bootstrap_permitted": true,
+      "challenge_window_count": 3000,
+      "contributing_subject_count": 8,
+      "evidence_level": "quantitative_secondary",
+      "false_positive_count": 214,
+      "false_positive_fraction": 0.07133333333333333
+    },
+    "is_headline_metric": false,
+    "supporting_subject_count": 8,
+    "target_family": "axis_shift_confounder"
+  },
+  "challenge_selection_sha256": "49899d1b59430ff22f70cdf509184e98caedbe0e2a8756939ee77e25210ee72a",
+  "conduction_change": {
+    "bootstrap_permitted": false,
+    "challenge_window_count": 164,
+    "evidence_status": "exploratory_descriptive",
+    "false_positive_count": 5,
+    "false_positive_fraction": 0.03048780487804878,
+    "frozen_metric": {
+      "bootstrap_permitted": false,
+      "challenge_window_count": 164,
+      "contributing_subject_count": 1,
+      "evidence_level": "exploratory_descriptive",
+      "false_positive_count": 5,
+      "false_positive_fraction": 0.03048780487804878
+    },
+    "is_headline_metric": false,
+    "supporting_subject_count": 1,
+    "target_family": "conduction_change_confounder"
+  },
+  "partition": "validation",
+  "rate_related": {
+    "bootstrap_permitted": true,
+    "challenge_window_count": 4973,
+    "evidence_status": "quantitative_secondary",
+    "false_positive_count": 1959,
+    "false_positive_fraction": 0.3939272069173537,
+    "frozen_metric": {
+      "bootstrap_permitted": true,
+      "challenge_window_count": 4973,
+      "contributing_subject_count": 4,
+      "evidence_level": "quantitative_secondary",
+      "false_positive_count": 1959,
+      "false_positive_fraction": 0.3939272069173537
+    },
+    "is_headline_metric": false,
+    "supporting_subject_count": 4,
+    "target_family": "rate_related_confounder"
+  },
+  "threshold": 0.7554003000259399,
+  "threshold_source": "locked_p1_validation_threshold"
+}

@@ -1,0 +1,135 @@
+{
+  "cold_start_evidence": {
+    "0_5_minutes": {
+      "evidence_status": "supporting",
+      "metrics": {
+        "auprc": 0.0013623978201634877,
+        "auroc": 0.5920979410127991,
+        "balanced_accuracy": 0.4794101279910963,
+        "f1": 0.0,
+        "false_negative": 1,
+        "false_positive": 74,
+        "mcc": -0.004887347176467228,
+        "negative_count": 1797,
+        "npv": 0.9994199535962877,
+        "positive_count": 1,
+        "positive_prevalence": 0.0005561735261401557,
+        "ppv": 0.0,
+        "sensitivity": 0.0,
+        "specificity": 0.9588202559821926,
+        "true_negative": 1723,
+        "true_positive": 0,
+        "window_count": 1798
+      },
+      "window_count": 1798
+    },
+    "5_60_minutes": {
+      "evidence_status": "supporting",
+      "metrics": {
+        "auprc": 0.46488792600314177,
+        "auroc": 0.8593585405774156,
+        "balanced_accuracy": 0.6385946181082518,
+        "f1": 0.3840050777530943,
+        "false_negative": 1339,
+        "false_positive": 602,
+        "mcc": 0.34467432057811503,
+        "negative_count": 17693,
+        "npv": 0.9273467173087357,
+        "positive_count": 1944,
+        "positive_prevalence": 0.09899679177063707,
+        "ppv": 0.5012427506213754,
+        "sensitivity": 0.31121399176954734,
+        "specificity": 0.9659752444469564,
+        "true_negative": 17091,
+        "true_positive": 605,
+        "window_count": 19637
+      },
+      "window_count": 19637
+    },
+    "over_60_minutes": {
+      "evidence_status": "supporting",
+      "metrics": {
+        "auprc": 0.3858147886769855,
+        "auroc": 0.9110939770498441,
+        "balanced_accuracy": 0.7140024122286341,
+        "f1": 0.39993047710089513,
+        "false_negative": 10479,
+        "false_positive": 17141,
+        "mcc": 0.3728325904124122,
+        "negative_count": 432779,
+        "npv": 0.9754081625469061,
+        "positive_count": 19683,
+        "positive_prevalence": 0.0435019957477092,
+        "ppv": 0.3493642057316379,
+        "sensitivity": 0.46761164456637705,
+        "specificity": 0.9603931798908912,
+        "true_negative": 415638,
+        "true_positive": 9204,
+        "window_count": 452462
+      },
+      "window_count": 452462
+    }
+  },
+  "descriptives": {
+    "d_long_mean": 0.44386903750844375,
+    "d_short_mean": 0.3545882437766725,
+    "finite_representation_rate": 1.0,
+    "past_counts_agree": true,
+    "past_observed_count_mean": 8170.782123541613,
+    "past_update_count_mean": 8170.782123541613,
+    "prototype_disagreement_is_model_input": false,
+    "prototype_disagreement_mean": 0.22858233220224208,
+    "window_count": 473897
+  },
+  "experiment_id": "M1L_long_memory_v2",
+  "memory": {
+    "alpha_long": 0.0009622411662165709,
+    "alpha_rule": "alpha = 1 - 2 ** (-1 / half_life_updates)",
+    "alpha_short": 0.01148597964710385,
+    "long_half_life_seconds": 3600.0,
+    "long_half_life_updates": 720,
+    "short_half_life_seconds": 300.0,
+    "short_half_life_updates": 60,
+    "stride_seconds": 5.0,
+    "swept": false,
+    "tuned": false
+  },
+  "memory_features": [
+    "d_long"
+  ],
+  "subject_false_positive_evidence": {
+    "background_negative_count": 452269,
+    "contributing_subject_count": 12,
+    "evidence_class": "m1_subject_false_positive_distribution",
+    "evidence_status": "supporting",
+    "partition": "validation",
+    "pooled_background_negative_fpr": 0.03939469651910699,
+    "population": "primary_validation_background_negative",
+    "quantile_interpolation": "linear",
+    "subject_false_positive_rates": {
+      "ltstdb:s2004": 0.044740686632578526,
+      "ltstdb:s2005": 0.19183135704874835,
+      "ltstdb:s2019": 0.003256003256003256,
+      "ltstdb:s2020": 0.1361070036295201,
+      "ltstdb:s2023": 0.0017489069331667708,
+      "ltstdb:s2031": 0.14138681797189417,
+      "ltstdb:s2057": 0.0819606065185633,
+      "ltstdb:s2058": 0.0,
+      "ltstdb:s2059": 0.01094238499330058,
+      "ltstdb:s3068": 0.00099973177927873,
+      "ltstdb:s3072": 0.0030404801176447207,
+      "ltstdb:s3073": 0.0010644865981137297
+    },
+    "subject_fpr_iqr": 0.09391940394689899,
+    "subject_fpr_max": 0.19183135704874835,
+    "subject_fpr_median": 0.007099194124651918,
+    "subject_fpr_p90": 0.14085883653765677,
+    "subject_fpr_q25": 0.0015778018494035104,
+    "subject_fpr_q75": 0.0954972057963025,
+    "subject_ids_are_reporting_keys_only": true,
+    "threshold": 0.7554003000259399,
+    "threshold_optimized_from_this_evidence": false,
+    "threshold_source": "arm_selected_validation_threshold",
+    "weighted_score_used": false
+  }
+}

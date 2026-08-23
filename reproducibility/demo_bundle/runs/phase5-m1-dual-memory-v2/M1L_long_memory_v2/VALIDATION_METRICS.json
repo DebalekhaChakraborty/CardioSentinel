@@ -1,0 +1,77 @@
+{
+  "evidence_class": "p1_development_validation_result",
+  "negative_count": 452269,
+  "partition": "validation",
+  "pooled": {
+    "auprc": 0.3847955637197618,
+    "auroc": 0.9075699053367301,
+    "balanced_accuracy": 0.7070688807029026,
+    "f1": 0.398302675924798,
+    "false_negative": 11819,
+    "false_positive": 17817,
+    "mcc": 0.3688867751290029,
+    "negative_count": 452269,
+    "npv": 0.973516092239917,
+    "positive_count": 21628,
+    "positive_prevalence": 0.04563860923365204,
+    "ppv": 0.35506407007891116,
+    "sensitivity": 0.45353245792491215,
+    "specificity": 0.960605303480893,
+    "true_negative": 434452,
+    "true_positive": 9809,
+    "window_count": 473897
+  },
+  "positive_count": 21628,
+  "score_semantics": "uncalibrated sigmoid model score; not calibrated probability",
+  "subject_count": 12,
+  "subject_macro": {
+    "auprc": {
+      "contributing_subject_count": 9,
+      "non_contributing_subject_count": 3,
+      "value": 0.4158330574035889
+    },
+    "auroc": {
+      "contributing_subject_count": 9,
+      "non_contributing_subject_count": 3,
+      "value": 0.8627210323343344
+    },
+    "balanced_accuracy": {
+      "contributing_subject_count": 9,
+      "non_contributing_subject_count": 3,
+      "value": 0.6524324550790565
+    },
+    "f1": {
+      "contributing_subject_count": 12,
+      "non_contributing_subject_count": 0,
+      "value": 0.23559200049378712
+    },
+    "mcc": {
+      "contributing_subject_count": 9,
+      "non_contributing_subject_count": 3,
+      "value": 0.3202025040645353
+    },
+    "npv": {
+      "contributing_subject_count": 12,
+      "non_contributing_subject_count": 0,
+      "value": 0.9734139940041819
+    },
+    "ppv": {
+      "contributing_subject_count": 12,
+      "non_contributing_subject_count": 0,
+      "value": 0.32577810433699467
+    },
+    "sensitivity": {
+      "contributing_subject_count": 9,
+      "non_contributing_subject_count": 3,
+      "value": 0.3367972654767104
+    },
+    "specificity": {
+      "contributing_subject_count": 12,
+      "non_contributing_subject_count": 0,
+      "value": 0.9485767945434324
+    }
+  },
+  "threshold": 0.7554003000259399,
+  "threshold_rule": "maximum validation F1 over exact observed validation scores; the highest threshold wins an exact tie",
+  "window_count": 473897
+}
