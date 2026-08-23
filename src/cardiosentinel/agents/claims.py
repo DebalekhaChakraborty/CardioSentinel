@@ -30,6 +30,7 @@ roughly ten times. Every pattern here is anchored.
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 #: Appendix A of the Research Execution Handbook v1.3, as patterns. The claim
@@ -219,14 +220,30 @@ APPROVED_DISCLAIMERS: tuple[str, ...] = (
 )
 
 
-def strip_approved_disclaimers(text: str) -> str:
-    """Remove reviewed constant disclaimers before guarding generated prose."""
-    for disclaimer in APPROVED_DISCLAIMERS:
-        text = text.replace(disclaimer, "")
+def strip_approved_disclaimers(
+    text: str, quoting: Sequence[str] = ()
+) -> str:
+    """Remove text that names a forbidden claim in order to deny it.
+
+    Two sources are removed: the registered `APPROVED_DISCLAIMERS`, and
+    whatever the caller declares it is `quoting`.
+
+    **`quoting` exists because this problem recurred three times.** A
+    disclaimer, a template's closing sentence, and a research object's
+    `claims_forbidden` list all state a forbidden claim precisely in order to
+    prohibit it, and a lexical guard flags all three. Rewording around the
+    guard each time would have taught authors to avoid stating boundaries
+    plainly, which is the opposite of the intent. Declaring the quotation is
+    explicit, auditable, and local to the caller that owns the strings.
+    """
+    for phrase in (*APPROVED_DISCLAIMERS, *quoting):
+        text = text.replace(phrase, "")
     return text
 
 
-def audit(text: str) -> tuple[ClaimViolation, ...]:
+def audit(
+    text: str, *, quoting: Sequence[str] = ()
+) -> tuple[ClaimViolation, ...]:
     """Violations in `text`, ignoring registered disclaimers.
 
     **Use this, not `find_violations`, whenever the text may legitimately end
@@ -236,17 +253,17 @@ def audit(text: str) -> tuple[ClaimViolation, ...]:
     generative path checked raw text while the fallback stripped disclaimers,
     so a model that followed its brief exactly was rejected for doing so.
     """
-    return find_violations(strip_approved_disclaimers(text))
+    return find_violations(strip_approved_disclaimers(text, quoting))
 
 
-def enforce(text: str) -> str:
+def enforce(text: str, *, quoting: Sequence[str] = ()) -> str:
     """Return `text`, or raise if it breaks the claim boundary.
 
     Agents call this on their own output before returning it. An agent that
     cannot phrase an answer within the boundary must fail loudly rather than
     quietly publish the claim.
     """
-    violations = audit(text)
+    violations = audit(text, quoting=quoting)
     if violations:
         detail = "\n".join(f"  - {violation}" for violation in violations)
         raise ClaimBoundaryError(

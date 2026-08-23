@@ -29,6 +29,12 @@ from .graph import (
     build_evidence_graph,
     summarise_lineage,
 )
+from .research import (
+    RESEARCH_REGISTRY,
+    ResearchAssistantAgent,
+    ResearchEvidence,
+    ResearchQuestionError,
+)
 
 __all__ = [
     "ClaimBoundaryError",
@@ -38,6 +44,10 @@ __all__ = [
     "GENERATIVE",
     "Explanation",
     "ExplanationContext",
+    "RESEARCH_REGISTRY",
+    "ResearchAssistantAgent",
+    "ResearchEvidence",
+    "ResearchQuestionError",
     "EvidenceAgent",
     "PatientExplanationAgent",
     "TemplateRenderer",
