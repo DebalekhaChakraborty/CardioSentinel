@@ -1,0 +1,6 @@
+{
+  "experiment_id": "M1L_long_memory_v2",
+  "score_semantics": "uncalibrated sigmoid model score; not calibrated probability",
+  "threshold": 0.7554003000259399,
+  "threshold_rule": "maximum validation F1 over exact observed validation scores; the highest threshold wins an exact tie"
+}
