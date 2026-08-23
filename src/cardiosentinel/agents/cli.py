@@ -45,6 +45,22 @@ def add_agent_commands(subparsers: Any) -> None:  # noqa: ANN401 - argparse acti
         help="Node to trace with --format lineage.",
     )
 
+    explain_why = commands.add_parser(
+        "why", help="Explain a record's alerts in language, with the mode declared."
+    )
+    explain_why.add_argument("record")
+    explain_why.add_argument("--channel", type=int, default=0)
+    explain_why.add_argument("--seconds", type=float, default=2400.0)
+    explain_why.add_argument("--source-root", default=str(DEFAULT_SOURCE_ROOT))
+    explain_why.add_argument("--run-root", default=str(DEFAULT_RUN_ROOT))
+    explain_why.add_argument("--feature-root", default=str(DEFAULT_FEATURE_ROOT))
+    explain_why.add_argument(
+        "--no-generative",
+        action="store_true",
+        help="Force the deterministic renderer even if a provider is configured.",
+    )
+    explain_why.add_argument("--json", action="store_true")
+
     boundary = commands.add_parser(
         "check-claims", help="Check text against the publication claim boundary."
     )
@@ -56,6 +72,8 @@ def run_agent_command(args: argparse.Namespace) -> int:
         return _check_claims(args)
     if args.agent_command == "graph":
         return _graph(args)
+    if args.agent_command == "why":
+        return _why(args)
     return _explain(args)
 
 
@@ -160,4 +178,63 @@ def _graph(args: argparse.Namespace) -> int:
             print(f"{graph.root}  lineage of {args.of}:")
             for line in summarise_lineage(graph, args.of):
                 print(f"  {line}")
+    return 0
+
+
+def _why(args: argparse.Namespace) -> int:
+    import textwrap
+
+    from ..edge.artifacts import EdgeArtifactError
+    from ..edge.replay import replay_record
+    from .evidence import EvidenceAgent
+    from .explain import PatientExplanationAgent
+    from .graph import build_evidence_graph
+    from .providers import default_provider
+
+    try:
+        result = replay_record(
+            args.record,
+            channel_index=args.channel,
+            max_seconds=args.seconds,
+            source_root=args.source_root,
+            run_root=args.run_root,
+            feature_root=args.feature_root,
+        )
+    except EdgeArtifactError as error:
+        print(f"refused: {error}")
+        return 2
+
+    if not result.alerts:
+        print(f"{args.record}: no alert raised, so there is nothing to explain.")
+        return 0
+
+    provider = None if args.no_generative else default_provider()
+    agent = PatientExplanationAgent(provider)
+    evidence = EvidenceAgent(result.provenance)
+
+    explanations = []
+    for index, alert in enumerate(result.alerts):
+        graph = build_evidence_graph(
+            evidence.explain(alert, result.observations, index=index),
+            run_root=args.run_root,
+        )
+        explanations.append(agent.explain(graph))
+
+    if args.json:
+        print(json.dumps([e.as_dict() for e in explanations], indent=2, default=str))
+        return 0
+
+    for index, explanation in enumerate(explanations):
+        if index:
+            print()
+        print(f"[{index + 1}/{len(explanations)}]  mode={explanation.explanation_mode}"
+              f"  provider={explanation.provider}"
+              f"  source={explanation.context_source}")
+        if explanation.fallback_reason:
+            print(f"  fell back because: {explanation.fallback_reason}")
+        for violation in explanation.claim_violations:
+            print(f"    rejected: {violation}")
+        print()
+        print(textwrap.fill(explanation.text, 76, initial_indent="  ",
+                            subsequent_indent="  "))
     return 0
