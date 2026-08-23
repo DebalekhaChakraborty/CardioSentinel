@@ -5,6 +5,11 @@ stream, then agents over it. Nothing here invents a number, and everything here
 passes its output through the publication claim boundary before returning it.
 """
 
+from .architecture import (
+    ARCHITECTURE_REGISTRY,
+    ArchitectureSelectionAgent,
+    CandidateArchitecture,
+)
 from .claims import (
     ClaimBoundaryError,
     ClaimViolation,
@@ -37,6 +42,9 @@ from .research import (
 )
 
 __all__ = [
+    "ARCHITECTURE_REGISTRY",
+    "ArchitectureSelectionAgent",
+    "CandidateArchitecture",
     "ClaimBoundaryError",
     "ClaimViolation",
     "audit",
