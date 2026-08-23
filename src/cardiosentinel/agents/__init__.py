@@ -5,8 +5,22 @@ stream, then agents over it. Nothing here invents a number, and everything here
 passes its output through the publication claim boundary before returning it.
 """
 
-from .claims import ClaimBoundaryError, ClaimViolation, enforce, find_violations
+from .claims import (
+    ClaimBoundaryError,
+    ClaimViolation,
+    audit,
+    enforce,
+    find_violations,
+)
+from .context import ExplanationContext, build_context
 from .evidence import EvidenceAgent, EvidenceRecord, GateExplanation
+from .explain import (
+    DETERMINISTIC,
+    GENERATIVE,
+    Explanation,
+    PatientExplanationAgent,
+    TemplateRenderer,
+)
 from .graph import (
     EvidenceEdge,
     EvidenceGraph,
@@ -19,7 +33,15 @@ from .graph import (
 __all__ = [
     "ClaimBoundaryError",
     "ClaimViolation",
+    "audit",
+    "DETERMINISTIC",
+    "GENERATIVE",
+    "Explanation",
+    "ExplanationContext",
     "EvidenceAgent",
+    "PatientExplanationAgent",
+    "TemplateRenderer",
+    "build_context",
     "EvidenceEdge",
     "EvidenceGraph",
     "EvidenceGraphError",
