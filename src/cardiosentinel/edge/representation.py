@@ -84,6 +84,14 @@ class WindowRepresentation:
     """One live 146-d representation and the identity it was computed from."""
 
     values: NDArray[np.float32]
+    #: The RAW `morphology_valid` flag, before standardisation.
+    #:
+    #: The frozen physiology transform standardises every column, the validity
+    #: flag included, so `physiology[...]` is **not** the 0/1 reliability signal
+    #: M2's G6 admission condition expects. Reading it from the standardised
+    #: vector fails G6 on every window and the patient memory silently never
+    #: adapts. It is carried here so morphology is extracted exactly once.
+    morphology_valid: float
     stable_id: str
     record_id: str
     subject_id: str
@@ -181,10 +189,19 @@ class RepresentationExtractor:
     def artifacts(self) -> FrozenArtifacts:
         return self._artifacts
 
-    def physiology_features(self, window: CausalWindow) -> NDArray[np.float64]:
-        """The 18 morphology features, standardised by the frozen transform."""
+    def physiology_features(
+        self, window: CausalWindow
+    ) -> tuple[NDArray[np.float64], float]:
+        """The standardised 18 features, plus the raw validity flag.
+
+        Both come from one extraction. The raw flag is returned separately
+        because the transform standardises it away.
+        """
+        from ..features import MORPHOLOGY_V1
+
         raw = np.asarray(extract_morphology_features(window), dtype=np.float64)
-        return self._artifacts.physiology.transform(raw.reshape(1, -1))
+        validity = float(raw[MORPHOLOGY_V1.names.index("morphology_valid")])
+        return self._artifacts.physiology.transform(raw.reshape(1, -1)), validity
 
     def embedding(self, window: CausalWindow) -> NDArray[np.float32]:
         """The pooled B4-B embedding, with the encoder proven unmutated."""
@@ -203,7 +220,7 @@ class RepresentationExtractor:
         channel-selected at read time -- see `stable_id_for`.
         """
         embedding = self.embedding(window)
-        physiology = self.physiology_features(window)
+        physiology, morphology_valid = self.physiology_features(window)
         fused = np.concatenate([embedding, physiology], axis=1).astype(np.float32)
         if fused.shape != (1, REPRESENTATION_DIM):
             raise RepresentationError(
@@ -221,6 +238,7 @@ class RepresentationExtractor:
         )
         return WindowRepresentation(
             values=fused[0],
+            morphology_valid=morphology_valid,
             stable_id=stable_id_for(
                 window, self._dataset_id, channel_index=channel
             ),

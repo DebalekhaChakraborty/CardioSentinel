@@ -458,15 +458,20 @@ def _ordered_rows(rows: Iterable[M2TimelineRow]) -> list[M2TimelineRow]:
     return ordered
 
 
-def replay_stream(
-    rows: Sequence[M2TimelineRow],
+def step(
+    state: M2StreamState,
+    row: M2TimelineRow,
     *,
     arm: str,
     standardizer: M1DistanceStandardizer,
     scorer: M2Scorer,
-    prototype_observer: Callable[[int, float, np.ndarray], None] | None = None,
-) -> list[M2RowEvidence]:
-    """Replay one causal stream under the frozen M2 update order.
+) -> M2RowEvidence:
+    """Advance one causal stream by exactly one row, mutating `state` in place.
+
+    **This is the frozen M2 update order, and it lives here alone.** It was
+    extracted verbatim from `replay_stream`, which is now a loop over it, so
+    the batch research path and the streaming edge runtime cannot drift apart.
+    A second copy of this ordering anywhere in the repository would be a defect.
 
     The immutable order per row is: the row arrives; its physical observation
     state is determined; if AVAILABLE the frozen 146-d representation is taken;
@@ -482,167 +487,186 @@ def replay_stream(
     Under **M2-0** the memory-update safety refractory does not exist at all:
     it is never armed, never read and never recorded, so the naive control's
     causal state is exactly that of naive M1L.
+    """
+    evaluated_arm = require_m2_arm(arm)
+    gated = evaluated_arm == M2_ARM_GATED
+
+    available_time = row.available_time
+    refractory_before = state.refractory_until
+    observed_before = state.past_observed_count
+    updates_before = state.past_update_count
+
+    # B. An UNAVAILABLE row is not an observation. It receives no
+    # representation, no score and no update; it arms no refractory; and it
+    # leaves both counters untouched. Only real elapsed time advances, so an
+    # existing refractory expires naturally across the gap.
+    if int(row.observation_state) != OBSERVATION_AVAILABLE:
+        if int(row.observation_state) != OBSERVATION_UNAVAILABLE_EXACT_FLAT:
+            raise M2PolicyError(
+                f"Row {row.stream_key}/{row.start_sample} has unsupported "
+                f"observation state {row.observation_state!r}."
+            )
+        decision = evaluate_gate(
+            arm=evaluated_arm,
+            observation_state=row.observation_state,
+            representation=None,
+            finite_sample_fraction=row.finite_sample_fraction,
+            sqi=row.sqi,
+            morphology_valid=row.morphology_valid,
+            score=None,
+            available_time=available_time,
+            refractory_until_before=refractory_before,
+        )
+        return M2RowEvidence(
+            record_id=row.record_id,
+            channel_index=int(row.channel_index),
+            start_sample=int(row.start_sample),
+            available_time=available_time,
+            observation_state=int(row.observation_state),
+            arm=evaluated_arm,
+            decision=decision,
+            d_long=None,
+            morphology_valid=row.morphology_valid,
+            update_admitted=False,
+            refractory_rearmed_after_decision=False,
+            refractory_until_after=state.refractory_until,
+            past_observed_count_before=observed_before,
+            past_update_count_before=updates_before,
+            past_update_count_after=state.past_update_count,
+            time_since_last_admitted_update=(
+                None
+                if state.last_admitted_update_time is None
+                else available_time - state.last_admitted_update_time
+            ),
+        )
+
+    # C. The frozen fused representation, standardized into the frozen
+    # distance space. Scoring uses the raw 146-d vector; the prototype
+    # lives in the standardized space, exactly as M1 does.
+    raw = np.asarray(row.representation, dtype=np.float64)
+    finite_representation = raw.shape == (REPRESENTATION_DIM,) and bool(
+        np.all(np.isfinite(raw))
+    )
+
+    d_long: float | None = None
+    score: float | None = None
+    if finite_representation:
+        standardized = standardizer.standardize(raw)[0]
+        # D. Deviations against the EXISTING pre-update prototype.
+        features = state.memory.deviations(standardized)
+        d_long = float(features.d_long)
+        # E. The frozen M1L score from [z_t ; d_long(t)].
+        score = float(scorer(raw, d_long))
+        if not np.isfinite(score):
+            raise M2PolicyError(
+                "The frozen M1L scorer produced a non-finite score for "
+                f"{row.record_id}/{row.channel_index}/{row.start_sample}."
+            )
+    else:
+        standardized = None
+
+    # F. Independent evaluation against the PRIOR refractory state.
+    decision = evaluate_gate(
+        arm=evaluated_arm,
+        observation_state=row.observation_state,
+        representation=raw if finite_representation else None,
+        finite_sample_fraction=row.finite_sample_fraction,
+        sqi=row.sqi,
+        morphology_valid=row.morphology_valid,
+        score=score,
+        available_time=available_time,
+        refractory_until_before=refractory_before,
+    )
+
+    # An AVAILABLE finite row is an observation under inherited M1
+    # semantics whether or not the gate admits its update.
+    if finite_representation:
+        state.past_observed_count += 1
+
+    # G. M2-0 reproduces the frozen naive control: every AVAILABLE finite
+    # observation updates. M2-G updates only when all six conditions pass.
+    admitted = decision.admitted
+
+    if admitted:
+        if standardized is None:  # pragma: no cover - guarded above
+            raise M2PolicyError("An admitted update has no standardized vector.")
+        state.memory.update(standardized)
+        state.past_update_count += 1
+        state.last_admitted_update_time = available_time
+
+    # H. Only AFTER the current row's decision is complete may the
+    # refractory be re-armed, and only by a scored AVAILABLE finite row
+    # whose score exceeds the normal-evidence margin. A row failing only
+    # SQI, morphology or physical availability never arms it.
+    #
+    # M2-0 has no refractory at all: it is the naive control, so nothing
+    # here may create auxiliary state for it, not even a dormant one.
+    rearmed = False
+    if gated and score is not None and score > GATE.NORMAL_EVIDENCE_THRESHOLD:
+        state.refractory_until = max(
+            state.refractory_until,
+            available_time + GATE.REFRACTORY_DURATION_SECONDS,
+        )
+        rearmed = True
+
+    return M2RowEvidence(
+        record_id=row.record_id,
+        channel_index=int(row.channel_index),
+        start_sample=int(row.start_sample),
+        available_time=available_time,
+        observation_state=int(row.observation_state),
+        arm=evaluated_arm,
+        decision=decision,
+        d_long=d_long,
+        morphology_valid=row.morphology_valid,
+        update_admitted=admitted,
+        refractory_rearmed_after_decision=rearmed,
+        refractory_until_after=state.refractory_until,
+        past_observed_count_before=observed_before,
+        past_update_count_before=updates_before,
+        past_update_count_after=state.past_update_count,
+        time_since_last_admitted_update=(
+            None
+            if state.last_admitted_update_time is None
+            else available_time - state.last_admitted_update_time
+        ),
+    )
+
+
+def replay_stream(
+    rows: Sequence[M2TimelineRow],
+    *,
+    arm: str,
+    standardizer: M1DistanceStandardizer,
+    scorer: M2Scorer,
+    prototype_observer: Callable[[int, float, np.ndarray], None] | None = None,
+) -> list[M2RowEvidence]:
+    """Replay one causal stream under the frozen M2 update order.
+
+    A thin loop over `step`, which holds the order. Behaviour is unchanged from
+    the version that inlined it; `tests/neural/test_m2_step_matches_replay.py`
+    pins that, and the streaming edge runtime drives the same `step`.
 
     `prototype_observer` receives `(row_index, available_time,
     mu_long_after_this_row)` and exists so prototype-drift evidence can be
     collected later without forcing the whole trajectory to be retained.
     """
     evaluated_arm = require_m2_arm(arm)
-    gated = evaluated_arm == M2_ARM_GATED
-    ordered = _ordered_rows(rows)
     state = M2StreamState.cold_start(standardizer.prior_vector(), arm=evaluated_arm)
     evidence: list[M2RowEvidence] = []
 
-    for index, row in enumerate(ordered):
-        available_time = row.available_time
-        refractory_before = state.refractory_until
-        observed_before = state.past_observed_count
-        updates_before = state.past_update_count
-
-        # B. An UNAVAILABLE row is not an observation. It receives no
-        # representation, no score and no update; it arms no refractory; and it
-        # leaves both counters untouched. Only real elapsed time advances, so an
-        # existing refractory expires naturally across the gap.
-        if int(row.observation_state) != OBSERVATION_AVAILABLE:
-            if int(row.observation_state) != OBSERVATION_UNAVAILABLE_EXACT_FLAT:
-                raise M2PolicyError(
-                    f"Row {row.stream_key}/{row.start_sample} has unsupported "
-                    f"observation state {row.observation_state!r}."
-                )
-            decision = evaluate_gate(
-                arm=evaluated_arm,
-                observation_state=row.observation_state,
-                representation=None,
-                finite_sample_fraction=row.finite_sample_fraction,
-                sqi=row.sqi,
-                morphology_valid=row.morphology_valid,
-                score=None,
-                available_time=available_time,
-                refractory_until_before=refractory_before,
-            )
-            evidence.append(
-                M2RowEvidence(
-                    record_id=row.record_id,
-                    channel_index=int(row.channel_index),
-                    start_sample=int(row.start_sample),
-                    available_time=available_time,
-                    observation_state=int(row.observation_state),
-                    arm=evaluated_arm,
-                    decision=decision,
-                    d_long=None,
-                    morphology_valid=row.morphology_valid,
-                    update_admitted=False,
-                    refractory_rearmed_after_decision=False,
-                    refractory_until_after=state.refractory_until,
-                    past_observed_count_before=observed_before,
-                    past_update_count_before=updates_before,
-                    past_update_count_after=state.past_update_count,
-                    time_since_last_admitted_update=(
-                        None
-                        if state.last_admitted_update_time is None
-                        else available_time - state.last_admitted_update_time
-                    ),
-                )
-            )
-            if prototype_observer is not None:
-                prototype_observer(index, available_time, state.mu_long)
-            continue
-
-        # C. The frozen fused representation, standardized into the frozen
-        # distance space. Scoring uses the raw 146-d vector; the prototype
-        # lives in the standardized space, exactly as M1 does.
-        raw = np.asarray(row.representation, dtype=np.float64)
-        finite_representation = raw.shape == (REPRESENTATION_DIM,) and bool(
-            np.all(np.isfinite(raw))
-        )
-
-        d_long: float | None = None
-        score: float | None = None
-        if finite_representation:
-            standardized = standardizer.standardize(raw)[0]
-            # D. Deviations against the EXISTING pre-update prototype.
-            features = state.memory.deviations(standardized)
-            d_long = float(features.d_long)
-            # E. The frozen M1L score from [z_t ; d_long(t)].
-            score = float(scorer(raw, d_long))
-            if not np.isfinite(score):
-                raise M2PolicyError(
-                    "The frozen M1L scorer produced a non-finite score for "
-                    f"{row.record_id}/{row.channel_index}/{row.start_sample}."
-                )
-        else:
-            standardized = None
-
-        # F. Independent evaluation against the PRIOR refractory state.
-        decision = evaluate_gate(
-            arm=evaluated_arm,
-            observation_state=row.observation_state,
-            representation=raw if finite_representation else None,
-            finite_sample_fraction=row.finite_sample_fraction,
-            sqi=row.sqi,
-            morphology_valid=row.morphology_valid,
-            score=score,
-            available_time=available_time,
-            refractory_until_before=refractory_before,
-        )
-
-        # An AVAILABLE finite row is an observation under inherited M1
-        # semantics whether or not the gate admits its update.
-        if finite_representation:
-            state.past_observed_count += 1
-
-        # G. M2-0 reproduces the frozen naive control: every AVAILABLE finite
-        # observation updates. M2-G updates only when all six conditions pass.
-        admitted = decision.admitted
-
-        if admitted:
-            if standardized is None:  # pragma: no cover - guarded above
-                raise M2PolicyError("An admitted update has no standardized vector.")
-            state.memory.update(standardized)
-            state.past_update_count += 1
-            state.last_admitted_update_time = available_time
-
-        # H. Only AFTER the current row's decision is complete may the
-        # refractory be re-armed, and only by a scored AVAILABLE finite row
-        # whose score exceeds the normal-evidence margin. A row failing only
-        # SQI, morphology or physical availability never arms it.
-        #
-        # M2-0 has no refractory at all: it is the naive control, so nothing
-        # here may create auxiliary state for it, not even a dormant one.
-        rearmed = False
-        if gated and score is not None and score > GATE.NORMAL_EVIDENCE_THRESHOLD:
-            state.refractory_until = max(
-                state.refractory_until,
-                available_time + GATE.REFRACTORY_DURATION_SECONDS,
-            )
-            rearmed = True
-
+    for index, row in enumerate(_ordered_rows(rows)):
         evidence.append(
-            M2RowEvidence(
-                record_id=row.record_id,
-                channel_index=int(row.channel_index),
-                start_sample=int(row.start_sample),
-                available_time=available_time,
-                observation_state=int(row.observation_state),
+            step(
+                state,
+                row,
                 arm=evaluated_arm,
-                decision=decision,
-                d_long=d_long,
-                morphology_valid=row.morphology_valid,
-                update_admitted=admitted,
-                refractory_rearmed_after_decision=rearmed,
-                refractory_until_after=state.refractory_until,
-                past_observed_count_before=observed_before,
-                past_update_count_before=updates_before,
-                past_update_count_after=state.past_update_count,
-                time_since_last_admitted_update=(
-                    None
-                    if state.last_admitted_update_time is None
-                    else available_time - state.last_admitted_update_time
-                ),
+                standardizer=standardizer,
+                scorer=scorer,
             )
         )
         if prototype_observer is not None:
-            prototype_observer(index, available_time, state.mu_long)
+            prototype_observer(index, row.available_time, state.mu_long)
 
     return evidence
 

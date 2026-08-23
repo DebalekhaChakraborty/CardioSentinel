@@ -42,6 +42,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command")
     subparsers.add_parser("info", help="Print factual project metadata.")
+
+    from .edge.cli import add_edge_commands
+
+    add_edge_commands(subparsers)
     data_parser = subparsers.add_parser(
         "data", help="Inspect and validate local WFDB datasets."
     )
@@ -138,6 +142,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Run one bounded research utility and return its process status."""
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    if args.command == "edge":
+
+        from .edge.cli import run_edge_command
+
+
+        return run_edge_command(args)
 
     if args.command == "info":
         config = load_config(args.config)
