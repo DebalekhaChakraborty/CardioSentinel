@@ -1,0 +1,61 @@
+{
+  "epochs": [
+    {
+      "checkpoint_saved": true,
+      "early_stopping_patience": 0,
+      "epoch": 1,
+      "mean_training_loss": 0.11839944347026246,
+      "validation_auprc": 0.32765423940881255
+    },
+    {
+      "checkpoint_saved": true,
+      "early_stopping_patience": 0,
+      "epoch": 2,
+      "mean_training_loss": 0.11066550684052628,
+      "validation_auprc": 0.36337558881214266
+    },
+    {
+      "checkpoint_saved": false,
+      "early_stopping_patience": 1,
+      "epoch": 3,
+      "mean_training_loss": 0.10937089791810439,
+      "validation_auprc": 0.34626424414508145
+    },
+    {
+      "checkpoint_saved": true,
+      "early_stopping_patience": 0,
+      "epoch": 4,
+      "mean_training_loss": 0.10858814102060894,
+      "validation_auprc": 0.3847955637197618
+    },
+    {
+      "checkpoint_saved": false,
+      "early_stopping_patience": 1,
+      "epoch": 5,
+      "mean_training_loss": 0.10805298504371881,
+      "validation_auprc": 0.3429340761862377
+    },
+    {
+      "checkpoint_saved": false,
+      "early_stopping_patience": 2,
+      "epoch": 6,
+      "mean_training_loss": 0.10747439293821055,
+      "validation_auprc": 0.36472481102666215
+    },
+    {
+      "checkpoint_saved": false,
+      "early_stopping_patience": 3,
+      "epoch": 7,
+      "mean_training_loss": 0.10686293003987712,
+      "validation_auprc": 0.3802829696800862
+    },
+    {
+      "checkpoint_saved": false,
+      "early_stopping_patience": 4,
+      "epoch": 8,
+      "mean_training_loss": 0.10649931241623849,
+      "validation_auprc": 0.3660304653362774
+    }
+  ],
+  "experiment_id": "M1L_long_memory_v2"
+}
