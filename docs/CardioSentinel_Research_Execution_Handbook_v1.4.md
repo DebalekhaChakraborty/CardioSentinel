@@ -136,6 +136,19 @@ ranked hierarchy is verbatim handbook text should be withdrawn.
 
 | **1.4** | **23 Aug 2026** | **The system stops being only a pipeline.** Adds §52 the four-layer IPS architecture, §53 the claim-boundary governance framework and the three violations it caught in this repository's own code, §54 the agentic layer, §55 laptop edge simulation with measured throughput, §56 what the IPS layer does not establish. Updates §18 (edge is no longer NOT STARTED), §39, §48, §50 |
 
+### 0.5.1 Correction issued after v1.4 merged
+
+**§24's RQ5 row contradicted §18.1 in the same document.** v1.4 updated §18 to
+record that an inference path now exists, and left §24 asserting that *"no
+inference path exists at all"*. The verdict was right and its stated
+justification was false — the precise drift this revision existed to remove,
+reproduced inside it.
+
+Corrected in the documentation-alignment change that also brought `README.md`,
+`ARCHITECTURE.md`, `CURRENT_STATE.md` and `EXPERIMENT_CATALOGUE.md` into line
+with the runtime. **RQ5 remains open**; a laptop replay is not an edge
+measurement.
+
 ### 0.5 What v1.4 changes
 
 **New:** §52–§56, and the IPS framing in the executive summary.
@@ -433,7 +446,7 @@ and is **false as of W1**.
 | **RQ2** | Can continual personalization be made contamination-safe? | ⚠️ **Partial.** M2-G retained on development evidence; no contamination-stress comparison at episode level | An episode-level contamination-stress comparison. A run |
 | **RQ3** | Can uncertainty reduce cloud dependence without unsafe local decisions? | ✅ **Answered — negatively.** The router at `c_star = 0.90` was evaluated and rejected; `Retained: false` | Nothing. It is answered. The per-bin reliability read (§49.6) describes the retained calibrator and does **not** reopen the router |
 | **RQ4** | Does longitudinal/episode reasoning improve monitoring quality? | ✅ **Supported (bounded).** W1: difference 0.1921, 95% paired interval [0.0505, 0.3455], excludes zero | The bound comes off only if a **well-tuned memoryless rule** is given its own operating point and still loses. A run (§17.4) |
-| **RQ5** | Can the selected model operate efficiently on edge hardware? | ❌ **Open.** E1 not started; no inference path exists at all | An edge benchmark. Benchmark-host numbers are not edge measurements (§18) |
+| **RQ5** | Can the selected model operate efficiently on edge hardware? | ❌ **Open.** An inference path now exists (§18.1, §55) but runs as a laptop replay simulation; no edge-hardware measurement exists | A measurement **on an edge device**. Neither benchmark-host nor laptop numbers are edge measurements (§18, Appendix A claim 5) |
 | **RQ6** | Does foundation-model knowledge improve the compact student? | ❌ **Not started** | Phase 4B, never begun |
 | **RQ7** | Can confounder-aware supervision reduce false ST alarms? | ❌ **Not started** | Phase 6B, never begun |
 
