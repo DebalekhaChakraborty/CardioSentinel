@@ -1,0 +1,77 @@
+# CardioSentinel — session handoffs
+
+One file per session. Each is written at the **end** of a session and read at
+the **start** of the next. **Read the highest-numbered one first, and read it
+before touching anything.**
+
+```
+handoffs/CARDIOSENTINEL_HANDOFF_ECG<N>.md
+```
+
+**These are tracked in the repository as of 2026-08-24.** Until then they lived
+at `/home/AI_POC/handoffs/` and before that at `/home/AI_POC/` directly, under
+the standing constraint that scratch and operational files stay out of the repo.
+
+**That constraint was deliberately reversed for these files**, because they
+existed in exactly one place: not in git, not in the S3 evidence mirror, only on
+one machine's disk. The handoff is where the programme records which one-shot
+budgets are spent and what is currently authorized — losing it loses the
+authorization state, which no amount of git history reconstructs.
+
+**They are still operational notes, not publishable record.** They contain
+session-specific paths, tool quirks and working detail. Nothing in `docs/`
+should cite them as a source, and a reader of the manuscript has no reason to
+open one.
+
+## Current
+
+| | |
+|---|---|
+| **Latest** | **ECG 17** — the one to read |
+| Covers | master `be70d65`, PR #99 open, branch tree cleaned to four, S3 mirror re-verified 2026-08-24 |
+
+## Index, newest first
+
+| Session | Date | The danger it named for the session after it |
+|---|---|---|
+| **ECG 17** | 2026-08-24 | planning and tidying in place of writing — the next defensible task |
+| ECG 16 | 2026-08-24 | stopping short of the manuscript |
+| ECG 15 | 2026-08-23 | the codebase outrunning its documentation |
+| ECG 14 | 2026-08-22 | merge-race and stale state |
+| ECG 13 | 2026-08-22 | premature interpretation |
+| ECG 12 | 2026-08-21 | haste |
+| ECG 11 | 2026-08-21 | over-engineering |
+| ECG 10 | 2026-08-21 | *(convention not yet started)* |
+| ECG 9 | 2026-08-20 | *(convention not yet started)* |
+| ECG 8 | 2026-08-19 | *(convention not yet started)* |
+| ECG 7 | 2026-08-19 | *(convention not yet started)* |
+| ECG 6 | 2026-08-17 | *(convention not yet started)* |
+| ECG 5 | 2026-08-16 | *(convention not yet started)* |
+| ECG 4 | 2026-08-14 | *(convention not yet started)* |
+| ECG 3 | 2026-08-12 | *(convention not yet started)* |
+
+**From ECG 11 onward, each handoff closes by naming the characteristic failure
+of the session that wrote it.** ECG 3–10 predate that convention; the blank
+cells above are accurate, not missing data.
+
+That chain is the most useful thing in these files — it is the only place the
+programme records how it goes wrong, as opposed to what it produced.
+
+## Why they are worth keeping
+
+The handoff records what is *currently authorized*, which one-shot attempts are
+*consumed*, and which frozen digests must match. **Git history shows what
+changed; it does not show which budgets are spent or what a session is permitted
+to do next.** That state lives here and nowhere else.
+
+## Paths inside the older files are stale, on purpose
+
+**Handoffs ECG 3 through ECG 16 were written when these files lived at
+`/home/AI_POC/` directly**, and their internal text still cites that path. They
+moved twice on 2026-08-24 — first to `/home/AI_POC/handoffs/`, then into the
+repository — and were **deliberately not rewritten**. They are records of what a
+session knew at the time, and editing fourteen historical documents to correct a
+path is worse than a note saying so.
+
+Only **ECG 17's** self-reference was updated, twice, because it is the live one
+and the next session pastes it verbatim.
