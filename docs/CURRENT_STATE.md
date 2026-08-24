@@ -17,11 +17,11 @@ lives, and `docs/EXPERIMENT_CATALOGUE.md` for what has been spent.
 
 ---
 
-**As of:** `origin/master` `a8f1b47` (merge of PR #94), 2026-08-24 ·
+**As of:** `origin/master` `0480b34` (merge of PR #97), 2026-08-24 ·
 tags `research-freeze-v1.0` · `ips-agentic-runtime-v1.0`
 **Working tree:** clean
-**Open PRs:** 2 — #95 (paper outline V2 + §53.2 correction), #96 (generator
-digest correction). Both docs-only, both CI green.
+**Open PRs:** none. *(Snapshot only — `gh pr list` is authoritative and free;
+this line is stale the moment a PR opens or merges.)*
 **Canonical T1 attempt:** **CONSUMED** — failed post-claim at stage 24
 **T1 measurement continuation:** **COMPLETED** — the single authorization is spent
 **T2 outer validation:** **CONSUMED and ANALYSED** — values published
@@ -54,11 +54,11 @@ spent tokens, not live permissions.** The re-run guard is the persistence claim
 
 | | |
 |---|---|
-| `origin/master` | `a8f1b472a18fed6f7347522293471fc65479a625` — merge of PR #94 |
+| `origin/master` | `0480b34c9c3eaef7a31039edaf13d21590835033` — merge of PR #97 |
 | Tags | `research-freeze-v1.0` (science frozen) · `ips-agentic-runtime-v1.0` (agentic layer complete) |
 | Releases | none |
 | Working tree | clean, no untracked non-ignored files |
-| Open PRs | #95, #96 |
+| Open PRs | none at the pin above |
 | Tracked Python | 287 files · 124,672 LOC |
 | Tests | 116 files · **3,302 collected** — 3,301 passed, 1 skipped |
 | Documents | 74 in `docs/` (67 `.md`) |
@@ -74,7 +74,13 @@ spent tokens, not live permissions.** The re-run guard is the persistence claim
 #92 Architecture Selection Intelligence Agent
 #93 IPS demonstration console
 #94 Evidence-Constrained Explanation Evaluation framework
+#95 PAPER_OUTLINE_V2.md + handbook §53.2 corrected to five findings
+#96 tracked-generator digest that had been false since #72
+#97 CURRENT_STATE.md and ARCHITECTURE.md synchronised
 ```
+
+**#95–#97 are documentation only.** No experiment, no budget, no artifact, no
+code.
 
 ---
 
@@ -90,8 +96,9 @@ on purpose — v1.2 is the document that recorded "not one of the seven research
 questions is affirmatively answered", and that statement is now evidence of a
 moment rather than a fact.
 
-**`docs/PAPER_OUTLINE_V1.md` predates the runtime and the agentic layer.** Its
-successor, `PAPER_OUTLINE_V2.md`, is in PR #95 and is not on master yet.
+**`docs/PAPER_OUTLINE_V2.md` is the current outline** (merged in #95). It
+supersedes `PAPER_OUTLINE_V1.md`, which predates the runtime and the agentic
+layer and is retained unedited under the `_V1` convention.
 
 ---
 
@@ -268,8 +275,9 @@ staged — which is exactly how three checkpoints were briefly lost to a
    **Reformatting a generator changes its digest**, so any such pass must update
    `scripts/provenance/README.md` in the same commit.
 5. **Nothing asserts the four tracked-generator digests.** One was false on
-   master from #72 until PR #96 corrected it, and no automated reader would have
-   noticed.
+   master from #72 until #96 corrected it, and no automated reader would have
+   noticed. All four match as of this pin; the assertion test is recommended and
+   unwritten.
 6. **Eleven stale scratch worktrees** remain registered from two dead sessions,
    all on merged or pushed branches with no uncommitted work.
 
@@ -280,14 +288,12 @@ documentation, analysis of existing evidence, and paper drafting. No new
 experiment, no architecture change, no threshold generation, no sealed-test
 access.
 
-1. Merge #95 and #96. **Verify heads with `git ls-remote` first** — a green
-   check proves *a* SHA passed, not that it is still the branch head.
-2. **The literature search for §2.** It is the only unstarted item in the paper
+1. **The literature search for §2.** It is the only unstarted item in the paper
    plan, and the gap statement must be written *after* the search rather than to
    fit the contribution.
-3. **Draft prose**, beginning with the five claim-boundary findings. The outline
+2. **Draft prose**, beginning with the five claim-boundary findings. The outline
    is finished; the manuscript is not.
-4. **Do not open the B4 sealed test.** Handbook §43 argues this on evidence: the
+3. **Do not open the B4 sealed test.** Handbook §43 argues this on evidence: the
    headline contrast spans zero, and no cohort exists to corroborate a test
    number.
 
@@ -298,5 +304,5 @@ re-scoring run, neither can reuse the W1 trick.
 
 ---
 
-_Last refreshed: 2026-08-24, against `origin/master` `a8f1b47`, after the
-explanation evaluation framework merged (#94)._
+_Last refreshed: 2026-08-24, against `origin/master` `0480b34`, after the
+documentation-synchronisation PRs merged (#95-#97)._
