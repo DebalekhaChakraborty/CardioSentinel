@@ -96,3 +96,21 @@ def test_the_exemption_cannot_be_used_to_smuggle_a_claim():
     )
     violations = {v.claim_number for v in claims.find_violations(text)}
     assert 22 in violations
+
+
+def test_the_disclaimer_exemption_survives_line_wrapping():
+    """Rendered output is wrapped; a wrapped disclaimer is the same disclaimer.
+
+    Found by the demonstration console: `textwrap` split the canonical closing
+    sentence across two lines, the literal exemption stopped matching, and a
+    correct output was flagged. Matching literally would have meant the guard
+    accepted unwrapped prose and rejected the identical wrapped prose.
+    """
+    import textwrap
+
+    wrapped = "\n".join(textwrap.wrap(claims.SYSTEM_BEHAVIOUR_ONLY, 28))
+    assert "\n" in wrapped, "fixture must actually wrap"
+    assert claims.audit(wrapped) == ()
+    assert claims.audit(claims.SYSTEM_BEHAVIOUR_ONLY) == ()
+    # And it still catches a real claim that happens to be wrapped.
+    assert claims.audit("The system is\ndeployment-ready today.")

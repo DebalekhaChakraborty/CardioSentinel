@@ -44,6 +44,21 @@ def add_edge_commands(subparsers: Any) -> None:  # noqa: ANN401 - argparse actio
         "--json", action="store_true", help="Emit observations and alerts as JSON."
     )
 
+    console = commands.add_parser(
+        "console", help="The IPS demonstration console (terminal, no UI deps)."
+    )
+    console.add_argument("record")
+    console.add_argument("--channel", type=int, default=0)
+    console.add_argument("--seconds", type=float, default=2400.0)
+    console.add_argument("--source-root", default=str(DEFAULT_SOURCE_ROOT))
+    console.add_argument("--run-root", default=str(DEFAULT_RUN_ROOT))
+    console.add_argument("--feature-root", default=str(DEFAULT_FEATURE_ROOT))
+    console.add_argument(
+        "--ask",
+        default="Why was S4D selected?",
+        help="Research question for the lineage panel.",
+    )
+
     subjects = commands.add_parser(
         "subjects", help="List the replayable held-out subjects."
     )
@@ -53,6 +68,8 @@ def add_edge_commands(subparsers: Any) -> None:  # noqa: ANN401 - argparse actio
 def run_edge_command(args: argparse.Namespace) -> int:
     if args.edge_command == "subjects":
         return _subjects(args)
+    if args.edge_command == "console":
+        return _console(args)
     return _simulate(args)
 
 
@@ -148,4 +165,25 @@ def _simulate(args: argparse.Namespace) -> int:
         "\n  This is a laptop simulation replaying a stored recording. It is "
         "not an\n  acquisition path, and no sealed test data was accessed."
     )
+    return 0
+
+
+def _console(args: argparse.Namespace) -> int:
+    from .artifacts import EdgeArtifactError
+    from .console import render
+
+    try:
+        report = render(
+            args.record,
+            channel_index=args.channel,
+            seconds=args.seconds,
+            source_root=args.source_root,
+            run_root=args.run_root,
+            feature_root=args.feature_root,
+            architecture_question=args.ask,
+        )
+    except EdgeArtifactError as error:
+        print(f"refused: {error}")
+        return 2
+    print(report.text)
     return 0

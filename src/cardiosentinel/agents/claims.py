@@ -236,9 +236,14 @@ def strip_approved_disclaimers(
     plainly, which is the opposite of the intent. Declaring the quotation is
     explicit, auditable, and local to the caller that owns the strings.
     """
+    # Whitespace-insensitive, because rendered output is wrapped. A disclaimer
+    # broken across two lines by `textwrap` is the same disclaimer, and matching
+    # it literally would flag every wrapped legitimate output while letting the
+    # unwrapped one pass -- an exemption defeated by presentation.
+    collapsed = re.sub(r"\s+", " ", text)
     for phrase in (*APPROVED_DISCLAIMERS, *quoting):
-        text = text.replace(phrase, "")
-    return text
+        collapsed = collapsed.replace(re.sub(r"\s+", " ", phrase), "")
+    return collapsed
 
 
 def audit(
