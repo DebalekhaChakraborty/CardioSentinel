@@ -1,9 +1,10 @@
-"""Development-only integrity receipts for B4 metadata and waveform sources."""
+"""Experiment-lock digests and development-only B4 artifact integrity receipts."""
 
 from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -38,6 +39,22 @@ SOURCE_SUFFIXES = ("hea", "dat", "stb")
 def canonical_sha256(payload: Any) -> str:
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def experiment_lock_sha256(lock: Mapping[str, Any]) -> str:
+    """Hash an experiment lock without its self-referential digest field."""
+    payload = {
+        key: value
+        for key, value in lock.items()
+        if key != "experiment_lock_sha256"
+    }
+    return canonical_sha256(payload)
+
+
+def verify_experiment_lock(lock: Mapping[str, Any]) -> bool:
+    """Return whether a lock's stored self-digest matches its canonical payload."""
+    recorded = lock.get("experiment_lock_sha256")
+    return isinstance(recorded, str) and recorded == experiment_lock_sha256(lock)
 
 
 def _safe_cache_path(root: Path, relative: str) -> Path:
