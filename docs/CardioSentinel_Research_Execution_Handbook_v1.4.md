@@ -1424,15 +1424,28 @@ is not optional: a substring check for *"proved"* matches *"improved"* and
 ### 53.2 The three violations it caught in our own code
 
 **This is the evidence that the guard is load-bearing rather than decorative,
-and it is better evidence than any test written for it.** Three separate
-components, built weeks apart by different reasoning, each tried to state a
-boundary and each tripped the guard:
+and it is better evidence than any test written for it.** Four separate
+components independently exposed claim-boundary handling failures -- including a
+**rendering-induced exemption failure in the demonstration layer**, which is a
+different and more interesting defect than the other three:
 
 | # | Component | What tripped it |
 |---|---|---|
 | 1 | Evidence Agent (#84) | its own disclaimer *"does not establish a diagnosis"* — claim 4 |
 | 2 | Explanation template (#86) | its closing sentence, same claim |
 | 3 | Research Assistant (#87) | `claims_forbidden`, which states forbidden claims **in order to prohibit them** |
+| 4 | Demonstration console (#93) | `textwrap` split the canonical disclaimer across two lines, so the literal exemption stopped matching and a **correct** output was flagged |
+
+**The fourth is the instructive one.** The first three are the same
+assertion-versus-disclaimer limitation. The fourth is worse: the guard accepted
+unwrapped prose and rejected the *identical* wrapped prose, so its exemption was
+defeated by **presentation**. Any rendered output would have hit it.
+`strip_approved_disclaimers` is now whitespace-insensitive.
+
+*(A fifth instance appeared in #94's evaluation report, whose reporting rules
+state their prohibition using the prohibited words. That one is scoped in the
+test rather than in the guard: the rules are curated constants, and only the
+report body can overclaim.)*
 
 **A lexical guard cannot tell an assertion from a disclaimer.** Regex negation
 detection would be a worse failure mode than the one it fixes, so the resolution
