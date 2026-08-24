@@ -54,7 +54,7 @@ master        be70d656f24cb7b87ec9a7595d44d0a677ab0a6f   (merge of #98)
 open PRs      none
 branches      4 on origin, 3 local (see §3)
 worktrees     1 — the main checkout only
-tags          research-freeze-v1.0 · ips-agentic-runtime-v1.0 · college-v1
+tags          research-freeze-v1.0 · ips-agentic-runtime-v1.0 · legacy/v0
 tests         3,302 collected — 3,301 passed, 1 skipped, 17m58s locally
 working tree  clean
 ```
