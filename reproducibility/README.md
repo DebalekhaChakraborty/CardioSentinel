@@ -21,10 +21,12 @@ reproducibility packages get abandoned.
 
 ## What is deliberately not a dependency
 
-**No external mirror.** Evidence preservation uses cryptographic manifests;
-external mirrors are optional and their availability is not required to
-reproduce anything here. An S3 mirror exists but is **not verified** and nothing
-in this package depends on it.
+**No external mirror is required.** Evidence preservation uses cryptographic
+manifests; external mirrors are optional and their availability is not required
+to reproduce anything here. An S3 mirror exists and was **verified 2026-08-24**
+(`CHECKSUM_MANIFEST.md` carries the detail), but nothing in this package depends
+on it, and a reproducibility claim that depended on something unverifiable would
+not be one.
 
 **No generative-model API.** The explanation agent falls back to a deterministic
 renderer and labels the mode. No API key is needed.
