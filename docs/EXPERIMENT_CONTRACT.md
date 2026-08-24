@@ -63,3 +63,32 @@ cache manifests and other experiments' locks. Correction of a locked value is
 therefore not a repair operation but an invalidation of every artifact that
 cites it. **Locked artifacts are not corrected by editing their digest-bearing
 fields. If provenance translation is required, it is recorded externally.**
+
+## Selected-architecture binding for sealed evaluation
+
+The sealed evaluator is bound to the architecture selected during development.
+Candidate architectures rejected during selection cannot be evaluated through
+the selected-model test path.
+
+The binding is an object, not a convention: `SelectedArchitectureBinding` in
+`cardiosentinel.neural.b4b_sealed_test` carries the experiment identifier,
+architecture, run collection, checkpoint name and digest, and lock digest that
+an authorization names. `verify_selection_identity` proves the authorization,
+the evaluator and the artifacts on disk describe one model, and it runs to
+completion **before** any attempt receipt is written and before any sealed-test
+artifact is resolved, opened or hashed. Every check it makes reads development
+artifacts only, so a mismatch fails closed: no test access, no `TEST_ATTEMPT`,
+and the one-shot budget stays unspent.
+
+This exists because the two facts were previously unconnected. `sealed_test`
+binds to `B4_raw_compact_cnn_v1` through module constants; Phase 3B-2 selected
+`B4B_cnn_transformer_v1` and rejected the former. Each file was correct about
+itself and nothing compared them. An evaluation run on the earlier path would
+have consumed the one-shot budget characterising a rejected candidate, and
+would have looked clean doing it: every lock carries
+`status: locked_for_one_shot_test`, so nothing downstream would have objected.
+
+**A binding is not a default.** Any future sealed evaluation declares the
+architecture it is authorized against and verifies it, and a rejected candidate
+is refused by name rather than by digest mismatch, because the name is what
+tells the reader which mistake they made.
