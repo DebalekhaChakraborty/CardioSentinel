@@ -277,6 +277,30 @@ staged — which is exactly how three checkpoints were briefly lost to a
 
 ### Defects
 
+0. **Every commit SHA pinned in this repository's documents is dangling on the
+   remote, as of 2026-08-24.** Master's history was rewritten to strip
+   `Co-Authored-By` trailers, and force-pushed. **No content changed** — the new
+   tree hash `dd89bf37…` is byte-identical to the pre-rewrite tree — but every
+   commit from `ea27846` (2026-08-07) forward has a new SHA.
+
+   **What this costs.** Pins such as `CURRENT_STATE.md`'s own, and the
+   *"Analysis executed at commit"* lines in
+   `W1_WINDOW_COMPARATOR_REPORT_V1.md` and `T2_ARM_COMPARISON_REPORT_V1.md`,
+   resolve on a machine that still holds `refs/original/*` and **on no fresh
+   clone**. Those lines exist so a third party can check which code produced a
+   published number; on the public remote they now point at nothing.
+
+   **Recorded rather than repaired, deliberately.** Rewriting the pins would mean
+   editing frozen `_V1` records whose immutability is itself a claim, and
+   publishing the old history would partly undo what the rewrite was for. The
+   pre-rewrite history is preserved in a local bundle and in
+   `refs/local-backup/pre-coauthor-rewrite`, **available on request**. This is
+   the same honesty the S3 mirror gets: *not verifiable* is neither *verified*
+   nor *false*, and it is stated rather than papered over.
+
+   **The mapping is recoverable.** Old and new commits correspond one-to-one in
+   order, so any pin can be translated from the bundle if a reviewer asks.
+
 1. ~~AWS session expired, S3 mirror unverified~~ — **closed 2026-08-24.** The
    session was renewed and the mirror verified against both the local tree and
    its own manifest (§8). **It will degrade again**: the guarantee is only as
