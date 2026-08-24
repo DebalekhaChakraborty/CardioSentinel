@@ -40,7 +40,7 @@ This list is load-bearing and is enforced in code by
   and no independent cohort exists in the public record.
 - **No test-set performance.** The neural sealed test is **unopened**.
 
-**State:** `ips-agentic-runtime-v1.0` at `origin/master` `9f38f47`. The
+**State:** `ips-agentic-runtime-v1.0` at `origin/master` `0480b34`. The
 authoritative record is
 [`docs/CardioSentinel_Research_Execution_Handbook_v1.4.md`](docs/CardioSentinel_Research_Execution_Handbook_v1.4.md);
 architecture is [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).

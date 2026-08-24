@@ -83,8 +83,10 @@ addressed, not day-to-day status.
    complete.
 9. **Edge benchmarking:** reproducible latency, energy, and hardware-in-the-loop
    measurements. Partial: B4 latency and parameter-count benchmarking is
-   complete on a fixed benchmark host (`B4_RESOURCE_BENCHMARK_V1.md`);
-   no on-device or edge-hardware measurement exists yet.
+   complete on a fixed benchmark host (`B4_RESOURCE_BENCHMARK_V1.md`), and a
+   laptop replay runtime now exists in `edge/` running at ~61x real time;
+   **neither is an edge-hardware measurement.** No on-device latency, energy or
+   thermal figure exists, and RQ5 is open.
 10. **Final ablation and external validation:** pre-specified comparisons,
     confounder analysis, and bounded reporting. The first ablation is done —
     see item 7's window-only comparator. External validation is **scoped but
