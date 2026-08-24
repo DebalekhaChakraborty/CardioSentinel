@@ -134,7 +134,7 @@ ranked hierarchy is verbatim handbook text should be withdrawn.
 | 1.2 | 22 Aug 2026 | **Execution truth through Phase 9.** B4-B selected; P1/M1/M2/U1/T2 retained with U1 split; T1 executed, failed post-claim, recovered under single-use authorization, measured and published. Adds §39–§47: document governance, experiment contract, negative capability, attempt semantics, recovery protocol, pre-registration, reporting discipline, preservation, amendment process. Corrects the §10.2 citation record (§0.2) |
 | 1.3 | 23 Aug 2026 | **The evidence layer closes and RQ4 is answered.** T2 arm comparison read and published; W1 window-only comparator executed, answering RQ4 **Supported (bounded)** and refuting two registered predictions; U1 per-bin reliability read; external validation audited to a negative finding. Replaces §24 outright, re-argues §50 from the changed premise, corrects Appendix A claim 6, and adds **§51**, the experiment ledger with a consumed column |
 
-| **1.4** | **23 Aug 2026** | **The system stops being only a pipeline.** Adds §52 the four-layer IPS architecture, §53 the claim-boundary governance framework and the three violations it caught in this repository's own code, §54 the agentic layer, §55 laptop edge simulation with measured throughput, §56 what the IPS layer does not establish. Updates §18 (edge is no longer NOT STARTED), §39, §48, §50 |
+| **1.4** | **23 Aug 2026** | **The system stops being only a pipeline.** Adds §52 the four-layer IPS architecture, §53 the claim-boundary governance framework and the five violations it caught in this repository's own code, §54 the agentic layer, §55 laptop edge simulation with measured throughput, §56 what the IPS layer does not establish. Updates §18 (edge is no longer NOT STARTED), §39, §48, §50 |
 
 ### 0.5.1 Correction issued after v1.4 merged
 
@@ -148,6 +148,24 @@ Corrected in the documentation-alignment change that also brought `README.md`,
 `ARCHITECTURE.md`, `CURRENT_STATE.md` and `EXPERIMENT_CATALOGUE.md` into line
 with the runtime. **RQ5 remains open**; a laptop replay is not an edge
 measurement.
+
+### 0.5.2 Second correction — §53.2 undercounted its own table
+
+**§53.2 drifted twice, in the same place, in consecutive changes.** #93 added
+the fourth finding as a table row and updated the lead-in sentence from *three*
+to *four*, but left the **heading** saying three. #94 then found the fifth and
+recorded it as a **parenthetical** rather than a row, so the table said four,
+the heading said three, and the prose said both.
+
+Corrected here: the heading, the lead-in, the table, §50.3's skeleton row and
+the v1.4 revision-history entry all now say **five**, and the fifth finding is a
+row with its scoping difference stated rather than an aside.
+
+**The lesson is small and general.** A count written in prose beside a table
+that grows one row per change will drift, and it drifted fastest in the one
+section whose subject is a guard that catches exactly this kind of unstated
+inconsistency. **Nothing about the findings changed** — all five were already
+recorded somewhere in the document. Only the count was wrong.
 
 ### 0.5 What v1.4 changes
 
@@ -1239,11 +1257,11 @@ neither yet written:
 |---|---|---|
 | **3.5 Intelligent physical system** ★ | §52, §55, `edge/` | **complete — write from code** |
 | **4.6 Claim governance in code** ★ | §53, `agents/claims.py` | **the strongest new material** |
-| **5.6 Three boundaries the guard caught** ★ | §53.2 | short, and the best evidence the guard is load-bearing |
+| **5.6 Five boundaries the guard caught** ★ | §53.2 | short, and the best evidence the guard is load-bearing |
 
-**§53.2 is the paragraph to write first.** Three components, built weeks apart,
+**§53.2 is the paragraph to write first.** Five components, built weeks apart,
 each independently tried to state a boundary and each tripped the guard. That is
-stronger evidence than a passing test, because none of the three was written to
+stronger evidence than a passing test, because none of the five was written to
 demonstrate it.
 
 ★ marks the novel contribution. Sections 4 and 5 are where the writing effort
@@ -1260,6 +1278,12 @@ Pre-registration, and Consumed-Attempt Semantics in Ambulatory ECG Ischemia
 Detection* · *When the Run Fails: Authorized Recovery of a Consumed Measurement
 Under a Frozen Protocol* · *Negative Capability: Proving What a Model Pipeline
 Cannot Do*.
+
+**The worked outline of this skeleton is `docs/PAPER_OUTLINE_V2.md`**, which
+supersedes `PAPER_OUTLINE_V1.md`. V1 was written before §52-§56 existed and does
+not know about the runtime, the agentic layer or the five claim-boundary
+findings; it is retained unedited under the `_V1` convention rather than
+corrected.
 
 ---
 
@@ -1421,13 +1445,13 @@ and no claim in this handbook should be read as saying otherwise. Word anchoring
 is not optional: a substring check for *"proved"* matches *"improved"* and
 *"Provenance"*, which has bitten this repository roughly ten times.
 
-### 53.2 The three violations it caught in our own code
+### 53.2 The five violations it caught in our own code
 
 **This is the evidence that the guard is load-bearing rather than decorative,
-and it is better evidence than any test written for it.** Four separate
+and it is better evidence than any test written for it.** Five separate
 components independently exposed claim-boundary handling failures -- including a
 **rendering-induced exemption failure in the demonstration layer**, which is a
-different and more interesting defect than the other three:
+different and more interesting defect than the others:
 
 | # | Component | What tripped it |
 |---|---|---|
@@ -1435,6 +1459,7 @@ different and more interesting defect than the other three:
 | 2 | Explanation template (#86) | its closing sentence, same claim |
 | 3 | Research Assistant (#87) | `claims_forbidden`, which states forbidden claims **in order to prohibit them** |
 | 4 | Demonstration console (#93) | `textwrap` split the canonical disclaimer across two lines, so the literal exemption stopped matching and a **correct** output was flagged |
+| 5 | Evaluation report (#94) | its **reporting rules**, which prohibit a claim by naming it — *"no winner is declared"*, *"neither arm is better"* |
 
 **The fourth is the instructive one.** The first three are the same
 assertion-versus-disclaimer limitation. The fourth is worse: the guard accepted
@@ -1442,10 +1467,13 @@ unwrapped prose and rejected the *identical* wrapped prose, so its exemption was
 defeated by **presentation**. Any rendered output would have hit it.
 `strip_approved_disclaimers` is now whitespace-insensitive.
 
-*(A fifth instance appeared in #94's evaluation report, whose reporting rules
-state their prohibition using the prohibited words. That one is scoped in the
-test rather than in the guard: the rules are curated constants, and only the
-report body can overclaim.)*
+**The fifth is scoped differently from the other four, and the difference is
+deliberate.** #94's reporting rules are curated constants, reviewed once by a
+human rather than generated per alert, so the exemption lives in the evaluation
+test rather than in the guard. Only the report *body* can overclaim, and that is
+what `audit` is pointed at. Registering the rules in `APPROVED_DISCLAIMERS`
+would have widened a global exemption to buy nothing, which is the same reasoning
+that made `quoting=` caller-declared in the first place.
 
 **A lexical guard cannot tell an assertion from a disclaimer.** Regex negation
 detection would be a worse failure mode than the one it fixes, so the resolution
