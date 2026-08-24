@@ -360,7 +360,7 @@ section, and has not.*
 Researcher decision:
 
 [X] Authorize B4 sealed-test execution
-[X] Continue deferral
+[ ] Continue deferral
 
 I have read B4_TEST_DEFERRAL_DECISION_V1.md and, by this decision, supersede
 its deferral -- argued and recorded before any access, per its section 3.
