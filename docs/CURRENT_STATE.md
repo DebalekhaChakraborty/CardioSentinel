@@ -217,9 +217,11 @@ Two of those three stubs describe research that is complete elsewhere.
 
 ---
 
-## 8. Data preservation — **snapshot exists, mirror NOT re-verified**
+## 8. Data preservation — **mirror re-verified 2026-08-24**
 
-A full evidence mirror was created and verified on 2026-08-22:
+A full evidence mirror was created on 2026-08-22 and **re-verified on
+2026-08-24**, after the expired session that had left it unverifiable since
+2026-08-23 was renewed:
 
 ```
 s3://cardiosentinel-evidence-341181499761/snapshot-2026-08-22-1bbbd47/
@@ -227,11 +229,25 @@ s3://cardiosentinel-evidence-341181499761/snapshot-2026-08-22-1bbbd47/
 Versioning · Object Lock GOVERNANCE 365 days · SSE-S3 · public access blocked
 ```
 
-**As of 2026-08-23 the AWS session has expired and the mirror could not be
-re-verified.** That is a statement about this moment, not about the snapshot:
-Object Lock GOVERNANCE with a 365-day retention was confirmed at creation, and
-nothing has been deleted. **Re-authenticate before relying on it, and do not
-record it as verified until you have.**
+**What was checked on 2026-08-24**, all read-only:
+
+| | |
+|---|---|
+| Object count and bytes | **786** / **24,779,296,980** — exact match to creation |
+| Delete markers | **none.** Nothing has ever been deleted |
+| Object versions | **786** — one per object, no overwrites |
+| Retention, on a sampled object | `GOVERNANCE`, `RetainUntilDate 2027-08-22T19:07:55Z` — applied to the object, not merely a bucket default |
+| Public access · encryption | all four blocks `true` · `AES256` (SSE-S3) |
+| Against the local tree | **785 of 786** objects match on path and size, zero mismatches. The 786th is `MANIFEST_SHA256.txt`, which lives in the snapshot root and is not part of the local tree |
+| Against the manifest | **785/785** rows resolve locally, **785/785** sizes match, and **15/15** randomly sampled `sha256` digests recomputed and matched (seed 2026) |
+
+**This is a verification of contents, not only of existence.** A headcount would
+have passed even if every file had been replaced.
+
+**`MANIFEST_SHA256.txt` has four fields — `sha256 size mtime path`** — the same
+shape the restore procedure below reads. A two-field parse silently resolves
+zero rows and reports success, which is worse than failing: the first attempt at
+the check above did exactly that before it was caught.
 
 **Restoring bytes is not restoring evidence state.** S3 assigns its own
 `LastModified`, and immutability here is asserted in timestamps. A restore must
@@ -261,8 +277,11 @@ staged — which is exactly how three checkpoints were briefly lost to a
 
 ### Defects
 
-1. **AWS session expired** — S3 mirror unverified as of 2026-08-23 (§8).
-   Neither verified nor lost.
+1. ~~AWS session expired, S3 mirror unverified~~ — **closed 2026-08-24.** The
+   session was renewed and the mirror verified against both the local tree and
+   its own manifest (§8). **It will degrade again**: the guarantee is only as
+   current as its last check, so re-verify with a date attached rather than
+   inheriting this one.
 2. **The generative explanation path has never run against a real model.** No
    credentials exist here and no generative SDK is a project dependency. #94
    reports this in the table rather than in a footnote, which is the correct
