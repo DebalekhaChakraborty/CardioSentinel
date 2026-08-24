@@ -1,223 +1,285 @@
 # CardioSentinel
 
-**An evidence-grounded intelligent physical system for adaptive ECG
-monitoring.** CardioSentinel senses a physiological stream, reasons over it with
-patient-adaptive temporal models, explains its own alerts from frozen
-provenance, and refuses to state claims its evidence does not support.
+**An evidence-grounded intelligent physical system for adaptive ECG monitoring**
+— and the machinery that makes every number it reports traceable to the access
+that produced it.
 
 It is **not a medical device** and does not provide diagnosis, treatment, or
 medical recommendations.
 
-## What the system does
+> **If you arrived here from the manuscript**, start with
+> [Run it in three commands](#run-it-in-three-commands), then use
+> [From the manuscript to the evidence](#from-the-manuscript-to-the-evidence) to
+> go from any section to the artifact behind it.
+>
+> **The manuscript is in preparation.** Its current structure is
+> [`docs/PAPER_OUTLINE_V2.md`](docs/PAPER_OUTLINE_V2.md), and the section
+> numbers used below refer to that outline. The governing record of the
+> programme is the
+> [Research Execution Handbook v1.4](docs/CardioSentinel_Research_Execution_Handbook_v1.4.md).
+
+---
+
+## Run it in three commands
+
+**This works from a clean clone.** The demo bundle — checkpoints, calibrators,
+thresholds, experiment locks, 1.63 MiB — is committed to this repository. You
+supply one ECG record from PhysioNet
+([`reproducibility/DATA_ACCESS.md`](reproducibility/DATA_ACCESS.md)).
+
+```bash
+pip install -e ".[dev,data,signal,ml]"
+
+# 1. ECG stream -> alert, with the provenance of every component behind it
+cardiosentinel edge console s20201 --seconds 2400 \
+  --run-root reproducibility/demo_bundle/runs \
+  --feature-root reproducibility/demo_bundle/features
+
+# 2. why a component was rejected -- read from the frozen record, not summarised
+cardiosentinel agent research "Why was the selective router rejected?"
+
+# 3. why an architecture was selected -- lifecycle, not recommendation
+cardiosentinel agent architecture "Why was S4D selected?"
+```
+
+**The first command's output is contracted in advance** by
+[`docs/DEMO_SCENARIO.md`](docs/DEMO_SCENARIO.md), and a test asserts it. You
+should see exactly one alert:
 
 | | |
 |---|---|
-| **Causal temporal modelling** | a diagonal state-space model carrying state across windows, plus a frozen four-state episode machine |
-| **Patient-aware adaptation** | dual-timescale memory that scores each window *before* updating from it |
-| **Contamination-safe learning** | a six-condition admission gate; abnormal windows never move the patient baseline |
-| **Evidence-backed alerts** | every alert carries the checkpoint, calibrator, threshold policy and experiment lock behind it |
-| **Research traceability** | 16 experiment locks; provenance reachable from any alert by graph traversal |
-| **AI-assisted explanation** | agents that translate evidence into language, with a publication claim boundary enforced in code |
+| Alert opens | `00:17:05`, held **640 s** across **129** windows |
+| Peak calibrated probability | **`0.545613`** |
+| Safety gates | `G1 PASS  G2 PASS  G3 PASS  G4 BLOCK  G5 BLOCK  G6 PASS` |
+| Memory updates admitted | **0** |
+| Explanation mode | `DETERMINISTIC`, `no provider configured` |
 
-**Run the simulation** — replays a stored LTSTDB recording as a live stream:
+**`0` admitted is the control working, not a fault.** The contamination gate
+admits only windows that look normal and sit outside a 60-second refractory, so
+it blocks during an event by design.
 
-```bash
-cardiosentinel edge simulate s20201 --seconds 2400   # ECG -> alerts, ~61x real time
-cardiosentinel agent why s20201                      # why did it alert?
-cardiosentinel agent research "Why was S4D selected instead of GRU?"
-```
+**Only the twelve validation subjects are replayable** (`cardiosentinel edge
+subjects`). T1 thresholds are leave-one-subject-out; every other record has no
+validated operating point, and the runtime **refuses** rather than borrowing the
+nearest.
 
-## What the system does NOT do
+---
 
-This list is load-bearing and is enforced in code by
-`agents/claims.py`, which encodes 18 of the handbook's forbidden claims:
+## From the manuscript to the evidence
 
-- **No diagnosis.** Detection only, and no clinical utility is claimed.
-- **No deployment.** There is no serving path, no ONNX, no TorchScript.
+Section numbers refer to [`docs/PAPER_OUTLINE_V2.md`](docs/PAPER_OUTLINE_V2.md).
+
+| Section | What it claims | Where the evidence is |
+|---|---|---|
+| §3.1 Data | subject-disjoint 56/12/12, seed 2026, EDB contamination | [`DATASET_CONTRACT`](docs/DATASET_CONTRACT.md) · [`DATA_SPLIT_POLICY`](docs/DATA_SPLIT_POLICY.md) · [`ANNOTATION_SEMANTICS`](docs/ANNOTATION_SEMANTICS.md) · [`CROSS_DATASET_PROVENANCE`](docs/CROSS_DATASET_PROVENANCE.md) |
+| §3.2–3.4 Pipeline | causal signal path, encoder, memory, calibration, episode layer | [`SIGNAL_PROCESSING_CONTRACT`](docs/SIGNAL_PROCESSING_CONTRACT.md) · `B4_*` · `P1_*` · `M1_*` · `M2_*` · `U1_*` · `T2_*` · [`T1_CAUSAL_EPISODE_STATE_PROTOCOL_V1`](docs/T1_CAUSAL_EPISODE_STATE_PROTOCOL_V1.md) |
+| §3.5 The runtime | 146-d bridge verified to **6 ULP**; ~61× real time | `src/cardiosentinel/edge/` · Handbook §52, §55 |
+| §4 Evidence framework | one-shot budgets, negative capability, digest-bound provenance | [`EXPERIMENT_CONTRACT`](docs/EXPERIMENT_CONTRACT.md) · [`RUNTIME_INTEGRITY_SENTINEL_V1`](docs/RUNTIME_INTEGRITY_SENTINEL_V1.md) · Handbook §40–§47 |
+| §4.6 Claim governance | the publication boundary as executable code | [`src/cardiosentinel/agents/claims.py`](src/cardiosentinel/agents/claims.py) · Handbook §53 |
+| §5 Failure and recovery | a consumed attempt, and an authorized single-use recovery | [`T1_EXECUTION_RECOVERY_AMENDMENT_V1_1`](docs/T1_EXECUTION_RECOVERY_AMENDMENT_V1_1.md) · `recovery/` |
+| §5.6 Five boundaries | the guard catching this repository's own authors | Handbook §53.2 |
+| §7 Results | the four reported numbers | the four `_V1` reports in the table below |
+| §8 Limitations | 25 forbidden claims | Handbook **Appendix A** |
+| §10 Reproducibility | committed bundle, restore procedure | [`reproducibility/`](reproducibility/) |
+
+The full experiment-to-artifact inventory is
+[`docs/EXPERIMENT_CATALOGUE.md`](docs/EXPERIMENT_CATALOGUE.md); the spent-budget
+ledger is Handbook **§51**.
+
+---
+
+## Every reported number, with the boundary that travels with it
+
+**These four are the results. Nothing in the runtime or the agentic layer
+changed any of them** — Handbook §56 states that explicitly.
+
+| | Reported | The boundary, which is not optional |
+|---|---|---|
+| **T1** episode reasoning | subject-macro `episode_f1` **0.2524**, 95% [0.0826, 0.4415] | seven of twelve subjects score zero, for two incomparable reasons that push the operating point in opposite directions ([report](docs/T1_DESCRIPTIVE_REPORT_V1.md)) |
+| **T2** S4D vs GRU | difference **0.093215**, 95% paired **[-0.015229, 0.148951]** | **includes zero.** The difference **is** the selection rule; scores are not calibrated probabilities; the subject-macro figure is a mean over **9 of 12** ([report](docs/T2_ARM_COMPARISON_REPORT_V1.md)) |
+| **U1** calibration | Platt retained, NLL **0.143708** / Brier **0.040344** | the selective router was **rejected** — escalation ratio **6.4536** against a limit of **3.0** fixed in advance. No routing policy exists ([decision](docs/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md)) |
+| **W1** vs memoryless | difference **0.1921**, 95% paired **[0.0505, 0.3455]** | **excludes zero**, but bounded: both arms ran at thresholds selected with the state machine in the loop ([report](docs/W1_WINDOW_COMPARATOR_REPORT_V1.md)) |
+
+**Research questions:** RQ4 is **Supported (bounded)** — the parenthesis is part
+of the claim. RQ3 is a **negative finding**, reported as a result. RQ1, RQ2
+(partial), RQ5, RQ6 and RQ7 are open, and every one needs a run that has not
+been authorized.
+
+**Fourteen of fifteen one-shot budgets are spent.** The B4 neural sealed test is
+the only one left, and it is **unopened**.
+
+---
+
+## What this repository does not establish
+
+This list is load-bearing and **enforced in code** by
+[`agents/claims.py`](src/cardiosentinel/agents/claims.py), which encodes 18 of
+the handbook's 25 forbidden claims as word-anchored patterns:
+
+- **No diagnosis.** Detection only. No clinical utility is claimed.
+- **No deployment.** No serving path, no ONNX, no TorchScript.
 - **No edge-hardware result.** The runtime is a **laptop simulation replaying a
-  stored recording**. There is no sensor and no acquisition path. RQ5 is open.
+  stored recording**. There is no sensor and no acquisition path. RQ5 is open,
+  and power, thermal and memory-pressure behaviour have never been measured on
+  any device.
 - **No generalisation beyond LTSTDB.** One dataset, twelve validation subjects,
-  and no independent cohort exists in the public record.
+  and no independent ST-episode cohort exists in the public record — a finding,
+  not a gap awaiting effort
+  ([audit](docs/EXTERNAL_VALIDATION_STRATEGY_V1.md)).
 - **No test-set performance.** The neural sealed test is **unopened**.
 
-**State:** `ips-agentic-runtime-v1.0` at `origin/master` `0480b34`. The
-authoritative record is
-[`docs/CardioSentinel_Research_Execution_Handbook_v1.4.md`](docs/CardioSentinel_Research_Execution_Handbook_v1.4.md);
-architecture is [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+You can run the boundary against your own sentence:
+
+```bash
+cardiosentinel agent check-claims "S4D outperforms GRU"
+#   2 violation(s): Appendix A claim 6, Appendix A claim 22   -> exits 1
+
+cardiosentinel agent check-claims \
+  "the predefined selection rule selected S4D based on the observed validation contrast"
+#   no violations                                             -> exits 0
+```
+
+**The guard is lexical, not semantic.** It reduces the failure rate; it does not
+make overclaiming impossible, and nothing here should be read as saying
+otherwise. Handbook §53.1 states its limits, and §53.2 records the five times it
+caught this repository's own authors — including once when `textwrap` split a
+disclaimer across two lines and a **correct** output was flagged.
+
+---
+
+## Verify it yourself
+
+All read-only. **These three need nothing but the clone:**
+
+```bash
+# the demo bundle is intact
+python reproducibility/verify_reproducibility.py
+#   -> demo bundle verified: 27 files, 1.63 MiB, all digests match.
+
+# the sealed test has never been opened
+find . -name "TEST_ATTEMPT.json" -not -path "./.git/*"
+#   -> no output. This is the whole claim.
+
+# the frozen episode-reasoning sources, from src/cardiosentinel/neural/
+sha256sum t1_protocol.py t1_execution_spec.py t1_evidence_store.py \
+          t1_development_run.py t1_persistence.py | md5sum
+#   -> 4107286307d147d542ff15e916225315
+```
+
+**This one also needs the PhysioNet record** from
+[`DATA_ACCESS.md`](reproducibility/DATA_ACCESS.md), since it replays a waveform:
+
+```bash
+# trace any reported measurement back to its experiment lock
+cardiosentinel agent graph s20201 --format lineage --of measurement:p_t \
+  --seconds 2400 --run-root reproducibility/demo_bundle/runs \
+  --feature-root reproducibility/demo_bundle/features
+#   -> measurement:p_t <- component:U1 Platt calibration
+#                      <- artifact:platt_logistic_on_recovered_logit
+#                      <- lock: experiment_id u1-v1-development,
+#                               test_accessed false, sealed_test_state unopened
+```
+
+**And this one needs the full evidence tree**, which is git-ignored and not
+distributed — it is what *we* run, listed so you can see what we check:
+
+```bash
+find cardiosentinel-runs -iname "*experiment_lock*.json" | wc -l   # -> 20
+```
+
+`zero locks on phase9-t1-development-v1 is correct` — that attempt failed at
+stage 24, before promotion. A lock would mean it completed. The failure, and the
+single-use authorized recovery that followed it, are §5 of the manuscript.
+
+---
+
+## Where the code actually is
+
+**The package layout does not describe where the work is**, and
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) exists to correct that before you
+go looking. In short:
+
+```
+src/cardiosentinel/
+  neural/     86 files, 54,097 lines -- 43% of the codebase, organised by
+              experiment ID. Episode reasoning, memory, calibration and the
+              longitudinal arm all live here, not in the packages named for them
+  edge/        8 files -- the replay-based edge execution environment
+  agents/     14 files -- evidence, graph, explanation, research, architecture
+              selection, evaluation, and the claim guard
+  evaluation/ splits, annotation-after-window targets, contamination registry
+              (unrelated to agents/evaluation/, which is the explanation harness)
+  episodes/ · personalization/ · uncertainty/   two-line stubs. Empty on purpose,
+              and ARCHITECTURE.md §5 names the repair that was not done
+```
+
+---
+
+## Reproducibility
+
+[`reproducibility/`](reproducibility/) holds the committed demo bundle, the
+checksum manifest, the environment lock, the restore procedure and the
+experiment map. Two properties are tested **separately**, and the distinction
+was learned the hard way: `tests/reproducibility/` asserts **integrity**,
+`tests/edge/test_demo_scenario.py` asserts **usability**. A manifest check
+cannot detect a file that was never staged — which is exactly how three
+checkpoints were briefly lost to a `.gitignore` rule while the integrity tests
+passed.
+
+**The restore procedure must replay mtimes.** Immutability here is asserted in
+file times, and object storage assigns its own.
+
+---
+
+## Setup
+
+Python **3.11+**. Raw and derived physiological data and experiment outputs are
+never committed; they live in the git-ignored roots `cardiosentinel-data/`,
+`cardiosentinel-features/` and `cardiosentinel-runs/`, or outside the repository
+entirely.
+
+```bash
+pip install -e ".[dev]"                      # core + tests
+pip install -e ".[dev,data,signal,ml]"       # everything the demo needs
+cardiosentinel --help
+```
+
+Filtering is **disabled by default**: the frozen corpus was built under
+`processing_profile: raw`, and a band-pass inserted before the representation
+would shift every embedding silently
+([contract](docs/SIGNAL_PROCESSING_CONTRACT.md)). Data acquisition is plan-only
+unless `--execute` is supplied.
+
+Before making research changes, read
+[`docs/RESEARCH_SCOPE.md`](docs/RESEARCH_SCOPE.md) and
+[`docs/EXPERIMENT_CONTRACT.md`](docs/EXPERIMENT_CONTRACT.md). The repository is
+under **Research Baseline v1.0**: frozen for documentation, analysis of existing
+evidence, and manuscript drafting. Leaving that freeze requires a named
+experiment with a pre-registered protocol.
+
+---
+
+## Current state
+
+Tagged **`ips-agentic-runtime-v1.0`**; the science is frozen at
+**`research-freeze-v1.0`**. The pinned checkpoint — commit, counts, open work
+and known defects — is [`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md), which
+is regenerated wholesale rather than amended.
+
+*(No commit SHA is pinned here on purpose. The previous one went stale in the
+commit that updated it.)*
+
+---
 
 ## Project evolution
 
 This repository previously hosted a 2020 B.Tech prototype based on fixed ECG
 thresholds. That work is retained unchanged in
-[`legacy/college-v1/`](legacy/college-v1/README.md) for historical traceability.
-It is not part of the CardioSentinel pipeline and its outputs are not clinical
-evidence.
-
-The current research objective is a reproducible system that can eventually
-support the physical-system loop:
-
-`ECG acquisition or replay -> edge processing -> patient-adaptive inference -> uncertainty -> local decision or escalation -> temporal episode reasoning -> evidence-grounded alert`.
-
-No clinical effectiveness claim is made. Physiological data and experiment
-outputs remain external to this repository.
-
-## Repository structure
-
-- `src/cardiosentinel/`: package and future research domains.
-- `configs/`: versioned, validated configuration profiles.
-- `docs/`: scope, integrity contract, audit, and implementation roadmap.
-- `tests/`: offline unit, contract, and integration tests.
-- `data/` and `artifacts/`: documented local locations; their contents are not
-  committed.
-- `legacy/college-v1/`: preserved academic prototype.
-
-## Setup
-
-Python 3.11 is the initial supported version.
-
-```bash
-python -m pip install -e ".[dev]"
-python -m cardiosentinel --help
-python -m cardiosentinel info
-```
-
-Raw or processed physiological data is not included. Read
-[`docs/RESEARCH_SCOPE.md`](docs/RESEARCH_SCOPE.md) and
-[`docs/EXPERIMENT_CONTRACT.md`](docs/EXPERIMENT_CONTRACT.md) before conducting
-research changes.
-
-## Development status
-
-Phase 1 implementation and annotation-semantic validation are complete for
-header and annotation metadata from EDB and LTSTDB. Phase 2 implements a bounded
-physical-waveform reader, canonical mV representation, raw identity profile,
-optional stateful causal filters, causal windows, descriptive signal-quality
-metrics, and filter audits. Bounded physical-waveform integration validation is
-complete for the first 60 seconds of EDB `e0113`, EDB `e0161`, and LTSTDB
-`s20011`. Phase 3A freezes the LTSTDB `.stb` benchmark protocol, 56/12/12
-subject split, causal 10-second/5-second window targets, leakage controls,
-training-sampling policy, and metrics protocol. Phase 3B-1 is complete: each
-frozen B0--B3 global classical baseline received one sealed-test evaluation,
-with no test-guided tuning. The compact evidence and limitations are recorded in
-[`docs/PHASE3B1_CLASSICAL_BASELINE_RESULTS.md`](docs/PHASE3B1_CLASSICAL_BASELINE_RESULTS.md).
-The B4 neural-architecture selection, frozen in
-[`docs/B4_PROTOCOL_V1.md`](docs/B4_PROTOCOL_V1.md), is complete: three
-candidates (compact CNN, CNN-Transformer, CNN-SSM) were trained and compared
-on validation, and B4-B (CNN-Transformer) is the selected official model
-(see [`docs/B4_GLOBAL_ENCODER_SELECTION_V1.md`](docs/B4_GLOBAL_ENCODER_SELECTION_V1.md)).
-Physiology fusion, patient-adaptive memory, and contamination-safe memory
-updates are each complete and frozen. Calibration is a **split** retention:
-Platt calibration is retained, and the window-level selective router at
-`c_star = 0.90` is explicitly **not** retained, so no routing policy is frozen
-or in force
-(see [`docs/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md`](docs/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md)).
-Longitudinal temporal modeling is trained, one-shot outer-validated, and
-analysed: the S4D and GRU arms are compared in
-[`docs/T2_ARM_COMPARISON_REPORT_V1.md`](docs/T2_ARM_COMPARISON_REPORT_V1.md).
-The predefined rule selected the causal S4D arm on the observed validation
-contrast; that contrast **is** the selection criterion, and its paired
-subject-bootstrap interval includes zero, so no claim of superior performance
-follows from it.
-
-The causal episode-state layer has been executed and measured; its result is
-reported in [`docs/T1_DESCRIPTIVE_REPORT_V1.md`](docs/T1_DESCRIPTIVE_REPORT_V1.md)
-and no further execution is authorized. A window-only comparator was then
-pre-registered and run against it
-([`docs/W1_WINDOW_COMPARATOR_REPORT_V1.md`](docs/W1_WINDOW_COMPARATOR_REPORT_V1.md)):
-at the frozen operating point the episode state machine agrees with reference
-episodes substantially better than a memoryless rule does at that same point.
-That is the first research question this programme answers affirmatively, and
-the operating point is part of the claim — both arms ran at thresholds selected
-with the state machine in the loop, so it does not show that episode reasoning
-beats window-level alerting in general.
-
-External validation has been scoped but not performed. No independent
-ST-episode cohort exists in the public record; the audit and its consequences
-are in
-[`docs/EXTERNAL_VALIDATION_STRATEGY_V1.md`](docs/EXTERNAL_VALIDATION_STRATEGY_V1.md).
-The B4 neural sealed test remains unopened. See
-[`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md) for the current experiment
-ladder, open work, and known risks.
-
-Data commands require the optional `data` dependency group and never download
-data during import or tests:
-
-```bash
-python -m pip install -e ".[dev,data]"
-python -m cardiosentinel data --help
-```
-
-Signal commands require the optional `signal` dependency group. High-pass,
-low-pass, and notch filtering are disabled by default:
-
-```bash
-python -m pip install -e ".[dev,data,signal]"
-python -m cardiosentinel signal --help
-```
-
-See [`docs/SIGNAL_PROCESSING_CONTRACT.md`](docs/SIGNAL_PROCESSING_CONTRACT.md)
-for the causality, physical-unit, filtering, quality, and ground-truth boundary.
-
-Benchmark commands inspect metadata and annotations without training or full
-waveform downloads:
-
-```bash
-python -m cardiosentinel benchmark --help
-python -m cardiosentinel benchmark split-info \
-  --split protocols/splits/ltstdb_v1.json
-```
-
-The frozen rules are in [`docs/BENCHMARK_PROTOCOL_V1.md`](docs/BENCHMARK_PROTOCOL_V1.md),
-with metrics in [`docs/METRICS_PROTOCOL.md`](docs/METRICS_PROTOCOL.md) and known
-EDB/LTSTDB overlap in
-[`docs/CROSS_DATASET_PROVENANCE.md`](docs/CROSS_DATASET_PROVENANCE.md).
-
-Classical baseline commands require the `ml` extras. Raw and derived
-physiological data and experiment outputs are never committed to Git. They may
-use explicit roots outside the repository filesystem or the approved Git-ignored
-local roots `cardiosentinel-data/`, `cardiosentinel-features/`, and
-`cardiosentinel-runs/`:
-
-```bash
-python -m pip install -e ".[dev,data,signal,ml]"
-python -m cardiosentinel baseline --help
-python -m cardiosentinel baseline acquire \
-  --destination /external/data/ltstdb/1.0.0
-```
-
-The acquisition command is plan-only unless `--execute` is supplied. The frozen
-feature, model, preprocessing, sampling, test-access, and artifact rules are in
-[`docs/BASELINE_PROTOCOL_V1.md`](docs/BASELINE_PROTOCOL_V1.md).
-
-### Monitoring Phase 3B materialization
-
-The read-only Phase 3B monitor reports progress from an existing external
-feature root. It does not access waveform source data, run models, or change
-feature caches or manifests:
-
-```bash
-python scripts/monitor_phase3b.py
-watch -n 30 python scripts/monitor_phase3b.py
-```
-
-To inspect a different external feature root:
-
-```bash
-python scripts/monitor_phase3b.py --feature-root /path/to/features
-```
-
-### Auditing a completed Phase 3B corpus
-
-The read-only corpus audit validates every cache and the persisted corpus hash
-before reporting frozen primary counts, descriptive challenge/exclusion families,
-and algorithmic morphology-feature validity:
-
-```bash
-python scripts/audit_phase3b_corpus.py \
-  --feature-root /path/to/ltstdb-baseline-v1
-```
+[`legacy/college-v1/`](legacy/college-v1/README.md) for historical traceability,
+tagged `college-v1`. It is not part of the CardioSentinel pipeline and its
+outputs are not clinical evidence.
 
 ## License and attribution
 
-The repository code is licensed under the MIT License. See `NOTICE.md` before
-adding third-party data, annotations, models, or documentation.
+Code is licensed under the MIT License. See `NOTICE.md` before adding
+third-party data, annotations, models, or documentation.
