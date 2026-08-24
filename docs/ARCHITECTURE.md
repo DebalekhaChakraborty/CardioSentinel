@@ -1,11 +1,11 @@
 # CardioSentinel — Architecture Map
 
 Part of **Research Baseline v1.0**. Describes the repository as of
-`origin/master` `d5a86ce`.
+`origin/master` `a8f1b47` (merge of #94).
 
 **Read this before navigating the package tree.** The top-level layout of
-`src/cardiosentinel/` does not describe where the work is. Four packages that
-look like major subsystems are empty, and two of those four describe research
+`src/cardiosentinel/` does not describe where the work is. Three packages that
+look like major subsystems are empty, and two of those three describe research
 that is complete — somewhere else.
 
 ---
@@ -27,22 +27,26 @@ retention). Personalization **is** implemented (`patient_memory.py` plus 17
 `m1_*`/`m2_*` modules, two retained components).
 
 All of it lives in `neural/`, organised by **experiment ID** rather than by
-concern. `neural/` is 86 files and 54,073 lines — **46% of the codebase**.
+concern. `neural/` is 86 files and 54,097 lines — **43% of the codebase**.
 
 **`edge/` was on that list until `ips-agentic-runtime-v1.0`, and is not any
-more.** It now holds the IPS runtime, and `agents/` — which did not exist at
-all when this document was first written — holds the agentic layer. Both are
-described in §0.1.
+more.** It now holds the IPS runtime (§0.1), and `agents/` — which did not exist
+at all when this document was first written — holds the agentic layer (§0.2).
 
 ---
 
-## 0.1 The two packages that stopped being stubs
+## 0.1 The edge runtime — a replay-based edge execution environment
 
 ```
 src/cardiosentinel/
-  edge/     7 files  1,428 lines   the IPS runtime
-  agents/   9 files  2,049 lines   the agentic layer
+  edge/     8 files  1,666 lines   the IPS runtime
+  agents/  14 files  3,065 lines   the agentic layer
 ```
+
+**This is not future edge execution and it is not a deployment.** It is a
+**replay-based edge execution environment**: a stored recording is streamed
+through the retained model chain in causal order, on a laptop CPU, producing
+alerts that carry the provenance of every frozen component that produced them.
 
 | `edge/` | |
 |---|---|
@@ -51,31 +55,77 @@ src/cardiosentinel/
 | `session.py` | `StreamingInferenceSession`, holding five pieces of causal state |
 | `alerts.py` | contiguous `EVENT` runs → `AlertEvent` |
 | `replay.py` · `cli.py` | laptop replay driver and `cardiosentinel edge simulate` |
+| `console.py` | the IPS demonstration console (#93), `cardiosentinel edge console` |
+
+**Demonstrated:**
+
+- **laptop replay** — 1,079 windows of `s20201` in 89 s wall, ~61× real time
+- **streaming runtime** — causal window generation and five pieces of carried
+  state, one implementation shared with the batch research path
+- **provenance** — every reported value traces to a frozen artifact, and the
+  representation is verified against the frozen corpus to 6 ULP
+- **alert generation** — contiguous `EVENT` runs promoted to `AlertEvent`
+
+**Not demonstrated:**
+
+- **embedded hardware** — a laptop is not an edge device. Appendix A claim 5
+  stands and **RQ5 remains open**
+- **power consumption** — never measured, on any device
+- **thermal constraints** — never measured, on any device
+- **memory-pressure behaviour** — never measured, on any device
+- **acquisition hardware** — there is no sensor and no acquisition path; this
+  replays a stored recording
+
+**Deployment readiness is separately excluded.** No serving path, no ONNX, no
+TorchScript. Appendix A claim 2 stands.
+
+The permitted description is *"laptop-based edge simulation using streaming
+physiological replay"* — no more than that.
+
+---
+
+## 0.2 The agentic layer
+
+**Every agent is grounded on the evidence graph, and none is autonomous.** The
+graph is the substrate; the claim boundary is enforced on every output that
+leaves the layer.
+
+```
+                        Evidence Agent
+                              |
+                              v
+                        Evidence Graph
+                              |
+              +---------------+---------------+
+              |               |               |
+              v               v               v
+        Explanation      Research      Architecture
+           Agent         Assistant    Selection Agent
+              |               |               |
+              +---------------+---------------+
+                              |
+                              v
+                     Evaluation Framework
+```
 
 | `agents/` | |
 |---|---|
 | `claims.py` | the publication claim boundary as code — 18 Appendix A patterns |
-| `evidence.py` | Evidence Agent: why an alert fired, deterministic |
+| `evidence.py` | Evidence Agent: why an alert fired, deterministic, **no language model** |
 | `graph.py` | evidence graph, closed node kinds and edge relations |
 | `context.py` · `explain.py` · `providers.py` | Patient Explanation Agent and its deterministic fallback |
 | `research.py` | Evidence-Grounded Research Assistant, curated objects only |
+| `architecture.py` | Architecture Selection Agent (#92) — lifecycle, not recommendation |
+| `evaluation/` | Evidence-Constrained Explanation Evaluation framework (#94), 4 modules |
+| `cli.py` | `cardiosentinel agent …` |
 
-**What is established:** a replay-based ECG stream running on a laptop CPU at
-roughly 61× real time, producing alerts that carry the provenance of every
-frozen component that produced them.
+**The Evidence Agent is deterministic on purpose.** It is the layer a generative
+agent is grounded *on*, so it must be the part that cannot hallucinate.
 
-**What is NOT established, and the claim boundary is unchanged:**
-
-- **Embedded hardware deployment.** A laptop is not edge hardware. Appendix A
-  claim 5 stands and **RQ5 remains open**.
-- **Real acquisition.** This replays a stored recording. There is no sensor and
-  no acquisition path.
-- **Power, thermal or memory-pressure behaviour.** Never measured on any device.
-- **Deployment readiness.** No serving path, no ONNX, no TorchScript. Appendix A
-  claim 2 stands.
-
-The permitted description is *"laptop-based edge simulation using streaming
-physiological replay"* — no more than that.
+**Naming collision worth knowing about.** There are now **two** packages called
+`evaluation/`: `cardiosentinel/evaluation/` (splits, targets, contamination
+registry — §2 below) and `cardiosentinel/agents/evaluation/` (#94's explanation
+evaluation harness). They are unrelated.
 
 ---
 
@@ -187,13 +237,13 @@ SAFETY / GOVERNANCE    neural/sealed_test.py, *_gate.py, runtime_sentinel.py,
 | **W1** | `neural/w1_window_comparator.py` | 268 | Executed · ablation arm |
 | Evaluation | `evaluation/` | 1,965 | Implemented · Tested |
 | Governance | `sealed_test`, gates, sentinel | ~2,600 | **Active** |
-| **IPS runtime** | `edge/` | **1,428** | **Implemented — replay simulation only (§0.1)** |
-| **Agentic layer** | `agents/` | **2,049** | **Implemented** |
+| **IPS runtime** | `edge/` | **1,666** | **Implemented — replay simulation only (§0.1)** |
+| **Agentic layer** | `agents/` | **3,065** | **Implemented (§0.2)** |
 | Edge hardware / E1 | — | 0 | **Not started.** RQ5 open |
-| §16 multi-task · RQ6 · HMM/CRF | — | **0** | **Never begun** |
+| §16 confounder-aware multi-task (RQ7) · RQ6 distillation · HMM/CRF | — | **0** | **Never begun** |
 
-**Totals at `d5a86ce`:** 250 tracked `.py` files · 117,104 LOC · 102 test files
-· 2,689 test definitions · 64 documents (this baseline adds two more).
+**Totals at `a8f1b47`:** 287 tracked `.py` files · 124,672 LOC · 116 test files
+· 3,302 tests collected · 74 documents in `docs/` (67 of them `.md`).
 
 ---
 
@@ -221,7 +271,8 @@ Stated so nobody looks for it:
 - **No serving path.** No inference endpoint, no deployment, no on-device code.
 - **No edge *hardware* implementation.** `B4_RESOURCE_BENCHMARK_V1` numbers are
   from a fixed benchmark host, and the runtime in `edge/` runs on a laptop.
-  Neither is an edge measurement.
+  Neither is an edge measurement. Power and thermal behaviour have never been
+  measured on any device (§0.1).
 - **No routing policy in force.** The only one built was evaluated and rejected.
 - **No external cohort.** Only LTSTDB is on disk; EDB is contracted, audited and
   deliberately never downloaded.
