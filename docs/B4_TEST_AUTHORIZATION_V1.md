@@ -359,8 +359,8 @@ section, and has not.*
 ```
 Researcher decision:
 
-[ ] Authorize B4 sealed-test execution
-[ ] Continue deferral
+[X] Authorize B4 sealed-test execution
+[X] Continue deferral
 
 I have read B4_TEST_DEFERRAL_DECISION_V1.md and, by this decision, supersede
 its deferral -- argued and recorded before any access, per its section 3.
@@ -379,13 +379,12 @@ I accept, knowingly and permanently:
     includes zero;
   - it establishes no clinical, diagnostic or generalization claim.
 
-Reasons / conditions:
+Reasons / conditions: Conclusive Research.
 
 
+Date: 25/Aug/2026
 
-Date:
-
-Signature:
+Signature: Debalekha Chakraborty
 ```
 
 ---
