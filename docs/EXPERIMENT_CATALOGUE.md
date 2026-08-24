@@ -1,7 +1,7 @@
 # CardioSentinel — Experiment Catalogue
 
 Part of **Research Baseline v1.0**. Complete inventory as of `origin/master`
-`d5a86ce`.
+`0480b34`.
 
 **The consumed/available ledger is canonical in
 `CardioSentinel_Research_Execution_Handbook_v1.4.md` §51.** This document does
@@ -121,6 +121,9 @@ looking for "what happened after the science froze" should find it.
 | Evidence graph | #85 | 35-node provenance graph reaching the experiment locks | **none** |
 | Patient Explanation Agent | #86 | guarded generation with deterministic fallback | **none** |
 | Research Assistant | #87 | six curated evidence objects, no document access | **none** |
+| Architecture Selection Agent | #92 | candidate lifecycle traced from protocol lock to decision; refuses on keyword ties | **none** |
+| Demonstration console | #93 | end-to-end terminal view, contracted by `DEMO_SCENARIO.md` before it was built | **none** |
+| Explanation evaluation framework | #94 | fidelity, claim violations, completeness, latency; generative arm **unexercised** | **none** |
 
 **Validation performed, all against already-published evidence:**
 
@@ -134,6 +137,11 @@ looking for "what happened after the science froze" should find it.
 
 **E1 remains not started.** The runtime is a laptop replay simulation; no edge
 hardware measurement exists and RQ5 is open.
+
+**None of #82-#94 consumed a budget**, opened an artifact or computed a new
+metric, which is why §1's lock counts are unchanged. Handbook §56 states this
+explicitly, and the §7 audit commands below still return the values they did
+before the IPS layer existed.
 
 ---
 

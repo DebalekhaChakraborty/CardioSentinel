@@ -1,7 +1,8 @@
 # CardioSentinel — Architecture Map
 
 Part of **Research Baseline v1.0**. Describes the repository as of
-`origin/master` `a8f1b47` (merge of #94).
+`origin/master` `0480b34` (merge of #97). #95-#97 changed documentation only;
+every count below is unchanged from `a8f1b47`.
 
 **Read this before navigating the package tree.** The top-level layout of
 `src/cardiosentinel/` does not describe where the work is. Three packages that
