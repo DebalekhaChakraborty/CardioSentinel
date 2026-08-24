@@ -217,3 +217,70 @@ def test_binding_is_immutable():
 
 def test_selected_architecture_binding_is_frozen_dataclass():
     assert SelectedArchitectureBinding.__dataclass_params__.frozen is True
+
+
+# --------------------------------------------------------------------------
+# orchestrator: the identity gate fires before the attempt is claimed
+# --------------------------------------------------------------------------
+
+
+def test_attempt_refuses_rejected_candidate_without_writing_a_receipt(tmp_path):
+    """A B4-A binding is refused before any receipt exists. Fail closed."""
+    from dataclasses import replace as _replace
+
+    from cardiosentinel.neural.b4b_sealed_test import (
+        open_selected_sealed_test_attempt,
+    )
+
+    binding = _replace(B4B_BINDING, experiment_id=B4A_EXPERIMENT_ID)
+    with pytest.raises(SelectionIdentityError):
+        open_selected_sealed_test_attempt(
+            tmp_path, tmp_path, B4A_ROOT, binding
+        )
+    # the autouse fixture re-asserts zero TEST_ATTEMPT across the real tree
+    assert not list(tmp_path.rglob("TEST_ATTEMPT*"))
+
+
+def test_attempt_refuses_absent_run_root_without_writing_a_receipt(tmp_path):
+    from cardiosentinel.neural.b4b_sealed_test import (
+        open_selected_sealed_test_attempt,
+    )
+
+    with pytest.raises(SelectionIdentityError):
+        open_selected_sealed_test_attempt(tmp_path, tmp_path, tmp_path)
+    assert not list(tmp_path.rglob("TEST_ATTEMPT*"))
+
+
+def test_identity_gate_precedes_receipt_in_source_order():
+    """The gate must be the first statement, not merely present somewhere."""
+    import inspect
+
+    from cardiosentinel.neural.b4b_sealed_test import (
+        open_selected_sealed_test_attempt,
+    )
+
+    body = inspect.getsource(open_selected_sealed_test_attempt)
+    gate = body.index("verify_selection_identity(")
+    claim = body.index("claim_attempt_exclusively(")
+    assert gate < claim, "identity must be verified before the attempt is claimed"
+
+
+def test_evaluator_uses_the_bound_model_loader():
+    import inspect
+
+    from cardiosentinel.neural.b4b_sealed_test import evaluate_selected_locked_test
+
+    body = inspect.getsource(evaluate_selected_locked_test)
+    assert "load_selected_model(" in body
+    assert "B4CompactCNN" not in body
+
+
+def test_evaluator_constructs_no_optimizer_and_never_calls_backward():
+    import inspect
+
+    from cardiosentinel.neural import b4b_sealed_test as module
+
+    body = inspect.getsource(module)
+    assert "backward(" not in body
+    assert "torch.optim" not in body
+    assert "requires_grad_(False)" in body

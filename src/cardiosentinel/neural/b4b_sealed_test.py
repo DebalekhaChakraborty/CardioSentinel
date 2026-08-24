@@ -303,3 +303,300 @@ def describe_binding(
         "checkpoint_sha256": binding.checkpoint_sha256,
         "experiment_lock_sha256": binding.experiment_lock_sha256,
     }
+
+
+# ---------------------------------------------------------------------------
+# One-shot attempt and evaluation for the selected architecture
+#
+# The private helpers below are imported from `sealed_test` rather than
+# reimplemented. The one-shot receipt logic -- the atomic O_EXCL claim, the
+# durable amend, the fsync discipline -- must have exactly one implementation.
+# A second copy would be a second thing to get wrong, in the one place where
+# being wrong costs the budget.
+# ---------------------------------------------------------------------------
+
+import time
+import traceback
+
+import numpy as np
+
+from cardiosentinel.baseline.source import OFFICIAL_MANIFEST_SHA256
+from cardiosentinel.data.provenance import git_provenance
+from cardiosentinel.neural.determinism import initialize_determinism
+from cardiosentinel.neural.experiment import PROGRAM_IDENTITY, input_contract
+from cardiosentinel.neural.integrity import canonical_sha256
+from cardiosentinel.neural.protocol import (
+    DATASET,
+    DATASET_VERSION,
+    FEATURE_CORPUS_SHA256,
+    validate_frozen_protocol,
+)
+from cardiosentinel.neural.provenance import runtime_environment
+from cardiosentinel.neural.sealed_test import (
+    ATTEMPT_COMPLETE,
+    ATTEMPT_FAILED,
+    ATTEMPT_SEQUENCE,
+    ATTEMPT_STARTED,
+    CHALLENGE_FAMILIES,
+    TEST_ATTEMPT_NAME,
+    TEST_AUDIT_NAME,
+    TEST_METRICS_NAME,
+    TEST_PREDICTIONS_NAME,
+    SealedTestAccess,
+    _arrays,
+    _execution_payload,
+    _update_attempt,
+    build_test_evidence,
+    claim_attempt_exclusively,
+    load_sealed_test_references,
+    model_state_sha256,
+    score_sealed_test,
+    validate_sealed_test_feature_integrity,
+    validate_sealed_test_source_integrity,
+    verify_primary_population,
+    write_json_durable,
+    write_test_predictions,
+)
+
+SELECTED_DEFAULT_COMMAND = "cardiosentinel b4b evaluate-selected-locked-test"
+
+
+def open_selected_sealed_test_attempt(
+    source: Path,
+    feature_root: Path,
+    run_root: Path,
+    binding: SelectedArchitectureBinding = B4B_BINDING,
+    *,
+    command: str = SELECTED_DEFAULT_COMMAND,
+    requested_device: str | None = None,
+    workers: int = 0,
+) -> tuple[SealedTestAccess, dict[str, Any], dict[str, Any]]:
+    """Verify the selection identity, then durably claim attempt #1.
+
+    Mirrors `sealed_test.open_sealed_test_attempt` guard for guard, with one
+    addition and one substitution: `verify_selection_identity` runs first, and
+    the bound experiment replaces the module-level B4-A constant.
+
+    Every check below reads development artifacts only. If any fails, no
+    receipt is written and the sealed test remains unopened.
+    """
+    # The identity gate. Nothing beyond this point may run for a model the
+    # authorization does not name.
+    identity = verify_selection_identity(run_root, binding)
+
+    protocol_sha256 = validate_frozen_protocol()
+    provenance = git_provenance(REPOSITORY_ROOT)
+    if provenance["git_dirty"]:
+        raise SealedTestAttemptError(
+            "The sealed-test evaluation requires a clean evaluator checkout."
+        )
+    run_dir = resolve_selected_run_dir(run_root, binding)
+    lock = validate_experiment_lock(run_dir)
+
+    threshold = lock["validation_threshold"]
+    if not isinstance(threshold, float) or not np.isfinite(threshold):
+        raise SealedTestAttemptError("The lock has no finite validation threshold.")
+
+    receipt_path = run_dir / TEST_ATTEMPT_NAME
+    determinism = initialize_determinism(requested_device=requested_device)
+    environment = runtime_environment(determinism.device, workers)
+    execution = _execution_payload(
+        command, source, feature_root, run_root, requested_device,
+        determinism.device, workers,
+    )
+    receipt = {
+        "experiment_id": binding.experiment_id,
+        "architecture": binding.architecture,
+        "selection_identity": identity,
+        "attempt_sequence": ATTEMPT_SEQUENCE,
+        "attempt_status": ATTEMPT_STARTED,
+        "repeat_attempt_permitted": False,
+        "experiment_lock_sha256": lock["experiment_lock_sha256"],
+        "locked_checkpoint_sha256": lock["checkpoint_sha256"],
+        "locked_validation_threshold": threshold,
+        "threshold_selection_rule": lock["threshold_selection_rule"],
+        "development_git_sha": lock["git_sha"],
+        "evaluator_git_sha": provenance["git_sha"],
+        "evaluator_git_dirty": provenance["git_dirty"],
+        "protocol_sha256": protocol_sha256,
+        "split_sha256": lock["split_sha256"],
+        "dataset": DATASET,
+        "dataset_version": DATASET_VERSION,
+        "input_contract": input_contract(),
+        "program": PROGRAM_IDENTITY,
+        "environment": environment,
+        "execution": execution,
+        "created_at_utc_audit_only": time.strftime(
+            "%Y-%m-%dT%H:%M:%SZ", time.gmtime()
+        ),
+        "test_data_access_began": False,
+        "test": None,
+    }
+    # Atomic, durable, exactly once. Nothing above this line has resolved or
+    # opened a single sealed-test artifact.
+    initial_receipt_sha256 = claim_attempt_exclusively(receipt_path, receipt)
+    access = SealedTestAccess(
+        run_dir=run_dir,
+        receipt_path=receipt_path,
+        initial_attempt_receipt_sha256=initial_receipt_sha256,
+        experiment_lock_sha256=lock["experiment_lock_sha256"],
+        checkpoint_sha256=lock["checkpoint_sha256"],
+        locked_threshold=threshold,
+    )
+    return access, lock, identity
+
+
+def evaluate_selected_locked_test(
+    source: Path,
+    feature_root: Path,
+    run_root: Path,
+    binding: SelectedArchitectureBinding = B4B_BINDING,
+    *,
+    command: str = SELECTED_DEFAULT_COMMAND,
+    requested_device: str | None = None,
+    workers: int = 0,
+    _reader=None,
+) -> dict[str, Any]:
+    """Perform the single predeclared sealed-test evaluation of the selected model.
+
+    There is no force, retry, reset, threshold, checkpoint or seed option. The
+    checkpoint and threshold come only from the immutable development lock, and
+    the architecture comes only from the binding the authorization names.
+    """
+    started = time.monotonic()
+    access, lock, identity = open_selected_sealed_test_attempt(
+        source,
+        feature_root,
+        run_root,
+        binding,
+        command=command,
+        requested_device=requested_device,
+        workers=workers,
+    )
+    run_dir = access.run_dir
+    device = read_json(access.receipt_path)["execution"]["resolved_device"]
+    test_access_began = False
+    try:
+        test_access_began = True
+        _update_attempt(access, test_data_access_began=True)
+        feature_receipt = validate_sealed_test_feature_integrity(access, feature_root)
+        source_receipt = validate_sealed_test_source_integrity(
+            access, source, feature_receipt
+        )
+
+        references = load_sealed_test_references(access, feature_root)
+        primary_counts = verify_primary_population(references)
+
+        model = load_selected_model(access, run_dir, lock, device, binding)
+        model_sha_before = model_state_sha256(model)
+        scores = score_sealed_test(
+            access, source, references, model, device, _reader=_reader
+        )
+        model_sha_after = model_state_sha256(model)
+        if model_sha_before != model_sha_after:
+            raise SealedTestAttemptError(
+                "The locked weights changed during sealed-test inference."
+            )
+
+        evidence = build_test_evidence(references, scores, access.locked_threshold)
+        metrics_sha256 = write_json_durable(run_dir / TEST_METRICS_NAME, evidence)
+        predictions_sha256 = write_test_predictions(
+            access, run_dir / TEST_PREDICTIONS_NAME, references, scores
+        )
+        duration = time.monotonic() - started
+        audit = {
+            "experiment_id": binding.experiment_id,
+            "architecture": binding.architecture,
+            "selection_identity": identity,
+            "attempt_status": ATTEMPT_COMPLETE,
+            "attempt_sequence": ATTEMPT_SEQUENCE,
+            "repeat_attempt_permitted": False,
+            "experiment_lock_sha256": access.experiment_lock_sha256,
+            "initial_attempt_receipt_sha256": access.initial_attempt_receipt_sha256,
+            "development_git_sha": lock["git_sha"],
+            "evaluator_git_sha": git_provenance(REPOSITORY_ROOT)["git_sha"],
+            "evaluator_git_dirty": False,
+            "checkpoint_sha256": access.checkpoint_sha256,
+            "locked_validation_threshold": access.locked_threshold,
+            "threshold_source": "immutable_development_experiment_lock",
+            "split_sha256": lock["split_sha256"],
+            "dataset": DATASET,
+            "dataset_version": DATASET_VERSION,
+            "input_contract": input_contract(),
+            "waveform_retrieval": "record-aware direct canonical source reads",
+            "external_test_waveform_cache": None,
+            "sealed_test_feature_integrity_sha256": feature_receipt[
+                "sealed_test_feature_integrity_sha256"
+            ],
+            "sealed_test_source_integrity_sha256": source_receipt[
+                "sealed_test_source_integrity_sha256"
+            ],
+            "canonical_feature_corpus_sha256": FEATURE_CORPUS_SHA256,
+            "official_source_manifest_sha256": OFFICIAL_MANIFEST_SHA256,
+            "verified_test_record_count": feature_receipt["verified_test_record_count"],
+            "verified_test_cache_count": feature_receipt["verified_test_cache_count"],
+            "verified_test_source_file_count": source_receipt[
+                "verified_test_source_file_count"
+            ],
+            "test_primary_counts": primary_counts,
+            "test_challenge_counts": {
+                family: int(np.sum(_arrays(references)["target_family"] == family))
+                for family in CHALLENGE_FAMILIES
+            },
+            "scored_row_count": int(scores.size),
+            "environment": runtime_environment(device, workers),
+            "execution": read_json(access.receipt_path)["execution"],
+            "predictions_sha256": predictions_sha256,
+            "metrics_sha256": metrics_sha256,
+            "model_state_sha256_before_inference": model_sha_before,
+            "model_state_sha256_after_inference": model_sha_after,
+            "model_weights_unchanged": True,
+            "optimizer_constructed": False,
+            "backward_invoked": False,
+            "threshold_selection_performed": False,
+            "duration_seconds": duration,
+        }
+        audit["test_audit_sha256"] = canonical_sha256(audit)
+        audit_sha256 = write_json_durable(run_dir / TEST_AUDIT_NAME, audit)
+        _update_attempt(
+            access,
+            attempt_status=ATTEMPT_COMPLETE,
+            test_data_access_began=True,
+            test_audit_sha256=audit_sha256,
+            test_metrics_sha256=metrics_sha256,
+            test_predictions_sha256=predictions_sha256,
+            sealed_test_feature_integrity_sha256=feature_receipt[
+                "sealed_test_feature_integrity_sha256"
+            ],
+            sealed_test_source_integrity_sha256=source_receipt[
+                "sealed_test_source_integrity_sha256"
+            ],
+            completed_at_utc_audit_only=time.strftime(
+                "%Y-%m-%dT%H:%M:%SZ", time.gmtime()
+            ),
+        )
+        return {
+            "attempt_status": ATTEMPT_COMPLETE,
+            "experiment_id": binding.experiment_id,
+            "architecture": binding.architecture,
+            "run_dir": str(run_dir),
+            "threshold": access.locked_threshold,
+            "test_evidence": evidence,
+            "test_audit_sha256": audit_sha256,
+            "repeat_attempt_permitted": False,
+        }
+    except BaseException as error:
+        try:
+            _update_attempt(
+                access,
+                attempt_status=ATTEMPT_FAILED,
+                test_data_access_began=test_access_began,
+                error_type=type(error).__name__,
+                error=str(error),
+                traceback=traceback.format_exc(limit=20),
+                human_review_required=True,
+                repeat_attempt_permitted=False,
+            )
+        except OSError:  # pragma: no cover - receipt already proves the attempt
+            pass
+        raise
