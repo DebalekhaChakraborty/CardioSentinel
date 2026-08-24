@@ -276,7 +276,7 @@ commit that updated it.)*
 This repository previously hosted a 2020 B.Tech prototype based on fixed ECG
 thresholds. That work is retained unchanged in
 [`legacy/v0/`](legacy/v0/README.md) for historical traceability,
-tagged `college-v1`. It is not part of the CardioSentinel pipeline and its
+tagged `legacy/v0`. It is not part of the CardioSentinel pipeline and its
 outputs are not clinical evidence.
 
 ## License and attribution
