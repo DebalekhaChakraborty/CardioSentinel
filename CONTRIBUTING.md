@@ -13,6 +13,6 @@ python -m pytest -q
 ```
 
 Document assumptions, data provenance, and unresolved decisions in the relevant
-configuration or documentation change. Do not modify `legacy/college-v1/`
+configuration or documentation change. Do not modify `legacy/v0/`
 without an explicit archival task.
 

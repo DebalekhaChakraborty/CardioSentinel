@@ -11,7 +11,7 @@ def test_readme_has_research_only_disclaimer() -> None:
 
 
 def test_legacy_archive_has_non_diagnostic_warning() -> None:
-    legacy_readme = (REPOSITORY_ROOT / "legacy" / "college-v1" / "README.md").read_text(
+    legacy_readme = (REPOSITORY_ROOT / "legacy" / "v0" / "README.md").read_text(
         encoding="utf-8"
     )
 
