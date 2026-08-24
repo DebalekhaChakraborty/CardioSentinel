@@ -9,7 +9,7 @@ artefacts must not be committed. Each future dataset integration must document
 its source, version, access terms, attribution, and annotation provenance before
 use.
 
-The files in `legacy/college-v1/` are preserved historical material. Their
+The files in `legacy/v0/` are preserved historical material. Their
 presence does not establish provenance, licensing, or clinical validity for the
 archived sample data or outputs.
 

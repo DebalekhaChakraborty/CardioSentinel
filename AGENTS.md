@@ -17,7 +17,7 @@ and `docs/EXPERIMENT_CONTRACT.md`.
    provenance.
 7. Add tests for new logic and run linting and tests before reporting completion.
 8. Prefer small, reviewable changes over broad rewrites. Preserve
-   `legacy/college-v1/` unchanged unless an explicit archival task says otherwise.
+   `legacy/v0/` unchanged unless an explicit archival task says otherwise.
 9. Do not add an LLM, dashboard, API, cloud service, or deployment infrastructure
    unless a later task explicitly requests it.
 
