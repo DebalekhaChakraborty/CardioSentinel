@@ -73,6 +73,17 @@ def add_agent_commands(subparsers: Any) -> None:  # noqa: ANN401 - argparse acti
     arch.add_argument("question", nargs="?", help="Omit to list candidates.")
     arch.add_argument("--json", action="store_true")
 
+    evaluate = commands.add_parser(
+        "evaluate-explanations",
+        help="Compare deterministic and generative explanation arms.",
+    )
+    evaluate.add_argument("record")
+    evaluate.add_argument("--seconds", type=float, default=2400.0)
+    evaluate.add_argument("--source-root", default=str(DEFAULT_SOURCE_ROOT))
+    evaluate.add_argument("--run-root", default=str(DEFAULT_RUN_ROOT))
+    evaluate.add_argument("--feature-root", default=str(DEFAULT_FEATURE_ROOT))
+    evaluate.add_argument("--json", action="store_true")
+
     boundary = commands.add_parser(
         "check-claims", help="Check text against the publication claim boundary."
     )
@@ -90,6 +101,8 @@ def run_agent_command(args: argparse.Namespace) -> int:
         return _research(args)
     if args.agent_command == "architecture":
         return _architecture(args)
+    if args.agent_command == "evaluate-explanations":
+        return _evaluate(args)
     return _explain(args)
 
 
@@ -315,4 +328,47 @@ def _architecture(args: argparse.Namespace) -> int:
         print(json.dumps(candidate.as_dict(), indent=2, default=str))
         return 0
     print(ArchitectureSelectionAgent().explain(args.question))
+    return 0
+
+
+def _evaluate(args: argparse.Namespace) -> int:
+    from ..edge.artifacts import EdgeArtifactError
+    from ..edge.replay import replay_record
+    from .context import build_context
+    from .evaluation import evaluate_arms, render_report
+    from .evidence import EvidenceAgent
+    from .graph import build_evidence_graph
+    from .providers import default_provider
+
+    try:
+        result = replay_record(
+            args.record,
+            max_seconds=args.seconds,
+            source_root=args.source_root,
+            run_root=args.run_root,
+            feature_root=args.feature_root,
+        )
+    except EdgeArtifactError as error:
+        print(f"refused: {error}")
+        return 2
+
+    if not result.alerts:
+        print(f"{args.record}: no alert, so there is no explanation to evaluate.")
+        return 0
+
+    agent = EvidenceAgent(result.provenance)
+    contexts = [
+        build_context(
+            build_evidence_graph(
+                agent.explain(alert, result.observations, index=index),
+                run_root=args.run_root,
+            )
+        )
+        for index, alert in enumerate(result.alerts)
+    ]
+    report = evaluate_arms(contexts, provider=default_provider())
+    if args.json:
+        print(json.dumps(report.as_dict(), indent=2, default=str))
+        return 0
+    print(render_report(report))
     return 0
