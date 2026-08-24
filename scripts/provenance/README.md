@@ -26,8 +26,23 @@ Source digests, as tracked:
 178e16c08798cf6f811e1d762785a772a635a7f4e1edf0845ac2bf30f0343853  gen_t1_descriptive_report.py
 c90954403382a884823d110e5fec089fcdacefc4caaf07de65e0f61e7dbb13fe  gen_t1_post_hoc_analysis.py
 5b8104b42a0430d60302ef810318028c7e970689142f2797b250951e5d4c2487  render_handbook_docx.py
-1be3b4c01e4a4786ae02865af2770bc07a1ac9b941603614dce21902ed75b20d  gen_t2_arm_comparison_report.py
+39b47cbb7244abde5d0c9536160ecb05a273d1cddd134b793b721ce6aecc779a  gen_t2_arm_comparison_report.py
 ```
+
+**`gen_t2_arm_comparison_report.py`'s digest was stale on arrival, and stayed
+that way.** It was recorded at `4faaf13`, and the generator was then amended
+twice **inside the same pull request** -- `5c1da8a` (report descriptively rather
+than omit) and `f06040b` (state the interval's post-selection boundary) --
+without the record being refreshed. All three commits merged together in #72, so
+the digest has been wrong on `master` from the moment it first appeared there.
+Both amendments were intended; only the digest beside them was wrong.
+
+**Nothing detected it, and the reason is worth recording.** No test asserts
+these four digests, and `scripts/provenance/` is excluded from ruff, so no
+automated reader visits this directory at all. **A provenance record that
+nothing checks degrades exactly like the preservation guarantee in §47 does:
+silently, with no failure to notice.** Refreshing the digest is a manual step in
+any change to a generator until something asserts it.
 
 ## Reproducing
 
