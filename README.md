@@ -273,11 +273,31 @@ commit that updated it.)*
 
 ## Project evolution
 
-This repository previously hosted a 2020 B.Tech prototype based on fixed ECG
-thresholds. That work is retained unchanged in
-[`legacy/v0/`](legacy/v0/README.md) for historical traceability,
-tagged `legacy/v0`. It is not part of the CardioSentinel pipeline and its
-outputs are not clinical evidence.
+**This began as my final-year B.Tech project in 2020.** One file, 110 lines:
+moving-average R-peak detection, heart rate from the mean R-R interval, then the
+ST segment located by fixed fractions of the cycle and its slope compared
+against a single hardcoded number.
+
+```python
+if (avg_slope > 0.35):
+    print(" Heart Condition : MYOCARDIAL ISCHEMIA ")
+```
+
+It read its input from a hardcoded path on my desktop.
+
+**CardioSentinel asks the same question.** Most of the work since has gone into
+establishing what may *not* be said in answer to it — where the 2020 version
+printed a diagnosis from one threshold, this one carries twenty-five forbidden
+claims enforced in code, fourteen spent one-shot budgets, and a headline
+architectural result whose confidence interval includes zero and says so in
+every document that quotes it.
+
+That original code is retained **unchanged** in
+[`legacy/v0/`](legacy/v0/README.md), tagged `legacy/v0`. It is not part of the
+pipeline, was never validated, and its fixed-threshold outputs are not clinical
+evidence — its sample CSVs carry a single `hart` column with no recorded source,
+patient, lead, unit or sampling metadata. It is kept because the honest version
+of this project's history includes where it started.
 
 ## License and attribution
 
