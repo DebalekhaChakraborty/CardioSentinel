@@ -18,9 +18,16 @@ byte size, source path and the loader that reads it.
 `cardiosentinel-features/`, `cardiosentinel-data/`. These are gitignored, not
 distributed, and carry their own manifests and experiment locks.
 
-**External mirror: not verified.** An S3 mirror of the evidence tree exists. As
-of 2026-08-23 the session had expired and it could not be re-verified. Its state
-is *not verified*, which is neither *verified* nor *lost*.
+**External mirror: verified 2026-08-24.** An S3 mirror of the evidence tree
+exists and was re-verified on 2026-08-24 — 786 objects, 24,779,296,980 bytes,
+no delete markers, Object Lock GOVERNANCE until 2027-08-22, and 15 sampled
+`sha256` digests recomputed against its manifest. It had been *not verified*
+since 2026-08-23, when the session expired; that state was neither *verified*
+nor *lost*, and it is recorded here because it will recur.
+
+**A preservation guarantee degrades silently.** An expired credential turns a
+verified backup into an unverified claim without anything failing, so this line
+carries a date and should be read as true only on that date.
 
 **Nothing in this package depends on that mirror.** Evidence preservation uses
 cryptographic manifests; external mirrors are optional. A reproducibility claim
