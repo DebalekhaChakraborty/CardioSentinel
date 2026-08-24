@@ -36,3 +36,24 @@ including false alarms per hour and event-onset delay when applicable.
 
 Every novelty claim requires error analysis and ablation evidence. Preserve
 predictions and artefacts outside Git according to dataset access conditions.
+
+## Self-referential digest convention
+
+An experiment lock carries its own digest in `experiment_lock_sha256`. A digest
+cannot contain itself, so the field is **excluded from its own input**: the
+value is the SHA-256 of the lock object with `experiment_lock_sha256` removed,
+serialized canonically (`sort_keys=True`, `separators=(",", ":")`) — the same
+serialization `sha256_canonical` applies elsewhere.
+
+Verify a lock by removing the field and recomputing. Hashing the file's raw
+bytes, or hashing the object with the field left in, both produce a mismatch
+against a valid lock; neither is evidence of drift. This convention was
+undocumented until `PROVENANCE_INCIDENT_V1.md`, where the omission produced a
+false report of artifact drift.
+
+The convention has a consequence that is stronger than a naming rule: **a locked
+artifact cannot be edited after the fact.** Changing any field changes the
+lock's digest, and that digest is registered in downstream protocol documents,
+cache manifests and other experiments' locks. Correction of a locked value is
+therefore not a repair operation but an invalidation of every artifact that
+cites it. Locked values are translated, never edited.
