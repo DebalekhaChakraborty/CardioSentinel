@@ -13,7 +13,7 @@ Remember to use ONLY tactics venv, not any other venv."
 | **Scientific interpreter (use this)** | `/home/AI_POC/venvs/tactics/bin/python` |
 | Application interpreter (do NOT use here) | `/home/AI_POC/venvs/debalekha/bin/python` |
 | Repository | `/home/AI_POC/tactics/Myocardial-Ischemia-Detection-by-Analysing-ECG-Signal` |
-| GitHub remote | `DebalekhaChakraborty/…-ECG-Signal` (renamed `CardioSentinel-AI`) |
+| GitHub remote | `DebalekhaChakraborty/CardioSentinel` (renamed twice: `…-ECG-Signal` → `CardioSentinel-AI` → `CardioSentinel`) |
 
 `tactics` holds the frozen 335-package set,
 `installed_packages_sha256 = b0fd6eaa592537b7e4d5574ca68b675e85e923ae3c4a5ba411028ba6fcd7297a`,
@@ -38,7 +38,12 @@ exits `0`. A silent success is worse than an error; it cost ten minutes.
 **Shell state:** the Bash working directory silently resets. Always `cd`
 explicitly. Never `git add -A` anywhere near `/home/AI_POC`.
 
-The remote prints "This repository moved" on every push. Noise.
+**The remote no longer prints "This repository moved".** The local remote URL
+was updated to `https://github.com/DebalekhaChakraborty/CardioSentinel.git` on
+2026-08-24; before that every push went through GitHub's rename redirect and
+emitted that notice. If it reappears, the repository has been renamed again --
+check with `gh repo view --json nameWithOwner` and update the remote rather than
+tolerating the noise.
 
 ---
 
