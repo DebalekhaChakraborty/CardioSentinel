@@ -5,8 +5,12 @@
 > into checkable claims, each with its evidence and its prohibition, so that the
 > prose can be written against a structure rather than improvised.
 >
-> **It contains no sealed-test result and assumes none.** §9.8 states what must
-> happen to this document if B4 is ever opened.
+> **It was written with no sealed-test result in existence, and it assumes
+> none.** §9.8 stated what must happen if B4 were ever opened. **B4 was opened
+> on 2026-08-25**, and §9.8 has now been executed to the letter: the number went
+> into §7, one sentence went into §9.1, and nothing else moved. The value of
+> this document is that the ordering is checkable in the history rather than
+> promised in a sentence.
 
 | | |
 |---|---|
@@ -47,10 +51,20 @@ went, not a consolation prize.
   `EXTERNAL_VALIDATION_STRATEGY_V1.md` audited the field and found no drop-in
   independent cohort.
 
-**MUST NOT SAY.** That the modest results are *why* the paper is methodological.
-The causality runs the other way and a reader will catch the inversion.
+**THE ONE PERMITTED ADDITION, under §9.8 clause 2.** One sentence recording that
+a sealed-test characterisation of the selected encoder now exists — executed
+once on 2026-08-25, after this section was drafted, reported in §7 with its
+boundary, and corroborated by nothing because no cohort exists to corroborate
+it. **That is the whole of what may be added here.**
 
-**STATUS.** Unwritten. Ready to write — all three evidence items are published.
+**MUST NOT SAY.** That the modest results are *why* the paper is methodological.
+The causality runs the other way and a reader will catch the inversion. **Nor
+anything at all about whether the sealed-test number is good or bad**, or what
+it implies — §9.8 clause 1 forbids revising a thesis, hedge or emphasis in
+light of it, and clause 3 says the argument does not change either way.
+
+**STATUS.** Unwritten. Ready to write — all three evidence items are published,
+and the §9.8 addition is now determined rather than contingent.
 
 ---
 
@@ -244,7 +258,16 @@ failure the paper spends §9.5 warning about.
 
 ---
 
-## 9.8 B4 contingency — read before opening the sealed test
+## 9.8 B4 contingency — **EXECUTED 2026-08-25**
+
+> **This was a contingency and is now a record.** It was written while no
+> sealed-test result existed. B4 was authorized under
+> `B4_TEST_AUTHORIZATION_V1.md` and executed once on 2026-08-25, and the four
+> clauses below were applied as written. What was added: the number, in §7, with
+> its boundary inline (§7 and the new §7.5 of `PAPER_OUTLINE_V2.md`); and one
+> sentence in §9.1. What moved: **nothing else.** The clauses stay in the
+> present tense below, unedited, because a rule rewritten after the event it
+> governs is no longer evidence that it bound anyone.
 
 This document is drafted with **no sealed-test result in existence**. If B4 is
 ever authorized and executed, the following are binding:
@@ -261,3 +284,8 @@ ever authorized and executed, the following are binding:
 4. **If the number is poor**, §9.1 gets stronger and no other section moves.
 
 The purpose of writing §9 first is to make this checkable rather than promised.
+
+**It is now checkable.** `PAPER_S9_DISCUSSION_DRAFT.md` and this skeleton were
+merged in #105 on 2026-08-24. The sealed test was executed on 2026-08-25. Both
+dates are in the history, and a reviewer can diff §9 across that boundary and
+see for themselves that only the recording sentence in §9.1 was added.
