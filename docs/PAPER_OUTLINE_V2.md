@@ -183,8 +183,12 @@ references, not from prose about the code.
   halves stated together.
 - **4.2 One-shot access semantics.** What a consumed budget is, why a spent flag
   is not a live permission, and why the re-run guard is the persistence claim
-  rather than the flag. **Fourteen of fifteen budgets spent; the fifteenth is
-  the neural sealed test and it is unopened.**
+  rather than the flag. **All fifteen budgets are spent.** The fifteenth — the
+  neural sealed test — was consumed on 2026-08-25, and the way it was consumed
+  is the section's best material: an authorization signed against a **named
+  architecture**, an evaluator that was bound to the architecture selection had
+  **rejected**, and the mismatch caught by reading the entry point rather than
+  by any test. Handbook §43.2.
 - **4.3 Pre-registration at execution time.** Plan merged, then generator run,
   then report opened as a separate change — enforced by ordering, not by
   intention.
@@ -489,9 +493,13 @@ does not exist, or a reframing onto a different question. RQ5 needs real edge
 hardware, and until it exists an edge-benchmark capability could only report
 measurements and would have to **refuse** the readiness verdict. **The
 generative explanation arm has never run against a real model, and the paper
-must say that in the table rather than in a footnote.** **The sealed neural test
-remains unopened and should stay that way until there is something to corroborate
-it against.**
+must say that in the table rather than in a footnote.** **The sealed neural test was consumed on
+2026-08-25, and no cohort exists to corroborate it.** That is now a permanent
+property of this paper rather than a scheduling problem: the EDB `overlap_clean`
+route was declined in writing on 2026-08-24, so the single one-shot result on
+twelve subjects is the only test-set evidence there will be. §7 reports it with
+its boundary inline; **§9 was written before it opened and does not move because
+of it.**
 
 ## 10. Reproducibility — **the V1 blocker is closed**
 

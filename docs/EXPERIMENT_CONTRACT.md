@@ -77,8 +77,16 @@ an authorization names. `verify_selection_identity` proves the authorization,
 the evaluator and the artifacts on disk describe one model, and it runs to
 completion **before** any attempt receipt is written and before any sealed-test
 artifact is resolved, opened or hashed. Every check it makes reads development
-artifacts only, so a mismatch fails closed: no test access, no `TEST_ATTEMPT`,
-and the one-shot budget stays unspent.
+artifacts only, so a mismatch fails closed: no test access, no `TEST_ATTEMPT`
+written, and **nothing spent** — a refusal costs nothing, which is the whole
+point of verifying before claiming.
+
+**The B4 budget was subsequently spent**, once, on 2026-08-25, through this
+verified path and under `B4_TEST_AUTHORIZATION_V1.md`. The property above is
+about what a *refusal* costs, not about a budget still being available: there is
+no unspent one-shot budget left anywhere in this programme. What the binding
+protects from here on is that no second attempt can be claimed —
+`repeat_attempt_permitted` is `false` in the receipt.
 
 This exists because the two facts were previously unconnected. `sealed_test`
 binds to `B4_raw_compact_cnn_v1` through module constants; Phase 3B-2 selected

@@ -105,8 +105,11 @@ of the claim. RQ3 is a **negative finding**, reported as a result. RQ1, RQ2
 (partial), RQ5, RQ6 and RQ7 are open, and every one needs a run that has not
 been authorized.
 
-**Fourteen of fifteen one-shot budgets are spent.** The B4 neural sealed test is
-the only one left, and it is **unopened**.
+**All fifteen one-shot budgets are spent.** The B4 neural sealed test, the last
+of them, was consumed on **2026-08-25** under a signed authorization, after the
+one route to a corroborating cohort had been declined. Nothing further can be
+measured here without a new human authorization, a re-scoring run, or data this
+project does not have.
 
 ---
 
@@ -126,7 +129,13 @@ the handbook's 25 forbidden claims as word-anchored patterns:
   and no independent ST-episode cohort exists in the public record — a finding,
   not a gap awaiting effort
   ([audit](docs/EXTERNAL_VALIDATION_STRATEGY_V1.md)).
-- **No test-set performance.** The neural sealed test is **unopened**.
+- **No generalisable test-set performance.** The neural sealed test was
+  consumed on 2026-08-25 and a number exists — pooled AUPRC **0.0935** at a
+  prevalence of **0.0461**, subject-macro AUPRC **0.3549** over **8 of 12**
+  subjects, 95% subject-bootstrap **[0.0331, 0.2393]**, scores uncalibrated.
+  **One uncorroborated one-shot on twelve subjects from one dataset**, reported
+  because it was pre-registered to be, and it establishes no generalisation, no
+  superiority and no clinical utility. The MCC interval includes zero.
 
 You can run the boundary against your own sentence:
 
@@ -158,7 +167,13 @@ python reproducibility/verify_reproducibility.py
 
 # the sealed test has never been opened
 find . -name "TEST_ATTEMPT.json" -not -path "./.git/*"
-#   -> no output. This is the whole claim.
+#   -> one receipt, since 2026-08-25:
+#      cardiosentinel-runs/phase3b2-architecture-v1/B4B_cnn_transformer_v1/
+#      attempt_sequence 1, attempt_status COMPLETE,
+#      repeat_attempt_permitted false.
+#   Before that date this command printed nothing, and that was the whole
+#   claim. Now the claim is the receipt: one attempt, and no second one is
+#   possible.
 
 # the frozen episode-reasoning sources, from src/cardiosentinel/neural/
 sha256sum t1_protocol.py t1_execution_spec.py t1_evidence_store.py \
@@ -179,6 +194,14 @@ cardiosentinel agent graph s20201 --format lineage --of measurement:p_t \
 #                      <- lock: experiment_id u1-v1-development,
 #                               test_accessed false, sealed_test_state unopened
 ```
+
+**`sealed_test_state: unopened` in that lock is correct and will not change.** It
+is U1's attestation about U1 — the calibrator was fitted with the B4 test
+unopened, and the lock says so about itself. It is not a status board. Sixty-seven
+`.json` artifacts carry that field, thirteen of them `EXPERIMENT_LOCK.json` files
+pinned by a self-referential digest, and **editing one to reflect 2026-08-25
+would be falsifying a record, not updating it.** Handbook §43 says how to read
+the field, and carries those counts with the date they were measured.
 
 **And this one needs the full evidence tree**, which is git-ignored and not
 distributed — it is what *we* run, listed so you can see what we check:
@@ -288,7 +311,7 @@ It read its input from a hardcoded path on my desktop.
 **CardioSentinel asks the same question.** Most of the work since has gone into
 establishing what may *not* be said in answer to it — where the 2020 version
 printed a diagnosis from one threshold, this one carries twenty-five forbidden
-claims enforced in code, fourteen spent one-shot budgets, and a headline
+claims enforced in code, fifteen spent one-shot budgets, and a headline
 architectural result whose confidence interval includes zero and says so in
 every document that quotes it.
 

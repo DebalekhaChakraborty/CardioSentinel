@@ -31,8 +31,14 @@ not be one.
 **No generative-model API.** The explanation agent falls back to a deterministic
 renderer and labels the mode. No API key is needed.
 
-**No sealed test access.** The B4 neural sealed test is unopened and no path
-here touches it.
+**No sealed test access.** The B4 neural sealed test was consumed on 2026-08-25,
+and **no path in this package touches it, reads it, or reproduces it.** Nothing
+here is derived from the test partition: the demo bundle carries development
+artifacts only, and the scenario replays a validation record. The sealed-test
+artifacts live under `cardiosentinel-runs/` — gitignored, not distributed, and
+immutable. A reader of this package cannot reproduce the sealed-test number and
+is not being invited to try; **the one-shot result is a claim you check against
+its audit receipt, not one you re-run.**
 
 ## Verify before you trust
 

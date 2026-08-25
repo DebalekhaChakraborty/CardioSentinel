@@ -2,6 +2,19 @@
 
 **Status:** revision of v1.3 · **Date:** 2026-08-23 · **Against:** `origin/master` `fb758dd`
 
+> **AMENDED 2026-08-25, against `origin/master` `61d9009`, for one reason: the
+> B4 / neural sealed test was consumed on 2026-08-25 and this document said it
+> was unopened.** The amendment touches §35.3, §43, §44 (a reading note only),
+> §49.1 (a temporal qualifier only), §50.2, §51, §56 and Appendix A claim 12,
+> and adds §43.2. **No number, threshold, interval or finding was changed**, and
+> no thesis was revised in light of the result — §6.4 of
+> `B4_TEST_AUTHORIZATION_V1.md` fixed the reporting commitment before access,
+> and a discussion rewritten afterwards would be post-hoc reasoning whatever it
+> concluded. The v1.4 revision pin above is left as written; it records what
+> v1.4 was revised against, and it is a **pre-rewrite** SHA — translate it
+> through `docs/COMMIT_PIN_TRANSLATION_V1.md` (`fb758dd` → `05f28d2`) rather
+> than following it directly.
+
 > **v1.4 is the first revision in which this document is no longer only a
 > research record.** Between `research-freeze-v1.0` and
 > `ips-agentic-runtime-v1.0` the programme built a streaming edge runtime, an
@@ -48,9 +61,11 @@ rather than left standing on the old one.
    paired subject-bootstrap interval on that difference is
    **[-0.015229, 0.148951]**. The selection is valid; a superiority claim is
    not.
-3. **Exactly one one-shot budget remains unspent** — the B4 / neural sealed
-   test. Everything else is consumed. §51 is the ledger, and it is the most
-   decision-relevant page in this document.
+3. **No one-shot budget remains unspent.** The B4 / neural sealed test — the
+   last of the fifteen — was consumed on 2026-08-25 under a signed
+   authorization, after the EDB corroboration route had been declined. §51 is
+   the ledger, and it is the most decision-relevant page in this document; §43
+   is what the final row bought and what boundary travels with it.
 
 **One finding generalises past ECG.** Three headline numbers — T1's
 subject-macro `episode_f1`, T2's subject-macro AUPRC, U1's ECE — each concealed
@@ -505,12 +520,16 @@ the claim-bearing ladder ran through to episode reasoning.
 
 §35.1's seven-point preflight and §35.2's prompt anchor remain in force.
 
-**§35.3 test-access choreography — extended by execution.** v1.1's rule was:
-architecture family selected on validation only, then one-shot test access *may*
-be authorized, and *"no test result may be used to return to architecture
-selection."* In practice `B4_TEST_DEFERRAL_DECISION_V1.md` went further: B4-B
-sealed-test access is **eligible but intentionally NOT authorized.** §43 records
-the current chain state.
+**§35.3 test-access choreography — extended by execution, then spent.** v1.1's
+rule was: architecture family selected on validation only, then one-shot test
+access *may* be authorized, and *"no test result may be used to return to
+architecture selection."* `B4_TEST_DEFERRAL_DECISION_V1.md` went further and
+held access **eligible but intentionally NOT authorized**; that document is now
+superseded. Access was authorized by `B4_TEST_AUTHORIZATION_V1.md` and taken
+once on 2026-08-25. **The v1.1 rule outlived the deferral and still binds:** the
+result may not be used to revisit architecture selection, retune a threshold, or
+reshape a discussion written before it. §43 records the chain state; §6.3 of the
+authorization carries the same prohibition for §2 Related Work.
 
 §37's step cards remain the best per-phase operational reference. §37.7's
 non-negotiable — *"Raw sigmoid is not calibrated probability"* — is now binding
@@ -551,9 +570,11 @@ W1. Both flags now sit `True` on disk and **neither is a live permission** —
 they are spent tokens. The re-run guard is the persistence claim, not the flag.
 
 **Future, none of it authorized here:** RQ1 memory-ablation protocol (needs
-re-scoring, so a run) · S4D contribution ablation (same) · EDB `overlap_clean`
-as a pre-registered, **cold-start-stratified** secondary evaluation · inference
-pathway · E1 edge benchmarking · the neural sealed test, **last** (§43).
+re-scoring, so a run) · S4D contribution ablation (same) · inference pathway ·
+E1 edge benchmarking. **Two items have left this list rather than been done:**
+EDB `overlap_clean` was **declined** in writing on 2026-08-24
+(`EXTERNAL_VALIDATION_ROUTE_A_DECISION_V1.md`), and the neural sealed test was
+**consumed** on 2026-08-25 (§43).
 
 **Published T1 result**, with the labelling §47 requires:
 
@@ -677,22 +698,63 @@ second evaluation, no re-tuning, no partial access.
 | Chain | State |
 |---|---|
 | **B0–B3 classical** | **CONSUMED** in Phase 3B-1 |
-| **B4 / neural** | **UNOPENED** — eligible, deliberately deferred |
+| **B4 / neural** | **CONSUMED** 2026-08-25, attempt 1 of 1, under `B4_TEST_AUTHORIZATION_V1` |
 
-*"TEST is sealed"* is therefore **half true** and must never be stated
-unqualified. Every downstream lock records `test_evidence_used: false` or
-`sealed_test_state: unopened`.
+*"TEST is sealed"* is now **false without qualification**, and was previously
+only half true. Both chains are spent; **no sealed-test budget remains anywhere
+in the programme.** This is a change of state, not a change of policy: the
+one-shot semantics above are what make the state irreversible.
 
-**Do not** execute evaluate-locked-test; create `TEST_ATTEMPT.json`; read, open
-or hash a B4 test cache or waveform; inspect B4 test labels; calculate B4 test
-metrics; or inspect test predictions.
+**Downstream locks still record `test_evidence_used: false` and
+`sealed_test_state: unopened`, and they are correct.** Each such field is an
+attestation about the run that wrote it — P1, M1, M2, U1, T1 and T2 each ran
+with the B4 test unopened, and each says so about itself. They are historical
+records, not a live status board. **Do not "correct" them.** Read
+`sealed_test_state` as *"the state at the time this artifact was written"*, and
+read this section for the state now.
+
+**Measured 2026-08-25**, over artifacts and source, excluding documentation
+prose and excluding `__pycache__` and `.pytest_cache`: the string
+`"sealed_test_state": "unopened"` occurs in **97 files**.
+
+| | |
+|---|---|
+| `.json` artifacts | **67** — of which **58** under `cardiosentinel-runs/` and **13** are `EXPERIMENT_LOCK.json` |
+| `.py` in `src/` and `tests/` | **29** — the constant a T1 or T2 run writes about itself, not a status anyone reads |
+| `.log` | 1 |
+
+*Earlier drafts of this section and of §51 said "80 artifacts". That figure was
+inherited rather than counted, and it matched no partition of the count.*
+**Documentation is excluded from the population on purpose, and this paragraph
+is why:** the moment it was written, the handbook began containing the string it
+counts. A count that includes the document reporting it cannot be restated
+without changing.
+
+Editing a lock is not merely wrong but arithmetically impossible in isolation.
+`experiment_lock_sha256` is self-referential, and B4-B's appears in **32 files**
+across the docs, the source, the tests, the demo bundle and the evidence tree —
+**9 of them other experiments' `EXPERIMENT_LOCK.json`**, 13 of them tracked in
+git. `neural.integrity.verify_experiment_lock()` implements the check.
+
+**Do not**, for the B4 chain, execute evaluate-locked-test; create a second
+`TEST_ATTEMPT.json`; re-score, amend or regenerate `TEST_METRICS.json`,
+`TEST_PREDICTIONS.npz` or `TEST_AUDIT.json`; or re-read the test cache for any
+purpose. The budget is spent, so what these prohibitions now protect is the
+**record** of the single attempt rather than an unspent access. The four
+artifacts under
+`cardiosentinel-runs/phase3b2-architecture-v1/B4B_cnn_transformer_v1/` are
+immutable. `repeat_attempt_permitted` is `false` in the receipt and there is no
+mechanism, flag or authorization that can make it true.
 
 **Opening the neural test before external validation spends the final firewall on
 a result no cohort can corroborate.** It should be last, not next.
 
-### 43.1 That argument is no longer a caution — it is a finding
+### 43.1 The argument against opening it, and what happened to it
 
-v1.2 made this case on principle. Two merged documents now make it on evidence.
+**This subsection is retained because the argument was not withdrawn — it was
+overridden, in writing, by the person entitled to override it.** Both of its
+evidence bullets are still true, and they are now the boundary that travels with
+the result rather than a reason to defer it.
 
 - **No cohort exists to corroborate a test number.** `docs/EXTERNAL_VALIDATION_STRATEGY_V1.md`
   audited the public record and found **no drop-in independent cohort**. EDB is
@@ -702,12 +764,65 @@ v1.2 made this case on principle. Two merged documents now make it on evidence.
   95% paired interval on the S4D − GRU difference is
   **[-0.015229, 0.148951]**. §49.4.
 
-**Exactly one one-shot budget remains unspent, and this is it.** §51.
+**The chain that overrode it**, in order and on the record:
 
-`TEST_ATTEMPT.json` does not exist anywhere in the tree; the classical chain's
-four `test_evaluation_attempt.json` receipts under
-`cardiosentinel-runs/phase3b-classical-v3/` are what a consumed chain looks
-like, and are the reason *"TEST is sealed"* is only half true.
+1. `EXTERNAL_VALIDATION_ROUTE_A_DECISION_V1.md` — the EDB `overlap_clean`
+   secondary evaluation was **declined** on 2026-08-24, in writing, with
+   reasons. No EDB data was accessed. Its §2.4 records the price: **no second
+   cohort will corroborate any result in this paper, permanently.** That is what
+   makes the first bullet above a standing limitation instead of a schedule.
+2. `B4_TEST_AUTHORIZATION_V1.md` — signed by the researcher. §6.3 waives the
+   §2 Related Work precondition under a **binding condition**: §2, when written,
+   must not be shaped by the sealed-test result. §6.4 is the reporting
+   commitment, frozen before access.
+3. Execution once, on 2026-08-25, under `B4_PROTOCOL_V1` through the bound B4-B
+   path. Attempt 1 of 1, `attempt_status COMPLETE`.
+
+`B4_TEST_DEFERRAL_DECISION_V1.md` is **superseded**. It is frozen and unedited —
+it was not wrong when written, and rewriting it would destroy the evidence that
+the decision was reconsidered rather than never taken. Read it as history.
+
+**What a consumed chain looks like on disk.** The classical chain's four
+`test_evaluation_attempt.json` receipts under
+`cardiosentinel-runs/phase3b-classical-v3/`, and now the B4 chain's
+`TEST_ATTEMPT.json`, `TEST_METRICS.json`, `TEST_PREDICTIONS.npz` and
+`TEST_AUDIT.json` under
+`cardiosentinel-runs/phase3b2-architecture-v1/B4B_cnn_transformer_v1/`.
+
+### 43.2 The evaluator targeted the wrong model, and it was caught by reading
+
+**The sealed evaluator was bound to the architecture Phase 3B-2 rejected.**
+`sealed_test.py` binds to `B4_raw_compact_cnn_v1` (B4-A) through module
+constants; selection chose **B4-B** and rejected B4-A. Each file was correct
+about itself and **nothing was responsible for comparing them**. Running the
+obvious entry point would have spent the budget characterising a rejected
+candidate, and would have looked clean doing it: all three B4 locks carry
+`status: locked_for_one_shot_test` with `test: null`, so no downstream check
+would have objected.
+
+**It was found by reading the entry point before calling it. No test caught it,
+because no test was asking.** The authorization was already signed.
+
+What exists because of it, and what it generalises to:
+
+- `neural/b4b_sealed_test.py` — `SelectedArchitectureBinding` makes *"the model
+  the authorization names"* and *"the model the evaluator loads"* one comparable
+  object. `verify_selection_identity` proves the selection record, the lock, the
+  checkpoint bytes, the threshold receipt and the model class describe one
+  model, and it completes **before** the attempt is claimed and before any
+  sealed artifact is resolved, opened or hashed. Every check reads development
+  artifacts only, so a mismatch fails closed.
+- `sealed_test.refuse_rejected_candidate()` — the legacy path refuses a rejected
+  candidate **by name**, because the name tells the reader which mistake they
+  made, and fails closed if the selection record is unreadable.
+- The failure path catches `BaseException`, not `OSError`. A fault while
+  recording a failure attaches as a note and **the original exception is
+  re-raised**, never masked.
+
+**The generalisable form: two artifacts can each be correct about themselves and
+still disagree, and nothing detects it unless something is made responsible for
+comparing them.** §49.8's denominator finding is the measurement-side instance
+of the same shape. See `docs/EXPERIMENT_CONTRACT.md`.
 
 ## §44 Negative capability and safety gates
 
@@ -740,6 +855,11 @@ completed continuation attests `fold_evaluations 0`, `policy_selection_calls 0`,
 `state_machine_invocations 0`, `threshold_generation_calls 0`,
 `state_transitions_regenerated false`, `test_accessed false`,
 `sealed_test_state unopened`.
+
+Those seven values are what the continuation attests **about itself**, and they
+remain exactly as recorded. `sealed_test_state unopened` here means the B4 test
+was unopened when the continuation ran; it was consumed later, on 2026-08-25,
+and §43 explains how to read that field in any artifact.
 
 **Continuation architecture.** `t1_assembly` is deliberately unused: it binds no
 forbidden name but imports `t1_development_run`, which would grant transitive
@@ -977,7 +1097,8 @@ remains frozen at 335 packages, digest `b0fd6ea…`, verified after this work.
 - Prospective architecture, physiology, memory and temporal-arm selections under
   rules frozen before the deciding evidence existed
 - The measurement **consumed a persisted trace and ran no model** — four
-  zero-capability counters, sealed test unopened
+  zero-capability counters, and the B4 sealed test unopened at the time it ran
+  (it was consumed later, on 2026-08-25; §43)
 - **Episode reasoning over a memoryless window rule, at one operating point**:
   subject-macro `episode_f1` difference **0.1921**, 95% paired subject-bootstrap
   **[0.0505, 0.3455]** (§49.5). The operating-point bound travels with this
@@ -1223,21 +1344,31 @@ them. The reproducibility package remains the one Wave 1 item outstanding.
    cannot reuse the W1 trick: a memory ablation changes `m2g_detector_score`
    itself, so it needs **re-scoring** — a run, not a derived analysis
 5. **S4D contribution protocol** — same shape, same constraint (§17.6)
-6. **EDB `overlap_clean` as a pre-registered, cold-start-stratified secondary
-   evaluation.** Never to be called external (§49.7)
+6. ~~**EDB `overlap_clean` as a pre-registered, cold-start-stratified secondary
+   evaluation.**~~ **DECLINED 2026-08-24**, in writing, with reasons, in
+   `EXTERNAL_VALIDATION_ROUTE_A_DECISION_V1.md`. No EDB data was accessed. Its
+   §2.4 records what the decline costs: **no second cohort will corroborate any
+   result in this paper, permanently.** Retained struck through rather than
+   deleted, because a plan item that was considered and refused is evidence and
+   a deleted one is not
 
 **Wave 3 — future**
 
 7. Ablation execution · 8. Inference pathway / deployment prototype ·
-9. E1 on-device benchmarking · 10. **The sealed neural test, last** (§43) —
-   and §43.1 now argues that on evidence rather than on caution
+9. E1 on-device benchmarking
+
+**Item 10 was *"the sealed neural test, last"*, and it happened.** It was taken
+on 2026-08-25 under `B4_TEST_AUTHORIZATION_V1`, out of the order this wave plan
+proposed and after item 6 had been declined rather than executed. §43 records
+the chain that authorized it; §43.1 records the argument against it, which was
+overridden rather than withdrawn.
 
 ### 50.3 Manuscript skeleton
 
 | Section | Source documents | Readiness |
 |---|---|---|
 | 1. Introduction | `RESEARCH_SCOPE.md`, §1 | needs writing |
-| 2. Related work | — | **missing entirely** |
+| 2. Related work | — | **missing entirely**, and the literature search has not started. It blocks §9.3, and it now carries the §6.3 condition of `B4_TEST_AUTHORIZATION_V1.md`: **it must not be shaped by the sealed-test result** |
 | 3.1 Problem and data | `DATASET_CONTRACT`, `DATA_SPLIT_POLICY`, `ANNOTATION_SEMANTICS`, `CROSS_DATASET_PROVENANCE`, §42 | near-complete |
 | 3.2 Signal pipeline | `SIGNAL_PROCESSING_CONTRACT` | complete |
 | 3.3 Architecture | `B4_*`, `P1_*`, `M1_*`, `M2_*`, `U1_*`, `T2_*`, §48 | complete |
@@ -1245,10 +1376,10 @@ them. The reproducibility package remains the one Wave 1 item outstanding.
 | **4. Evidence framework** ★ | `EXPERIMENT_CONTRACT`, `RUNTIME_INTEGRITY_SENTINEL_V1`, §§40–47 | **the contribution — write from code** |
 | **5. Failure and recovery** ★ | `T1_EXECUTION_RECOVERY_AMENDMENT_V1_1`, `T1_FAILURE_RECEIPT_RECONSTRUCTED.json`, `T1_CONTINUATION_PREAUTHORIZATION` §10, §45 | **exceptional material, needs assembly** |
 | 6. Experimental setup | retention decisions, `METRICS_PROTOCOL`, §25 | complete |
-| 7. Results | `T1_DESCRIPTIVE_REPORT_V1`, `T2_ARM_COMPARISON_REPORT_V1`, `W1_WINDOW_COMPARATOR_REPORT_V1`, `U1_CALIBRATION_RELIABILITY_REPORT_V1`, §49 | **complete** — the gate is spent and all four reports are merged |
+| 7. Results | `T1_DESCRIPTIVE_REPORT_V1`, `T2_ARM_COMPARISON_REPORT_V1`, `W1_WINDOW_COMPARATOR_REPORT_V1`, `U1_CALIBRATION_RELIABILITY_REPORT_V1`, §49, **and now the B4-B sealed-test artifacts** | **needs one addition.** The four reports are merged, but §7 is no longer closed: the sealed test produced a fifth reported number on 2026-08-25 and it is not yet in the outline. It is added with its boundary **inline**, under §6.4 of `B4_TEST_AUTHORIZATION_V1.md`, and **no thesis in §9 moves because of it** |
 | 8. Limitations | `T1_POST_HOC_ANALYSIS_V1` §3, `EXTERNAL_VALIDATION_STRATEGY_V1`, §24, §51, Appendix A | quotable verbatim; §49.7 makes the external-validation limitation a *finding* rather than an apology |
-| 9. Discussion | — | **missing entirely** |
-| 10. Reproducibility | §47 | needs the package |
+| 9. Discussion | `PAPER_S9_DISCUSSION_SKELETON.md`, `PAPER_S9_DISCUSSION_DRAFT.md` (#105) | **skeleton and draft merged, unreviewed.** §9.3 deliberately stubbed pending §2; a subsection on the provenance incident is accepted but unwritten. **Both were written before the sealed test opened, and that is the point** — a discussion revised in light of the result would be post-hoc reasoning whatever it said |
+| 10. Reproducibility | §47, `reproducibility/` | **the package exists** (#90, #91) — a committed 1.63 MiB demo bundle plus one PhysioNet record, tested for usability as well as integrity |
 
 **v1.4 adds two sections to this skeleton**, both marked ★, both sourced and
 neither yet written:
@@ -1303,7 +1434,7 @@ re-run guard is the persistence claim, not the flag.
 | # | Budget / gate | Consumed | Where, and what it bought |
 |---|---|:---:|---|
 | 1 | B0–B3 classical sealed test | **YES** | Phase 3B-1. Four `test_evaluation_attempt.json` receipts under `cardiosentinel-runs/phase3b-classical-v3/`. The chain is spent and **not extensible** |
-| 2 | **B4 / neural sealed test** | **NO** | **The last one.** No `TEST_ATTEMPT.json` exists anywhere in the tree; 80 artifacts read `sealed_test_state: unopened`. §43 |
+| 2 | **B4 / neural sealed test** | **YES** | **2026-08-25, and it was the last one.** `phase3b2-architecture-v1/B4B_cnn_transformer_v1/` — attempt 1 of 1, `COMPLETE`, `repeat_attempt_permitted: false`. Authorized by `B4_TEST_AUTHORIZATION_V1` after Route A was declined. §43 |
 | 3 | M1-v1 attempt 1 | **YES** | Failed. `M1_STAGE1_ATTEMPT1_FAILURE.md` — documented, not silently retried |
 | 4 | M1-v1 attempt 2 | **YES** | Failed. `M1_STAGE1_ATTEMPT2_FAILURE.md` |
 | 5 | M1-v2 | **YES** | `phase5-m1-dual-memory-v2`. The **sole** canonical M1 evidence; M1L retained |
@@ -1320,14 +1451,22 @@ re-run guard is the persistence claim, not the flag.
 
 ### 51.2 What the ledger says
 
-**Fourteen of fifteen are spent.** Every derived analysis that could be done
-without new authorization has been done. There is no remaining question that can
-be answered by reading something already on disk — which is why §24's fourth
-column says *"a run"* five times.
+**Fifteen of fifteen are spent.** Row 2 fell on 2026-08-25 and it was the last
+one. Every derived analysis that could be done without new authorization has
+been done, and there is no remaining question that can be answered by reading
+something already on disk — which is why §24's fourth column says *"a run"* five
+times.
 
-**Row 2 is the whole of what remains, and it should stay unspent.** §43.1 makes
-that case on evidence: the headline T2 contrast spans zero, and no cohort exists
-to corroborate a test number.
+**There is now no unspent budget anywhere in this programme.** Nothing further
+can be measured without a new human authorization, a re-scoring run, or data the
+project does not have. What the one-shot machinery still protects is the
+**record** — consumed attempt directories are immutable, and every `_AUTHORIZED`
+flag sitting `True` on disk is a spent token, not a live permission.
+
+**The two evidence arguments from §43.1 did not expire when row 2 was spent.**
+The headline T2 contrast still spans zero and no cohort exists to corroborate a
+test number. They stopped being reasons to defer and became the boundary that
+travels with the result.
 
 **Rows 3, 4, 6, 13 — four recorded failures — are assets, not embarrassments.**
 They are what §50's Option B is made of. A programme with no failure receipts
@@ -1641,8 +1780,10 @@ Specifically, the IPS layer does **not** establish:
   to a frozen artifact — which is a different and weaker property than being
   clinically meaningful.
 - **That the claim guard makes overclaiming impossible.** It is lexical (§53.1).
-- **Anything about the sealed test**, which is unopened, or about
-  generalisation, which no cohort exists to support (§49.7).
+- **Anything about the sealed test.** The IPS layer neither opened it nor
+  read from it; the sealed test was consumed separately on 2026-08-25 (§43) and
+  nothing in §52–§55 contributed to, or was informed by, that result. Nor
+  anything about generalisation, which no cohort exists to support (§49.7).
 
 **The one methodological claim §52–§55 do support** is that a physical-system
 pipeline can be composed from independently validated components *without*
@@ -1670,7 +1811,7 @@ Forbidden in any manuscript, abstract, figure caption or presentation.
 | 9 | **Calibrated probability for T2 scores** | `score_is_calibrated_probability: false`. v1.1 §1 already forbade this |
 | 10 | Encoder or calibration **contribution** | No ablations (§19) |
 | 11 | **Subgroup** performance | `join_performed: false` |
-| 12 | **Test** performance | Neural chain unopened; classical chain spent and not extensible (§43) |
+| 12 | **Test** performance, stated unqualified | **Rewritten after 2026-08-25.** A sealed-test result now exists for B4-B, so the bar is no longer *"there is no such number"* — it is that the number may appear only with the boundary that was pre-registered before access. Reporting it requires, inline and not in a footnote: the pooled figure with its prevalence, the subject-macro figures with their **8-of-12** denominator, the bootstrap interval, and that scores are uncalibrated. A single uncorroborated one-shot on twelve subjects supports no claim of generalisation, superiority or clinical utility, and no cohort exists to corroborate it (§49.7). The classical chain remains spent and not extensible. §43, §51 |
 | 13 | **Statistical significance** | The bootstrap is not a hypothesis test |
 | 14 | *"Selective routing implemented / deployed"* | `Retained: false` (§15) |
 | 15 | *"Edge/cloud routing complete"* | The router it refers to was rejected |
@@ -1703,8 +1844,10 @@ _Research Execution Handbook v1.4 — a revision of v1.3, itself a revision of
 v1.2 (22 Aug 2026) and v1.1 (8 Aug 2026). Section numbering §1–§38 preserved
 from v1.1; §39–§47 new in v1.2; §48–§50 added in v1.2; §51 new in v1.3;
 **§52–§56 new in v1.4**. Revised against `origin/master` `fb758dd` on
-2026-08-23, at tag `ips-agentic-runtime-v1.0`._
+2026-08-23, at tag `ips-agentic-runtime-v1.0`; **amended 2026-08-25 against
+`61d9009` to record the consumed sealed test, adding §43.2**._
 
 _**This handbook grants no scientific permission and authorizes no execution.**
-It describes budgets that are already spent and one that is not. Nothing in it
-authorizes spending the one that is not._
+It describes fifteen budgets, **all fifteen of them spent**. There is nothing
+left for it to authorize and nothing left for it to protect except the record of
+what was already taken._
