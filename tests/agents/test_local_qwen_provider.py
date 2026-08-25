@@ -7,8 +7,12 @@ harness against deliberately bad providers rather than against a real model.
 
 from __future__ import annotations
 
+import importlib.util
+import json
 import pathlib
 import re
+import sys
+from types import ModuleType, SimpleNamespace
 
 import pytest
 
@@ -23,7 +27,9 @@ from cardiosentinel.agents.explain import (
 from cardiosentinel.agents.graph import build_evidence_graph
 from cardiosentinel.agents.providers import (
     DEFAULT_LOCAL_MODEL,
+    REPORTED_LOCAL_MODEL,
     LocalQwenProvider,
+    ProviderIdentity,
     ProviderUnavailable,
     default_provider,
 )
@@ -49,13 +55,22 @@ GATE = {
     "past_observed_count_before": 203,
     "past_update_count_before": 0,
 }
+REVISION = "a" * 40
+STUB_IDENTITY = ProviderIdentity(
+    provider="stub",
+    model_id="cardiosentinel/fake-qwen",
+    revision=REVISION,
+    quantization="Q4",
+    runtime="transformers",
+    device="cpu",
+)
 
 
 class Stub:
     """A provider whose behaviour the test chooses."""
 
     name = "stub"
-    model_name = "stub-model@abcdef1"
+    identity = STUB_IDENTITY
 
     def __init__(self, *, text: str = "", error: Exception | None = None) -> None:
         self._text = text
@@ -121,10 +136,275 @@ def _compliant(graph) -> str:
 # -- the provider is opt-in and never downloads on construction -------------
 
 
-def test_an_uncached_model_refuses_rather_than_downloading():
+def test_an_uncached_model_refuses_rather_than_downloading(fake_runtime):
     """Constructing a provider must never trigger a multi-gigabyte fetch."""
-    with pytest.raises(ProviderUnavailable):
-        LocalQwenProvider(model="cardiosentinel/definitely-not-a-real-model")
+    def unavailable(_model_id, *, revision, local_files_only):
+        assert revision == REVISION
+        assert local_files_only is True
+        raise OSError("not in cache")
+
+    fake_runtime.huggingface_hub.snapshot_download = unavailable
+    with pytest.raises(ProviderUnavailable, match="not completely cached locally"):
+        LocalQwenProvider(
+            model="cardiosentinel/definitely-not-a-real-model", revision=REVISION
+        )
+
+
+def _snapshot(
+    root: pathlib.Path,
+    *,
+    revision: str = REVISION,
+    config: bool = True,
+    tokenizer: bool = True,
+    weights: bool = True,
+) -> pathlib.Path:
+    snapshot = root / revision
+    snapshot.mkdir()
+    if config:
+        (snapshot / "config.json").write_text("{}", encoding="utf-8")
+    if tokenizer:
+        (snapshot / "tokenizer.json").write_text("{}", encoding="utf-8")
+    if weights:
+        (snapshot / "model.safetensors").write_bytes(b"fake weights")
+    return snapshot
+
+
+@pytest.fixture
+def fake_runtime(monkeypatch):
+    """Dependency-free stand-ins: CI installs no LLM runtime or weights."""
+    huggingface_hub = ModuleType("huggingface_hub")
+    transformers = ModuleType("transformers")
+    torch = ModuleType("torch")
+
+    def unconfigured(*_args, **_kwargs):
+        raise AssertionError("fake runtime call was not configured by the test")
+
+    huggingface_hub.snapshot_download = unconfigured
+    transformers.AutoConfig = SimpleNamespace(from_pretrained=unconfigured)
+    transformers.AutoTokenizer = SimpleNamespace(from_pretrained=unconfigured)
+    transformers.AutoModelForCausalLM = SimpleNamespace(from_pretrained=unconfigured)
+    torch.float32 = "float32"
+    torch.set_num_threads = lambda _count: None
+
+    class NoGrad:
+        def __enter__(self):
+            return None
+
+        def __exit__(self, *_args):
+            return False
+
+    torch.no_grad = NoGrad
+    monkeypatch.setitem(sys.modules, "huggingface_hub", huggingface_hub)
+    monkeypatch.setitem(sys.modules, "transformers", transformers)
+    monkeypatch.setitem(sys.modules, "torch", torch)
+    return SimpleNamespace(
+        huggingface_hub=huggingface_hub,
+        transformers=transformers,
+        torch=torch,
+    )
+
+
+def _resolve_to(fake_runtime, snapshot: pathlib.Path) -> None:
+
+    def resolve(_model_id, *, revision, local_files_only):
+        assert revision == REVISION
+        assert local_files_only is True
+        return str(snapshot)
+
+    fake_runtime.huggingface_hub.snapshot_download = resolve
+
+
+@pytest.mark.parametrize("revision", [None, "main", "abcdef1"])
+def test_a_moving_or_unknown_revision_is_refused(fake_runtime, revision):
+    fake_runtime.huggingface_hub.snapshot_download = (
+        lambda *_args, **_kwargs: pytest.fail("a moving revision reached the cache")
+    )
+    with pytest.raises(ProviderUnavailable, match="revision cannot be resolved"):
+        LocalQwenProvider(model=REPORTED_LOCAL_MODEL, revision=revision)
+
+
+def test_the_resolved_snapshot_must_equal_the_requested_revision(
+    fake_runtime, tmp_path
+):
+    other_revision = "b" * 40
+    snapshot = _snapshot(tmp_path, revision=other_revision)
+    fake_runtime.huggingface_hub.snapshot_download = (
+        lambda *_args, **_kwargs: str(snapshot)
+    )
+    with pytest.raises(ProviderUnavailable, match="unexpected cached snapshot"):
+        LocalQwenProvider(model=REPORTED_LOCAL_MODEL, revision=REVISION)
+
+
+@pytest.mark.parametrize(
+    ("missing", "message"),
+    [
+        ("config", "config.json"),
+        ("tokenizer", "tokenizer assets"),
+        ("weights", "model weights"),
+    ],
+)
+def test_config_tokenizer_and_weights_are_all_required_before_generation(
+    fake_runtime, tmp_path, missing, message
+):
+    snapshot = _snapshot(
+        tmp_path,
+        config=missing != "config",
+        tokenizer=missing != "tokenizer",
+        weights=missing != "weights",
+    )
+    _resolve_to(fake_runtime, snapshot)
+    with pytest.raises(ProviderUnavailable, match=message):
+        LocalQwenProvider(model=REPORTED_LOCAL_MODEL, revision=REVISION)
+
+
+def test_every_weight_shard_named_by_the_index_must_exist(fake_runtime, tmp_path):
+    snapshot = _snapshot(tmp_path, weights=False)
+    (snapshot / "model.safetensors.index.json").write_text(
+        json.dumps(
+            {
+                "weight_map": {
+                    "layer.0": "model-00001-of-00002.safetensors",
+                    "layer.1": "model-00002-of-00002.safetensors",
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    (snapshot / "model-00001-of-00002.safetensors").write_bytes(b"first")
+    _resolve_to(fake_runtime, snapshot)
+    with pytest.raises(ProviderUnavailable, match="00002-of-00002"):
+        LocalQwenProvider(model=REPORTED_LOCAL_MODEL, revision=REVISION)
+
+
+def test_quantization_is_none_when_the_cached_config_is_unquantized(
+    fake_runtime, tmp_path
+):
+    snapshot = _snapshot(tmp_path)
+    _resolve_to(fake_runtime, snapshot)
+    fake_runtime.transformers.AutoConfig.from_pretrained = (
+        lambda _path, **_options: SimpleNamespace()
+    )
+    fake_runtime.transformers.AutoTokenizer.from_pretrained = (
+        lambda _path, **_options: object()
+    )
+    provider = LocalQwenProvider(model=REPORTED_LOCAL_MODEL, revision=REVISION)
+    assert provider.identity.quantization == "none"
+
+
+def test_an_unresolvable_quantization_record_is_refused(fake_runtime, tmp_path):
+    snapshot = _snapshot(tmp_path)
+    _resolve_to(fake_runtime, snapshot)
+    fake_runtime.transformers.AutoConfig.from_pretrained = (
+        lambda _path, **_options: SimpleNamespace(quantization_config={})
+    )
+    fake_runtime.transformers.AutoTokenizer.from_pretrained = (
+        lambda _path, **_options: object()
+    )
+    with pytest.raises(ProviderUnavailable, match="quantization cannot be resolved"):
+        LocalQwenProvider(model=REPORTED_LOCAL_MODEL, revision=REVISION)
+
+
+def test_fake_cached_model_runs_through_provider_and_audit(
+    fake_runtime, tmp_path, graph
+):
+    """CI contract: fake weights -> real provider adapter -> both output gates."""
+    snapshot = _snapshot(tmp_path)
+    _resolve_to(fake_runtime, snapshot)
+    calls: dict[str, object] = {}
+
+    class FakeTokenizer:
+        eos_token_id = 0
+
+        def apply_chat_template(self, messages, **options):
+            calls["messages"] = messages
+            # `enable_thinking=False` is required, not incidental: Qwen3 is a
+            # hybrid reasoning model and emits a <think> block by default. Arm B
+            # scored a truncated reasoning trace as a valid explanation before
+            # this was set, so the fake asserts the provider still asks for it.
+            assert options == {
+                "add_generation_prompt": True,
+                "tokenize": False,
+                "enable_thinking": False,
+            }
+            return "rendered prompt"
+
+        def __call__(self, text, *, return_tensors):
+            assert text == "rendered prompt"
+            assert return_tensors == "pt"
+            return {"input_ids": SimpleNamespace(shape=(1, 2))}
+
+        def decode(self, _tokens, *, skip_special_tokens):
+            assert skip_special_tokens is True
+            return claims.SYSTEM_BEHAVIOUR_ONLY
+
+    class FakeModel:
+        def eval(self):
+            return self
+
+        def generate(self, **options):
+            calls["generate"] = options
+            return [[1, 2, 3]]
+
+    def config_from_pretrained(path, **options):
+        calls["config"] = (path, options)
+        return SimpleNamespace(quantization_config={"bits": 4})
+
+    tokenizer = FakeTokenizer()
+
+    def tokenizer_from_pretrained(path, **options):
+        calls["tokenizer"] = (path, options)
+        return tokenizer
+
+    def model_from_pretrained(path, **options):
+        calls["model"] = (path, options)
+        return FakeModel()
+
+    fake_runtime.transformers.AutoConfig.from_pretrained = config_from_pretrained
+    fake_runtime.transformers.AutoTokenizer.from_pretrained = tokenizer_from_pretrained
+    fake_runtime.transformers.AutoModelForCausalLM.from_pretrained = (
+        model_from_pretrained
+    )
+
+    provider = LocalQwenProvider(
+        model=REPORTED_LOCAL_MODEL,
+        revision=REVISION,
+        max_new_tokens=8,
+    )
+    assert provider.identity.as_dict() == {
+        "provider": "local_qwen",
+        "model_id": REPORTED_LOCAL_MODEL,
+        "revision": REVISION,
+        "quantization": "Q4",
+        "runtime": "transformers",
+        "device": "cpu",
+    }
+
+    explanation = PatientExplanationAgent(provider).explain(graph)
+    assert explanation.explanation_mode == GENERATIVE
+    assert claims.audit(explanation.text) == ()
+    assert explanation.provider == "local_qwen"
+    assert explanation.model_id == REPORTED_LOCAL_MODEL
+    assert explanation.revision == REVISION
+    assert explanation.quantization == "Q4"
+    assert explanation.runtime == "transformers"
+    assert explanation.device == "cpu"
+    record = explanation.as_dict()
+    assert {
+        key: record[key]
+        for key in (
+            "provider",
+            "model_id",
+            "revision",
+            "quantization",
+            "runtime",
+            "device",
+        )
+    } == provider.identity.as_dict()
+    assert calls["config"] == (str(snapshot), {"local_files_only": True})
+    assert calls["tokenizer"] == (str(snapshot), {"local_files_only": True})
+    model_path, model_options = calls["model"]
+    assert model_path == str(snapshot)
+    assert model_options == {"local_files_only": True}
 
 
 def test_default_provider_does_not_select_local_without_opting_in(monkeypatch):
@@ -133,9 +413,36 @@ def test_default_provider_does_not_select_local_without_opting_in(monkeypatch):
     assert default_provider() is None
 
 
+def test_research_evaluation_can_refuse_an_unresolvable_local_provider(
+    monkeypatch,
+):
+    import cardiosentinel.agents.providers as providers
+
+    monkeypatch.setenv("CARDIOSENTINEL_LLM_PROVIDER", "local")
+
+    def unavailable():
+        raise ProviderUnavailable("model revision cannot be resolved")
+
+    monkeypatch.setattr(providers, "LocalQwenProvider", unavailable)
+    assert default_provider() is None  # ordinary explanations still degrade
+    with pytest.raises(ProviderUnavailable, match="revision cannot be resolved"):
+        default_provider(strict_local=True)
+
+
 def test_the_default_model_is_apache_licensed_and_ungated():
     """Recorded so a licence change is a test failure, not a discovery."""
     assert DEFAULT_LOCAL_MODEL.startswith("Qwen/")
+
+
+def test_real_model_execution_is_a_separate_unexecuted_manual_record():
+    root = pathlib.Path(__file__).resolve().parents[2]
+    contract = (root / "docs" / "QWEN_EVALUATION_RUN.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Status: NOT EXECUTED" in contract
+    assert "CI must never download or execute the real model" in contract
+    assert '"revision": "<full 40-character Hugging Face commit SHA>"' in contract
+    assert "latency_scope: total generation latency" in contract
 
 
 # -- the deterministic path is untouched ------------------------------------
@@ -155,8 +462,13 @@ def test_a_compliant_generation_records_provider_model_and_latency(graph):
     explanation = PatientExplanationAgent(Stub(text=_compliant(graph))).explain(graph)
     assert explanation.explanation_mode == GENERATIVE
     assert explanation.provider == "stub"
-    assert explanation.model == "stub-model@abcdef1"
+    assert explanation.model_id == STUB_IDENTITY.model_id
+    assert explanation.revision == REVISION
+    assert explanation.quantization == "Q4"
+    assert explanation.runtime == "transformers"
+    assert explanation.device == "cpu"
     assert explanation.latency_seconds is not None
+    assert explanation.latency_scope == "total response latency"
 
 
 def test_latency_is_recorded_on_the_deterministic_path_too(graph):
@@ -180,7 +492,25 @@ def test_a_failing_provider_degrades_and_says_why(graph, stub, fragment):
     explanation = PatientExplanationAgent(stub).explain(graph)
     assert explanation.explanation_mode == DETERMINISTIC
     assert fragment in (explanation.fallback_reason or "")
-    assert explanation.model == "stub-model@abcdef1"
+    assert explanation.provider == "stub"
+    assert explanation.renderer == "template"
+    assert explanation.model_id == STUB_IDENTITY.model_id
+    assert explanation.revision == REVISION
+
+
+def test_fallback_latency_includes_the_failed_generation_attempt(
+    monkeypatch, graph
+):
+    clock = iter((100.0, 135.42))
+    monkeypatch.setattr(
+        "cardiosentinel.agents.explain.time.perf_counter", lambda: next(clock)
+    )
+    explanation = PatientExplanationAgent(
+        Stub(error=RuntimeError("failed after generation timeout"))
+    ).explain(graph)
+    assert explanation.explanation_mode == DETERMINISTIC
+    assert explanation.latency_seconds == pytest.approx(35.42)
+    assert explanation.latency_scope == "total response latency"
 
 
 def test_a_claim_violation_is_recorded_not_just_counted(graph):
@@ -201,16 +531,22 @@ def test_an_invented_number_falls_back(graph):
     assert not claims.audit(text), "precondition: the claim guard allows this"
     explanation = PatientExplanationAgent(Stub(text=text)).explain(graph)
     assert explanation.explanation_mode == DETERMINISTIC
-    assert "not present in the evidence" in (explanation.fallback_reason or "")
+    assert "numeric claim" in (explanation.fallback_reason or "")
+    assert "0.812345" in (explanation.fallback_reason or "")
 
 
 def test_a_percentage_conversion_falls_back(graph):
-    """0.545613 -> "54.6%" is invisible to the registered metric. See §4.3."""
+    """A unit changes the claim: 0.545613 is evidence, 54.6% is not.
+
+    The registered metric cannot see this -- one decimal place, nothing
+    extracted -- which is why the guard is a separate concept. See protocol §4.3.
+    """
     text = "The calibrated probability reached 54.6%. " + claims.SYSTEM_BEHAVIOUR_ONLY
     assert not claims.audit(text), "precondition: the claim guard allows this"
     explanation = PatientExplanationAgent(Stub(text=text)).explain(graph)
     assert explanation.explanation_mode == DETERMINISTIC
-    assert "percentage" in (explanation.fallback_reason or "")
+    assert "numeric claim" in (explanation.fallback_reason or "")
+    assert "54.6%" in (explanation.fallback_reason or "")
 
 
 def test_rounding_is_not_fabrication(graph):
@@ -271,7 +607,97 @@ def test_the_llm_extra_declares_no_package_the_frozen_set_lacks():
         re.split(r"[<>=!~\[]", entry, maxsplit=1)[0].strip().lower()
         for entry in declared
     }
-    assert names == {"torch", "transformers"}, (
+    assert names == {"torch", "transformers", "huggingface-hub"}, (
         "the llm extra must name only packages the frozen environment already "
         f"contains; found {sorted(names)}"
     )
+
+
+# -- against the REAL libraries, not the fakes ------------------------------
+#
+# Everything above runs on a `fake_runtime` that shadows `huggingface_hub`,
+# `transformers` and `torch` in `sys.modules`. That is the right way to test
+# cache-validation logic -- CI has no weights and a corrupt snapshot is easier
+# to fabricate than to obtain -- but it means those tests never touch the real
+# libraries, so real API drift would pass them unnoticed. The `apply_chat_template`
+# signature changing in transformers 5.x is exactly that kind of drift.
+#
+# These two run against the genuine packages, which is what installing the `llm`
+# extra in CI buys. They need no weights and no network.
+
+def _llm_extra_installed() -> bool:
+    """True when the real libraries are importable.
+
+    `find_spec` is wrapped because it does not merely return `None` for every
+    absent module -- it propagates `ImportError` when a parent package cannot be
+    imported, so a bare call is itself a way for this guard to fail for a reason
+    unrelated to what it is checking.
+    """
+    for module in ("huggingface_hub", "transformers", "torch"):
+        try:
+            if importlib.util.find_spec(module) is None:
+                return False
+        except (ImportError, ValueError):
+            return False
+    return True
+
+
+real_runtime = pytest.mark.skipif(
+    not _llm_extra_installed(),
+    reason="the llm extra is not installed in this environment",
+)
+
+
+@real_runtime
+def test_a_bogus_model_refuses_through_the_real_hub():
+    """The real `snapshot_download` miss must surface as `ProviderUnavailable`.
+
+    This is the failure the original CI run hit as a bare `ModuleNotFoundError`.
+    Whatever the hub raises for an uncached repository, the provider must
+    translate it into the one exception callers degrade on.
+    """
+    with pytest.raises(ProviderUnavailable):
+        LocalQwenProvider(
+            model="cardiosentinel/definitely-not-a-real-model",
+            revision="0" * 40,
+        )
+
+
+@real_runtime
+@pytest.mark.parametrize("revision", [None, "main", "abcdef1", "0" * 39])
+def test_a_moving_revision_is_refused_before_the_hub_is_consulted(revision):
+    """Reproducibility is enforced by the rule, not by the cache being warm.
+
+    A tag or a short hash is rejected on its own terms, so the refusal does not
+    depend on what happens to be downloaded.
+    """
+    with pytest.raises(ProviderUnavailable, match="immutable"):
+        LocalQwenProvider(model="Qwen/Qwen3-1.7B", revision=revision)
+
+
+def test_an_invented_integer_falls_back(graph):
+    """The case the registered metric is blind to by design.
+
+    `evidence_fidelity` extracts only two-or-more-decimal values, so an invented
+    whole number is invisible to it. The guard asks a different question and
+    catches it.
+    """
+    text = "The system fired 999 times. " + claims.SYSTEM_BEHAVIOUR_ONLY
+    assert not claims.audit(text), "precondition: the claim guard allows this"
+    explanation = PatientExplanationAgent(Stub(text=text)).explain(graph)
+    assert explanation.explanation_mode == DETERMINISTIC
+    assert "999" in (explanation.fallback_reason or "")
+
+
+def test_the_guard_does_not_reject_the_deterministic_renderer(graph):
+    """The regression that matters: the fallback must survive its own gate.
+
+    The template states a timestamp, a duration and a window count. If the guard
+    rejected those, every generative failure would fall back into a second
+    failure.
+    """
+    from cardiosentinel.agents.explain import TemplateRenderer
+
+    context = build_context(graph)
+    rendered = TemplateRenderer().render(context)
+    assert PatientExplanationAgent._unsupported_numeric_claims(rendered, context) == ()

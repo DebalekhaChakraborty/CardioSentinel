@@ -13,11 +13,17 @@ from collections.abc import Sequence
 from .. import claims
 from ..context import ExplanationContext
 from ..explain import TemplateRenderer
+from ..providers import ProviderIdentity
 from .metrics import ExplanationScore, score_explanation
 from .protocol import ARM_DETERMINISTIC, ARM_GENERATIVE, ArmResult, EvaluationReport
 
 #: Disclaimers both arms are expected to quote in order to deny them.
 _QUOTING: tuple[str, ...] = (claims.SYSTEM_BEHAVIOUR_ONLY,)
+
+
+def _provider_identity(provider) -> ProviderIdentity | None:
+    identity = getattr(provider, "identity", None)
+    return identity if isinstance(identity, ProviderIdentity) else None
 
 
 def _score_deterministic(
@@ -79,6 +85,9 @@ def evaluate_arms(
             arm=ARM_DETERMINISTIC,
             exercised=True,
             provider="template",
+            runtime="python",
+            host="cpu",
+            latency_scope="total render latency",
             scores=deterministic,
         )
     ]
@@ -97,11 +106,22 @@ def evaluate_arms(
             )
         )
     else:
+        identity = _provider_identity(provider)
         arms.append(
             ArmResult(
                 arm=ARM_GENERATIVE,
                 exercised=True,
-                provider=getattr(provider, "name", "unknown"),
+                provider=(
+                    identity.provider
+                    if identity
+                    else getattr(provider, "name", "unknown")
+                ),
+                model=identity.model_id if identity else None,
+                revision=identity.revision if identity else None,
+                quantization=identity.quantization if identity else None,
+                runtime=identity.runtime if identity else None,
+                host=identity.device if identity else None,
+                latency_scope="total generation latency",
                 scores=_score_generative(contexts, provider),
             )
         )
@@ -150,6 +170,12 @@ def render_report(report: EvaluationReport) -> str:
         row("exercised", lambda a: "yes" if a.exercised else "NOT EXERCISED")
     )
     lines.append(row("provider", lambda a: a.provider or "-"))
+    lines.append(row("model", lambda a: a.model or "-"))
+    lines.append(row("revision", lambda a: a.revision or "-"))
+    lines.append(row("quantization", lambda a: a.quantization or "-"))
+    lines.append(row("runtime", lambda a: a.runtime or "-"))
+    lines.append(row("host", lambda a: a.host or "-"))
+    lines.append(row("latency scope", lambda a: a.latency_scope or "-"))
     lines.append(
         row(
             "evidence fidelity",

@@ -87,50 +87,127 @@ Existing behaviour, unchanged. `audit`, not `find_violations`, because the brief
 *requires* the canonical disclaimer and raw matching would reject a model for
 complying.
 
-### 4.2 Evidence fidelity — **new, and necessary**
+### 4.2 Numeric claim guard — **a guard, not the metric**
 
 `claims.audit()` is lexical. It cannot catch a fabricated *number*.
 
 Observed while selecting the model: asked to describe
 `peak_probability = 0.545613`, a small Qwen wrote *"an estimated peak
-probability of **54.6%**"*. `54.6` appears nowhere in the evidence object.
-**The claim guard passes that text cleanly**, because a percentage breaks no
-forbidden-claim pattern.
+probability of **54.6%**"*. **The claim guard passes that text cleanly**, because
+a percentage breaks no forbidden-claim pattern.
 
-So the generative path additionally computes `evidence_fidelity()` and **falls
-back when it is below 1.0**. Rounding is not fabrication — the supported set
-already includes sensible renderings of every context value.
+**The metric and the guard are different concepts and are kept apart.**
 
-`None` — an explanation stating no numbers at all — does **not** fail the gate.
-It is recorded. An explanation that avoids numbers has not fabricated one; it
-has answered a different question, and that is a completeness concern, which
-§3.3 of the evaluation protocol already measures.
-
-### 4.3 The gate is stricter than the metric, deliberately
-
-**The registered metric does not catch the example above, and this was verified
-rather than assumed.** `evidence_fidelity` extracts numbers matching
-`\d+\.\d{2,}` — two or more decimal places. Measured behaviour:
-
-| Generated text | Extracted | Fidelity |
+| | Registered metric | Governance guard |
 |---|---|---|
-| `54.6%` | *nothing* | `None` — **gate would not fire** |
-| `54.56%` | `54.56` | `0.0` — fires |
-| `0.812345` (invented) | `0.812345` | `0.0` — fires |
-| `0.546` (rounded) | `0.546` | `1.0` — correctly permitted |
+| Question | *what fraction of extractable values are supported* | *does the text assert a number the evidence never gave it* |
+| Extracts | `\d+\.\d{2,}` — two or more decimals | number **+ optional unit**, integers included |
+| Purpose | reporting, in the trade-off table | refusing output at runtime |
+| Registered in §3.1 | **yes — unchanged** | no |
 
-The two-decimal threshold is deliberate in the metric: window counts and clock
-parts are formatting noise, not evidence claims. **That metric is registered in
-`EXPLANATION_EVALUATION_PROTOCOL.md` §3.1 and is not changed here.** Redefining a
-registered statistic so that a gate works is the failure this programme's
-apparatus exists to prevent.
+The two-decimal threshold is deliberate *in the metric*: window counts and clock
+parts are formatting noise for that statistic. **It is not changed here.**
+Redefining a registered statistic so a gate works is the failure this
+programme's apparatus exists to prevent.
 
-A gate may be stricter than the metric beside it. The generative path therefore
-adds one narrow structural check: **a `%` adjacent to a digit fails.** No field
-of `ExplanationContext` is a percentage and the template never emits one, so a
-percentage in generated prose is always a unit conversion the evidence does not
-license — and turning `0.545613` into `54.6%` changes a reported value, which is
-exactly what this layer must not do.
+**A unit changes the claim.** `0.545613` is in the evidence; `54.6%` is not, and
+neither is `54%`. Any number carrying a percent sign is refused, because no field
+of `ExplanationContext` is a percentage.
+
+Measured behaviour of the guard:
+
+| Generated text | Verdict |
+|---|---|
+| `The peak score was 0.545613` | allowed — verbatim |
+| `reached 0.546` | allowed — rounding is not fabrication |
+| `for 640 seconds`, `across 129 windows`, `at 00:17:05` | allowed — all in the context |
+| `The system achieved 54% improvement` | **refused** — no such field |
+| `peak probability of 54.6%` | **refused** — a unit the evidence never had |
+| `reached 0.812345` | **refused** — invented |
+| `fired 999 times` | **refused** — invented, and **invisible to the metric** |
+
+**The guard must never reject the deterministic renderer**, which states a
+timestamp, a duration and a window count. A gate that rejected its own fallback
+would turn every generative failure into a second failure. A test asserts it.
+
+The supported set is built from **all four context sections**, and digit runs
+inside strings count — so `"00:17:05"` licenses `00`, `17` and `05`.
+
+### 4.4 Categorical state alignment — **registered after Arm B**
+
+**Numeric and lexical guards are insufficient for categorical assertions, and
+this was discovered by running the experiment, not by anticipating it.**
+
+The first exercised Arm B run — `Qwen3-1.7B @ 70d244cc`, one context — produced a
+fluent, correctly-rounded explanation containing this sentence:
+
+> *"The system passed several safety checks, including G1 through G6."*
+
+The evidence said:
+
+```
+conditions_passed  G1, G2, G3, G6
+blocked_by         G4, G5
+```
+
+**G4 and G5 were blocked.** The sentence asserts all six passed — inverting the
+single most safety-relevant fact in the explanation, the one the contamination
+control exists to communicate.
+
+Measured against every gate then in force:
+
+| Gate | Result |
+|---|---|
+| `claims.audit()` | **0 violations** — it breaks no forbidden-claim pattern |
+| numeric claim guard | **0 unsupported** — `G1`/`G6` are not numeric claims; the digit follows a letter |
+| evidence fidelity | **1.000** |
+| completeness | **passes** — a gate-behaviour cue is present |
+
+**Every gate passed a false statement about safety state.** The gates enforce
+*numeric* and *lexical* properties. Nothing compared a categorical assertion
+against the structured fields that record the truth.
+
+#### What is now required
+
+A generated explanation must not assert a categorical state the evidence
+contradicts. Three families are checked, all against `ExplanationContext` fields
+and nothing else:
+
+| Family | Evidence field |
+|---|---|
+| gate status, passed conditions | `safety.conditions_passed` |
+| blocked conditions | `safety.blocked_by` |
+| lifecycle states | `event.type`, `event.entered_from`, `event.closed_into` |
+
+#### Evaluation criteria
+
+1. A gate named as **passed** must appear in `conditions_passed`.
+2. A gate named as **blocked** must appear in `blocked_by`.
+3. A **universal claim** — *all*, *every*, *each*, *G1 through G6* — asserting
+   that gates passed fails whenever `blocked_by` is non-empty.
+4. A **lifecycle state** named must be one the event actually carries.
+5. Text asserting no categorical claim is **not** penalised. Silence is a
+   completeness question, not an alignment failure.
+
+#### What this deliberately is not
+
+**No second model judges the first.** A generative judge would move the
+governance boundary from something checkable into something that must itself be
+trusted, and this programme's contribution is that its constraints are
+executable.
+
+**No semantic inference.** The validator works from a fixed vocabulary and the
+structured fields. It resolves ranges (`G1 through G6`) and attributes polarity
+by proximity to a fixed marker list. It does not attempt to parse meaning, and
+it fails **closed**: an assertion it cannot align is a violation, not a pass.
+
+**It is lexical too, and therefore also insufficient on its own.** It is a third
+necessary condition, not a sufficient one. Handbook §53.1's limit applies here as
+it does to the claim guard: this reduces a failure rate; it does not make
+misstatement impossible, and no claim in this document should be read as saying
+otherwise.
+
+---
 
 ---
 
