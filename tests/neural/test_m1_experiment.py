@@ -592,12 +592,45 @@ def test_missing_control_artifact_is_refused(tmp_path):
 
 
 def test_test_artifact_scan_actually_walks_the_supplied_roots(tmp_path):
-    assert scan_test_artifacts(tmp_path) == []
+    """The supplied root is walked, not ignored in favour of a constant.
+
+    Asserted as a change across one call rather than as `== []` on the first.
+    The absolute form was true only while no sealed-test artifact existed
+    anywhere, and it started failing the moment the B4-B budget was
+    legitimately consumed -- reporting a defect in a function that was working.
+    """
+    before = set(scan_test_artifacts(tmp_path))
     claimed = tmp_path / "M1S_short_memory_v1"
     claimed.mkdir()
     (claimed / "TEST_ATTEMPT.json").write_text("{}")
-    found = scan_test_artifacts(tmp_path)
-    assert any(name.endswith("TEST_ATTEMPT.json") for name in found)
+    found = set(scan_test_artifacts(tmp_path))
+    appeared = found - before
+    assert appeared, "the supplied root was not walked"
+    assert any(name.endswith("TEST_ATTEMPT.json") for name in appeared)
+    assert str(claimed / "TEST_ATTEMPT.json") in appeared
+
+
+def test_unexpected_scan_excuses_only_the_authorized_four(tmp_path):
+    """The authorized artifacts are excused by digest; anything else is not."""
+    from cardiosentinel.neural.m1_experiment import (
+        AUTHORIZED_TEST_ARTIFACTS,
+        unexpected_test_artifacts,
+    )
+
+    assert len(AUTHORIZED_TEST_ARTIFACTS) == 4
+
+    # An artifact at an authorized path whose bytes differ is still reported:
+    # a changed immutable record is a finding, not an exemption.
+    tampered = tmp_path / "phase3b2-architecture-v1" / "B4B_cnn_transformer_v1"
+    tampered.mkdir(parents=True)
+    (tampered / "TEST_ATTEMPT.json").write_text("tampered")
+    reported = unexpected_test_artifacts(tmp_path)
+    assert str(tampered / "TEST_ATTEMPT.json") in reported
+
+    # An artifact at no authorized path is reported.
+    stray = tmp_path / "TEST_SOMETHING_NEW.json"
+    stray.write_text("{}")
+    assert str(stray) in unexpected_test_artifacts(tmp_path)
 
 
 def test_preflight_refuses_when_a_test_artifact_exists(tmp_path, monkeypatch):

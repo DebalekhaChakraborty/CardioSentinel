@@ -309,9 +309,10 @@ claim guard sits between every generator and its output; a violation falls back
 to deterministic prose rather than publishing the claim. See
 `docs/ARCHITECTURE.md` §0.2 for the flow.
 
-**Four of its provenance constants are now factually false** — `research.py:95,
-167, 258` and the claim-guard strings. See defect 7. These are hardcoded, not
-read from a lock, so nothing protects them and nothing excuses them.
+**One of its curated objects is now false** — the `sealed_test_unopened` topic.
+See defect 7. `research.py:95` and `:167` restate the U1 and T2 `source_lock`
+values and are **correct**: those locks say `unopened` permanently, about their
+own runs.
 
 ---
 
@@ -504,59 +505,60 @@ and no path in it touches the test partition.
    so the second copy is the whole of the protection they will ever have.
    **Anything that changes them must be treated as a finding, not a file to
    regenerate.**
-7. **Seven runtime assertions that the sealed test is unopened are now false.**
-   Found by running the full local suite, which CI cannot reproduce — see
-   defect 9.
+7. **Runtime assertions that the sealed test is unopened — mostly fixed; one
+   editorial decision remains.**
 
-   *User-visible text:* `edge/console.py:39` emits *"The sealed neural test is
-   unopened."* as a demo limitation; `agents/claims.py:216` registers *"any
-   claim about the sealed test, which is unopened"* as an approved disclaimer;
-   `agents/claims.py:107` carries the Appendix A claim 12 rationale *"The neural
-   chain is unopened."* `docs/DEMO_SCENARIO.md` §4 and §5 mirror the console
-   strings and `tests/edge/test_demo_scenario.py` pins them, so console,
-   contract and test have to move together.
+   **Fixed:** `agents/claims.py:107` (the Appendix A claim-12 rationale, which
+   told authors *"The neural chain is unopened"* while refusing their §7 text),
+   `edge/console.py:39` and its `DEMO_SCENARIO.md` §5 counterpart, and
+   `edge/artifacts.py` — whose module docstring asserted the test *"remains
+   unopened"* and whose `provenance()` **hardcoded** `test_accessed` and
+   `sealed_test_state`. Those two are now **read from the P1-B experiment
+   lock**, which is the artifact that actually attests them; the loader refuses
+   rather than defaulting if the lock omits either. The value is unchanged. What
+   changed is that it is sourced from the record instead of asserted about the
+   world.
 
-   *Hardcoded provenance:* `edge/artifacts.py:101` and `agents/research.py:95,
-   167, 258` write `"sealed_test_state": "unopened"` into the provenance the
-   runtime reports. **These are constants, not values read from a lock.** They
-   are not attestations about a past run and carry none of the protection §8 and
-   handbook §43 extend to the frozen artifacts — they are the live system
-   answering a question wrongly.
+   **An earlier count of "seven false assertions" was wrong, and the correction
+   matters.** `agents/research.py:95` and `:167` restate the `source_lock` of
+   the **U1** and **T2** experiments. Those locks do say
+   `sealed_test_state: unopened`, permanently and correctly, so those two lines
+   are accurate — hardcoded rather than read, which is a lesser fault, but not
+   false. Only the `sealed_test_unopened` topic itself is false.
 
+   **Remaining, and deliberately not fixed:** that topic
+   (`agents/research.py:231–259`). Its name, question, decision, `basis` counts,
+   `claims_allowed` and stated reason are all the deferral argument, and
+   rewriting them means stating what the programme now says about the sealed
+   test — editorial, not a refactor.
    `tests/agents/test_research_assistant.py::test_the_sealed_test_claim_matches_the_tree`
-   **is failing on this**, correctly, and its docstring reads *"The one fact a
-   reviewer will check first."* Do not weaken it; make the claim true.
+   is still failing on it, correctly, and **must not be weakened to go green.**
 
-   **Deliberately not fixed in the documentation pass**, because it changes
-   emitted behaviour and belongs in its own reviewed change.
 8. **`stash@{0}` is a stale `CURRENT_STATE` refresh** pinned to `1018001`,
    predating the sealed test. Regenerate; do not pop.
-9. **M1 and P1 preflight are permanently pinned to one status.**
-   `m1_experiment.scan_test_artifacts()` walks
-   `REPOSITORY_ROOT/cardiosentinel-runs/**/TEST_*` **by design** — a hardcoded
-   `False` there "would make the firewall decorative", as its docstring says.
-   Its result feeds `m1_preflight`, where
-   `test_artifact_present_human_review_required` is the **highest-precedence**
-   status, and `p1_preflight`, where it sits above
-   `embedding_cache_materialization_required`.
+9. ~~**M1 and P1 preflight are permanently pinned to one status.**~~ **Closed.**
+   `m1_experiment.unexpected_test_artifacts()` now asks the question the gates
+   actually need — *"has anything appeared the authorization does not account
+   for?"* — against `AUTHORIZED_TEST_ARTIFACTS`, the four artifacts of the
+   consumed B4-B attempt **pinned by content digest**. `scan_test_artifacts` is
+   unchanged and still answers the honest primitive question, because that
+   function was never wrong. `p1_preflight`'s inline glob was rewired to the
+   same check.
 
-   So on any machine holding the evidence tree, **both preflights now return
-   that status for every run, forever**, masking cache readiness, encoder
-   verification and challenge validation underneath it.
+   **Pinned by digest, not by path**: a file at an expected path whose bytes
+   differ is **reported**, because a changed immutable record is a finding
+   rather than an exemption. The gate was not relaxed — its information content
+   was restored, and it can now say something other than one status again.
 
-   **This is not a bug and it is not unsafe.** It fails closed, which is the
-   design. It is a gate whose trigger condition became permanently true because
-   four legitimate, authorized, recorded artifacts now exist, and it has no way
-   to say *"these four are known and expected"*. **What it should say instead is
-   a governance decision, not a coding one**, which is why it is recorded rather
-   than patched. Do not simply relax the gate.
-10. **The full local suite fails seven tests and CI cannot see any of them.**
-   On `01f035e`: **7 failed, 3343 passed, 1 skipped**. Six are defect 9's gate
-   and one is defect 7's claim. All seven are invisible to CI because
-   `cardiosentinel-runs/` is gitignored and the runner has no evidence tree.
-   **CI is authoritative for "did I break something" and blind to "is the system
-   still telling the truth about the evidence on disk."** Run the local suite
-   before believing the second, and read the failures rather than counting them.
+10. **The full local suite fails where CI cannot see it.** Seven failures on
+   `01f035e` became **one** once defects 7 and 9 were addressed: only
+   `test_the_sealed_test_claim_matches_the_tree` remains, and it is failing
+   correctly on the editorial item in defect 7. All of them were invisible to CI
+   because `cardiosentinel-runs/` is gitignored and the runner has no evidence
+   tree. **CI is authoritative for "did I break something" and blind to "is the
+   system still telling the truth about the evidence on disk."** Run the local
+   suite before believing the second, and read the failures rather than counting
+   them.
 
 ### Closed since the previous refresh
 
@@ -588,10 +590,14 @@ rather than lifted — there is nothing left to open.
    `PAPER_S9_DISCUSSION_SKELETON.md`, `PAPER_S9_DISCUSSION_DRAFT.md` (#105). §9.3
    is deliberately stubbed; §9.7, the provenance-incident subsection, is accepted
    and unwritten.
-4. **Correct the stale runtime strings** (defect 7), console and contract and
-   test together, and **decide what the M1/P1 preflight gate should say now**
-   (defect 9). The second is the more consequential and is a governance call,
-   not a patch.
+4. **Decide what the `sealed_test_unopened` research topic becomes**
+   (defect 7), and **what phrasing the claim guard approves for reporting the
+   sealed test.** Appendix A claim 12 in the handbook now reads *"test
+   performance, stated unqualified"* with a reporting requirement, while
+   `agents/claims.py` still encodes the absolute form and **blocks the §7 text
+   the manuscript must contain** — `"on the sealed test set"` and `"test
+   result"` are both refused. Those two documents now disagree. **This blocks
+   next-step 1.**
 5. **Correct §7's description of what was scored.** The sealed test evaluated
    the **B4-B encoder alone** — `input_contract [B, 1, 2500]`, raw mV,
    uncalibrated sigmoid — not the assembled stack. `TEST_AUDIT.json` contains no

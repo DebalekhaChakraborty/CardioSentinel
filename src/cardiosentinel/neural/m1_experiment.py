@@ -2864,6 +2864,67 @@ def build_distance_standardizer_from_rows(
 # --------------------------------------------------------------------------
 
 
+#: The sealed-test artifacts the single consumed B4-B attempt produced on
+#: 2026-08-25 under `B4_TEST_AUTHORIZATION_V1`, pinned by content digest.
+#:
+#: **Pinned by digest, not by path.** A path allowlist would let the immutable
+#: record change underneath the gate and still pass, which is precisely the
+#: failure this gate exists to catch. A file at an expected path whose bytes
+#: differ is reported, not excused.
+AUTHORIZED_TEST_ARTIFACTS: Final = {
+    "phase3b2-architecture-v1/B4B_cnn_transformer_v1/TEST_ATTEMPT.json":
+        "7db48a2750729dc2cc53eafd731e1e7e4e5e52d65b30b7a1bc1547523b7882a2",
+    "phase3b2-architecture-v1/B4B_cnn_transformer_v1/TEST_AUDIT.json":
+        "2f6af19c47d04bfe745cd6d6d367d46555841bb4afcfccd961df0e1faa61a4bf",
+    "phase3b2-architecture-v1/B4B_cnn_transformer_v1/TEST_METRICS.json":
+        "b117da896d94dd11cfb05e156211a79dee6db6ee18b25783b2bbe0e4440ef8b0",
+    "phase3b2-architecture-v1/B4B_cnn_transformer_v1/TEST_PREDICTIONS.npz":
+        "8233d3cb70fdea976c26e9a33e1bc60caaa1fe60025f0c81b737d15f3cd53592",
+}
+
+
+def unexpected_test_artifacts(*roots: Path | None) -> list[str]:
+    """Sealed-test artifacts that are not the authorized, unmodified four.
+
+    `scan_test_artifacts` answers *"what sealed-test artifacts exist?"* and is
+    left alone, because that primitive should stay honest. This answers the
+    question the readiness gates actually need: *"has anything appeared that
+    the authorization does not account for?"*
+
+    **Why the split exists.** Before 2026-08-25 no `TEST_*` artifact existed
+    anywhere, so "any artifact" and "any unexpected artifact" were the same
+    question and the gates asked the cheaper one. The B4-B one-shot test was
+    then legitimately consumed, and every M1 and P1 preflight on a machine
+    holding the evidence began reporting `test_artifact_present_human_review_
+    required` -- masking cache readiness, encoder verification and challenge
+    validation underneath a status that could no longer become anything else.
+
+    The gate had not broken. Its trigger condition had become permanently true.
+    Restoring its information content means naming what is expected, and a
+    file that matches an expected path but not its digest is **reported**: that
+    is a changed immutable record, which is a finding rather than an excuse.
+    """
+    unexpected: list[str] = []
+    for path in scan_test_artifacts(*roots):
+        candidate = Path(path)
+        key = None
+        for known in AUTHORIZED_TEST_ARTIFACTS:
+            if candidate.as_posix().endswith(known):
+                key = known
+                break
+        if key is None:
+            unexpected.append(path)
+            continue
+        try:
+            digest = sha256_file(candidate)
+        except OSError:
+            unexpected.append(path)
+            continue
+        if digest != AUTHORIZED_TEST_ARTIFACTS[key]:
+            unexpected.append(path)
+    return unexpected
+
+
 def scan_test_artifacts(*roots: Path | None) -> list[str]:
     """Scan for sealed-test artifacts using P1's conservative semantics.
 
@@ -2958,7 +3019,7 @@ def m1_preflight(
     }
     staging = scan_staging_directories(Path(stream_cache_root))
     cache_state["staging_directories"] = staging
-    test_artifacts = scan_test_artifacts(
+    test_artifacts = unexpected_test_artifacts(
         Path(run_root), Path(stream_cache_root), p1_run_root
     )
 

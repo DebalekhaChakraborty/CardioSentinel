@@ -11,7 +11,9 @@ That reuse is the point. If the edge runtime loaded weights by a second route,
 consequence.
 
 **This module never touches TEST.** It resolves development-partition artifacts
-only, and the sealed neural test remains unopened.
+only. That remains true after the B4-B sealed test was consumed on 2026-08-25:
+nothing here reads the test partition, its cache, or any of the four artifacts
+that attempt produced.
 """
 
 from __future__ import annotations
@@ -69,6 +71,7 @@ class FrozenArtifacts:
     physiology: PhysiologyTransform
     b4b_run_dir: Path
     p1b_run_dir: Path
+    p1b_lock: dict[str, Any]
 
     @property
     def embedding_dim(self) -> int:
@@ -97,8 +100,15 @@ class FrozenArtifacts:
             "physiology_dim": PHYSIOLOGY_DIM,
             "physiology_fitted_on_partition": transform["fitted_on_partition"],
             "encoder_fine_tuned": False,
-            "test_accessed": False,
-            "sealed_test_state": "unopened",
+            # Read from the P1-B lock, not hardcoded. These two fields are that
+            # experiment's attestation about its own run -- P1-B was fitted with
+            # the B4 test unopened, and its lock says so permanently. Asserting
+            # them as constants here made the runtime state a claim about the
+            # programme rather than a fact about the artifacts it loaded, and
+            # that claim stopped being readable as true on 2026-08-25. The
+            # value is unchanged; what changed is that it is now sourced.
+            "test_accessed": self.p1b_lock["test_accessed"],
+            "sealed_test_state": self.p1b_lock["sealed_test_state"],
         }
 
 
@@ -122,11 +132,26 @@ def load_frozen_artifacts(run_root: Path | str = DEFAULT_RUN_ROOT) -> FrozenArti
     root = Path(run_root)
     b4b = resolve_run_dir(root, B4B_RUN)
     p1b = resolve_run_dir(root, P1B_RUN)
+    lock_path = p1b / "EXPERIMENT_LOCK.json"
+    if not lock_path.is_file():
+        raise EdgeArtifactError(
+            f"No EXPERIMENT_LOCK.json under {p1b}. The runtime reports its "
+            "test-access attestation from that lock and will not invent one."
+        )
+    lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    for field in ("test_accessed", "sealed_test_state"):
+        if field not in lock:
+            raise EdgeArtifactError(
+                f"P1-B lock at {lock_path} carries no {field!r}. Refusing "
+                "rather than substituting a default: a provenance field that "
+                "falls back to a constant is the defect this read replaced."
+            )
     return FrozenArtifacts(
         encoder=load_official_b4b_encoder(b4b),
         physiology=load_frozen_physiology_transform(p1b),
         b4b_run_dir=b4b,
         p1b_run_dir=p1b,
+        p1b_lock=lock,
     )
 
 
