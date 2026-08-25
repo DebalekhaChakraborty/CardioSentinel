@@ -37,7 +37,19 @@ _GATE_RANGE = re.compile(r"\bG([1-9])\s*(?:-|--|–|through|thru|to)\s*G([1-9])\
 
 #: The four states of the frozen episode protocol.
 _LIFECYCLE = ("NORMAL", "WATCH", "EVENT", "RECOVERY")
-_LIFECYCLE_TOKEN = re.compile(r"\b(" + "|".join(_LIFECYCLE) + r")\b", re.I)
+#: Case-SENSITIVE, and that is the whole point. The evidence names states in
+#: upper case, and so does every brief the model is given. Matching
+#: case-insensitively collides with ordinary English: the gate reason carried in
+#: `safety.reasons` says "the window did not look **normal** enough to learn
+#: from", so a case-insensitive match flags NORMAL as a fabricated lifecycle
+#: state in the deterministic renderer's own output. It did exactly that, and a
+#: fixture that happened to license NORMAL hid it from the regression test.
+#:
+#: The residual risk is a model writing "recovery" in lower case and not being
+#: caught. That is a false negative, and a false negative here is safer than a
+#: false positive that rejects the fallback -- which would turn every generative
+#: failure into two failures and leave the user with nothing.
+_LIFECYCLE_TOKEN = re.compile(r"\b(" + "|".join(_LIFECYCLE) + r")\b")
 
 #: Fixed vocabularies. Deliberately small: a word not listed produces no
 #: polarity, and a gate with no polarity is not judged rather than guessed at.
