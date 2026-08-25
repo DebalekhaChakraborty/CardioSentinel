@@ -36,7 +36,8 @@ LIMITATIONS = (
     "Not a diagnosis. Detection only; no clinical utility is claimed.",
     "Not deployment validation. No serving path, and a laptop is not edge hardware.",
     "Not generalisation. One dataset, twelve validation subjects.",
-    "The sealed neural test is unopened.",
+    "The sealed neural test was consumed once, on twelve subjects, and no "
+    "cohort exists to corroborate it.",
 )
 
 

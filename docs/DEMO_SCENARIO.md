@@ -64,7 +64,7 @@ Non-negotiable. A demo that omits these overclaims by omission.
 - Not a diagnosis. Detection only; no clinical utility is claimed.
 - Not deployment validation. No serving path, and a laptop is not edge hardware.
 - Not generalisation. One dataset, twelve validation subjects.
-- The sealed neural test is unopened.
+- The sealed neural test was consumed once, on twelve subjects, and no cohort exists to corroborate it.
 
 **These are quoted verbatim from `edge.console.LIMITATIONS`**, which is the
 single source. Each writer inventing its own wording is what produced the

@@ -104,7 +104,10 @@ FORBIDDEN_CLAIMS: tuple[tuple[int, str, str, str], ...] = (
         r"\btest\s+(?:set\s+)?(?:performance|accuracy|auprc|result)\b|"
         r"\bon\s+the\s+(?:sealed\s+)?test\s+set\b",
         "test performance",
-        "The neural chain is unopened; the classical chain is spent.",
+        "A B4-B sealed-test result exists as of 2026-08-25 and may be reported "
+        "only with its pre-registered boundary: 8-of-12 subject-macro "
+        "denominators, the bootstrap interval, and uncalibrated score "
+        "semantics. The classical chain is spent and not extensible.",
     ),
     (
         13,

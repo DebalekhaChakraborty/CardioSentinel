@@ -1663,9 +1663,15 @@ def p1_preflight(
                 "error": f"{type(error).__name__}: {error}",
             }
 
+    # Was an inline glob over the whole run tree. It now asks the same question
+    # M1's gate asks -- "has anything appeared the authorization does not
+    # account for?" -- so the four artifacts the consumed B4-B attempt
+    # legitimately produced do not pin this status for every future run. See
+    # `m1_experiment.unexpected_test_artifacts`.
+    from cardiosentinel.neural.m1_experiment import unexpected_test_artifacts
+
     test_artifacts = sorted(
-        path.name
-        for path in Path(REPOSITORY_ROOT).glob("cardiosentinel-runs/**/TEST_*")
+        Path(path).name for path in unexpected_test_artifacts()
     )
     caches_ready = all(entry["validated"] for entry in caches.values())
     encoder_ready = bool(encoder_state.get("matches_selected_encoder"))
