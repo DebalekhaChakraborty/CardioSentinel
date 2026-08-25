@@ -133,6 +133,82 @@ would turn every generative failure into a second failure. A test asserts it.
 The supported set is built from **all four context sections**, and digit runs
 inside strings count — so `"00:17:05"` licenses `00`, `17` and `05`.
 
+### 4.4 Categorical state alignment — **registered after Arm B**
+
+**Numeric and lexical guards are insufficient for categorical assertions, and
+this was discovered by running the experiment, not by anticipating it.**
+
+The first exercised Arm B run — `Qwen3-1.7B @ 70d244cc`, one context — produced a
+fluent, correctly-rounded explanation containing this sentence:
+
+> *"The system passed several safety checks, including G1 through G6."*
+
+The evidence said:
+
+```
+conditions_passed  G1, G2, G3, G6
+blocked_by         G4, G5
+```
+
+**G4 and G5 were blocked.** The sentence asserts all six passed — inverting the
+single most safety-relevant fact in the explanation, the one the contamination
+control exists to communicate.
+
+Measured against every gate then in force:
+
+| Gate | Result |
+|---|---|
+| `claims.audit()` | **0 violations** — it breaks no forbidden-claim pattern |
+| numeric claim guard | **0 unsupported** — `G1`/`G6` are not numeric claims; the digit follows a letter |
+| evidence fidelity | **1.000** |
+| completeness | **passes** — a gate-behaviour cue is present |
+
+**Every gate passed a false statement about safety state.** The gates enforce
+*numeric* and *lexical* properties. Nothing compared a categorical assertion
+against the structured fields that record the truth.
+
+#### What is now required
+
+A generated explanation must not assert a categorical state the evidence
+contradicts. Three families are checked, all against `ExplanationContext` fields
+and nothing else:
+
+| Family | Evidence field |
+|---|---|
+| gate status, passed conditions | `safety.conditions_passed` |
+| blocked conditions | `safety.blocked_by` |
+| lifecycle states | `event.type`, `event.entered_from`, `event.closed_into` |
+
+#### Evaluation criteria
+
+1. A gate named as **passed** must appear in `conditions_passed`.
+2. A gate named as **blocked** must appear in `blocked_by`.
+3. A **universal claim** — *all*, *every*, *each*, *G1 through G6* — asserting
+   that gates passed fails whenever `blocked_by` is non-empty.
+4. A **lifecycle state** named must be one the event actually carries.
+5. Text asserting no categorical claim is **not** penalised. Silence is a
+   completeness question, not an alignment failure.
+
+#### What this deliberately is not
+
+**No second model judges the first.** A generative judge would move the
+governance boundary from something checkable into something that must itself be
+trusted, and this programme's contribution is that its constraints are
+executable.
+
+**No semantic inference.** The validator works from a fixed vocabulary and the
+structured fields. It resolves ranges (`G1 through G6`) and attributes polarity
+by proximity to a fixed marker list. It does not attempt to parse meaning, and
+it fails **closed**: an assertion it cannot align is a violation, not a pass.
+
+**It is lexical too, and therefore also insufficient on its own.** It is a third
+necessary condition, not a sufficient one. Handbook §53.1's limit applies here as
+it does to the claim guard: this reduces a failure rate; it does not make
+misstatement impossible, and no claim in this document should be read as saying
+otherwise.
+
+---
+
 ---
 
 ## 5. What is recorded, always

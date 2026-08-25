@@ -307,11 +307,24 @@ class LocalQwenProvider:
         assert self._model is not None
         # transformers 5.x returns a BatchEncoding from apply_chat_template, not
         # a tensor, so the template is rendered to text and tokenized after.
-        text = self._tokenizer.apply_chat_template(
-            [{"role": "user", "content": f"{brief}\n\nJSON:\n{payload}"}],
-            add_generation_prompt=True,
-            tokenize=False,
-        )
+        messages = [{"role": "user", "content": f"{brief}\n\nJSON:\n{payload}"}]
+        # Qwen3 is a hybrid reasoning model: by default it emits a <think>
+        # block before its answer. An explanation layer must return the answer,
+        # not the deliberation -- and a truncated trace scores as a plausible
+        # explanation on every metric while being unusable. `enable_thinking` is
+        # Qwen-specific, so a tokenizer that does not accept it is retried
+        # without and handled by `_strip_reasoning` below.
+        try:
+            text = self._tokenizer.apply_chat_template(
+                messages,
+                add_generation_prompt=True,
+                tokenize=False,
+                enable_thinking=False,
+            )
+        except TypeError:
+            text = self._tokenizer.apply_chat_template(
+                messages, add_generation_prompt=True, tokenize=False
+            )
         encoded = self._tokenizer(text, return_tensors="pt")
         with torch.no_grad():
             output = self._model.generate(
@@ -321,7 +334,23 @@ class LocalQwenProvider:
                 pad_token_id=self._tokenizer.eos_token_id,
             )
         generated = output[0][encoded["input_ids"].shape[-1] :]
-        return self._tokenizer.decode(generated, skip_special_tokens=True)
+        return self._strip_reasoning(
+            self._tokenizer.decode(generated, skip_special_tokens=True)
+        )
+
+    @staticmethod
+    def _strip_reasoning(text: str) -> str:
+        """Remove a reasoning block, and refuse a text that is only reasoning.
+
+        Belt and braces behind `enable_thinking=False`: a model that emits a
+        trace anyway must not have it mistaken for an explanation. An unclosed
+        `<think>` means generation was truncated mid-deliberation, so there is no
+        answer to return -- empty, which the agent already treats as a fallback.
+        """
+        if "<think>" not in text:
+            return text
+        _, _, after = text.partition("</think>")
+        return after.strip() if "</think>" in text else ""
 
 
 def default_provider(*, strict_local: bool = False) -> object | None:

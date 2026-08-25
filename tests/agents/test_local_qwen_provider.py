@@ -317,7 +317,15 @@ def test_fake_cached_model_runs_through_provider_and_audit(
 
         def apply_chat_template(self, messages, **options):
             calls["messages"] = messages
-            assert options == {"add_generation_prompt": True, "tokenize": False}
+            # `enable_thinking=False` is required, not incidental: Qwen3 is a
+            # hybrid reasoning model and emits a <think> block by default. Arm B
+            # scored a truncated reasoning trace as a valid explanation before
+            # this was set, so the fake asserts the provider still asks for it.
+            assert options == {
+                "add_generation_prompt": True,
+                "tokenize": False,
+                "enable_thinking": False,
+            }
             return "rendered prompt"
 
         def __call__(self, text, *, return_tensors):

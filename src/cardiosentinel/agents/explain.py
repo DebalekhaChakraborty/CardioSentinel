@@ -29,6 +29,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Protocol
 
 from . import claims
+from .alignment import categorical_violations
 from .context import ExplanationContext, build_context
 from .graph import EvidenceGraph
 from .providers import ProviderIdentity
@@ -318,6 +319,25 @@ class PatientExplanationAgent:
                 f"evidence does not contain: {listed}",
                 identity=identity,
                 started_at=started,
+            )
+
+        # The third gate, registered in protocol §4.4 after Arm B produced a
+        # fluent, claim-compliant, numerically-faithful explanation asserting
+        # "the system passed ... G1 through G6" while G4 and G5 were blocked.
+        # Numeric and lexical guards enforce numeric and lexical properties;
+        # neither compares a categorical assertion against the field recording
+        # the truth.
+        misaligned = categorical_violations(generated, context)
+        if misaligned:
+            listed = "; ".join(item.detail for item in misaligned[:3])
+            return self._fallback(
+                context,
+                payload,
+                f"generated text contradicts the recorded state in "
+                f"{len(misaligned)} place(s): {listed}",
+                identity=identity,
+                started_at=started,
+                violations=tuple(str(item) for item in misaligned),
             )
 
         return Explanation(
