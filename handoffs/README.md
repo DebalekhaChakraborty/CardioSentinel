@@ -73,5 +73,10 @@ repository — and were **deliberately not rewritten**. They are records of what
 session knew at the time, and editing fourteen historical documents to correct a
 path is worse than a note saying so.
 
-Only **ECG 17's** self-reference was updated, twice, because it is the live one
-and the next session pastes it verbatim.
+Only the **live** handoff's self-reference is kept current, because it is the
+one the next session pastes verbatim. That is now **ECG 18**; ECG 17 joins the
+historical set and is not rewritten.
+
+**ECG 18 records the one event the chain was built around: the B4 sealed test
+was consumed on 2026-08-25.** Every handoff before it describes a programme
+with one unspent budget. None remain.
