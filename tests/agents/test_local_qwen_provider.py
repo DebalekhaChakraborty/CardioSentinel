@@ -523,16 +523,22 @@ def test_an_invented_number_falls_back(graph):
     assert not claims.audit(text), "precondition: the claim guard allows this"
     explanation = PatientExplanationAgent(Stub(text=text)).explain(graph)
     assert explanation.explanation_mode == DETERMINISTIC
-    assert "not present in the evidence" in (explanation.fallback_reason or "")
+    assert "numeric claim" in (explanation.fallback_reason or "")
+    assert "0.812345" in (explanation.fallback_reason or "")
 
 
 def test_a_percentage_conversion_falls_back(graph):
-    """0.545613 -> "54.6%" is invisible to the registered metric. See §4.3."""
+    """A unit changes the claim: 0.545613 is evidence, 54.6% is not.
+
+    The registered metric cannot see this -- one decimal place, nothing
+    extracted -- which is why the guard is a separate concept. See protocol §4.3.
+    """
     text = "The calibrated probability reached 54.6%. " + claims.SYSTEM_BEHAVIOUR_ONLY
     assert not claims.audit(text), "precondition: the claim guard allows this"
     explanation = PatientExplanationAgent(Stub(text=text)).explain(graph)
     assert explanation.explanation_mode == DETERMINISTIC
-    assert "percentage" in (explanation.fallback_reason or "")
+    assert "numeric claim" in (explanation.fallback_reason or "")
+    assert "54.6%" in (explanation.fallback_reason or "")
 
 
 def test_rounding_is_not_fabrication(graph):
@@ -659,3 +665,31 @@ def test_a_moving_revision_is_refused_before_the_hub_is_consulted(revision):
     """
     with pytest.raises(ProviderUnavailable, match="immutable"):
         LocalQwenProvider(model="Qwen/Qwen3-1.7B", revision=revision)
+
+
+def test_an_invented_integer_falls_back(graph):
+    """The case the registered metric is blind to by design.
+
+    `evidence_fidelity` extracts only two-or-more-decimal values, so an invented
+    whole number is invisible to it. The guard asks a different question and
+    catches it.
+    """
+    text = "The system fired 999 times. " + claims.SYSTEM_BEHAVIOUR_ONLY
+    assert not claims.audit(text), "precondition: the claim guard allows this"
+    explanation = PatientExplanationAgent(Stub(text=text)).explain(graph)
+    assert explanation.explanation_mode == DETERMINISTIC
+    assert "999" in (explanation.fallback_reason or "")
+
+
+def test_the_guard_does_not_reject_the_deterministic_renderer(graph):
+    """The regression that matters: the fallback must survive its own gate.
+
+    The template states a timestamp, a duration and a window count. If the guard
+    rejected those, every generative failure would fall back into a second
+    failure.
+    """
+    from cardiosentinel.agents.explain import TemplateRenderer
+
+    context = build_context(graph)
+    rendered = TemplateRenderer().render(context)
+    assert PatientExplanationAgent._unsupported_numeric_claims(rendered, context) == ()

@@ -144,6 +144,12 @@ class TemplateRenderer:
         return " ".join(sentences)
 
 
+#: A numeric claim: a number, optionally carrying a unit that changes what it
+#: asserts. Percent is the unit that matters here -- restating a probability as
+#: a percentage asserts something the evidence never said.
+_NUMERIC_CLAIM = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)\s*(%|\s?percent\b)?", re.I)
+
+
 class PatientExplanationAgent:
     """Graph in, guarded explanation out, with the mode always declared.
 
@@ -156,35 +162,79 @@ class PatientExplanationAgent:
     """
 
     @staticmethod
-    def _fidelity(text: str, context: ExplanationContext) -> float | None:
-        """Fraction of stated numbers present in the evidence, or `None`.
+    def _supported_numbers(context: ExplanationContext) -> set[str]:
+        """Every numeric token the evidence licenses, in any sane rendering.
 
-        Imported lazily: `evaluation` imports `runner`, which imports this
-        module, so a module-level import would be circular.
+        Built from **all four sections**: a duration, a window count and a policy
+        identifier are as much a part of what the model was given as a
+        probability is.
+
+        Digit runs inside strings are included, so the timestamp `"00:17:05"`
+        licenses `00`, `17` and `05`. Without that the guard would reject the
+        deterministic renderer's own output, which states when an event opened.
         """
-        from .evaluation.metrics import evidence_fidelity
+        supported: set[str] = set()
 
-        return evidence_fidelity(text, context)
+        def add_number(value: float) -> None:
+            for places in range(0, 7):
+                supported.add(f"{float(value):.{places}f}")
+            supported.add(str(value))
+            if float(value).is_integer():
+                supported.add(str(int(value)))
 
-    @staticmethod
-    def _states_a_percentage(text: str) -> bool:
-        """A percentage the evidence never contained.
+        def walk(node: Any) -> None:
+            if isinstance(node, bool) or node is None:
+                return
+            if isinstance(node, (int, float)):
+                add_number(node)
+            elif isinstance(node, str):
+                for run in re.findall(r"\d+(?:\.\d+)?", node):
+                    supported.add(run)
+                    add_number(float(run))
+            elif isinstance(node, dict):
+                for item in node.values():
+                    walk(item)
+            elif isinstance(node, (list, tuple, set)):
+                for item in node:
+                    walk(item)
 
-        **Why this is separate from `_fidelity`.** The registered fidelity metric
-        extracts numbers matching `\\d+\\.\\d{2,}` -- two or more decimals -- so a
-        probability rendered as "54.6%" is invisible to it: one decimal place,
-        nothing extracted, fidelity `None`. That threshold is deliberate in the
-        metric, which is registered in `EXPLANATION_EVALUATION_PROTOCOL.md` §3.1
-        and is **not changed here**; redefining a registered statistic to make a
-        gate work is the failure this programme's apparatus exists to prevent.
+        walk(context.as_dict())
+        return supported
 
-        A gate may be stricter than the metric it sits beside. No field of
-        `ExplanationContext` is a percentage and the template never emits one, so
-        a `%` in generated prose is always a unit conversion the evidence does
-        not license -- and converting `0.545613` into `54.6%` changes a reported
-        value, which is precisely what this layer must not do.
+    @classmethod
+    def _unsupported_numeric_claims(
+        cls, text: str, context: ExplanationContext
+    ) -> tuple[str, ...]:
+        """Numeric claims the evidence does not contain.
+
+        **A governance guard, not the registered metric.** They answer different
+        questions and are deliberately kept apart:
+
+        - `evidence_fidelity` asks *what fraction of extractable values are
+          supported*, and ignores anything with fewer than two decimals because
+          window counts and clock parts are formatting noise **for that
+          statistic**. It is registered in
+          `EXPLANATION_EVALUATION_PROTOCOL.md` §3.1 and is **not changed here**.
+          Redefining a registered statistic so a gate works is the failure this
+          apparatus exists to prevent.
+        - This asks *does the text assert a number the evidence never gave it*,
+          so it extracts integers and one-decimal values too -- which is exactly
+          where `54.6%` and `54% improvement` live, and where the metric, by
+          design, does not look.
+
+        **A unit changes the claim.** `0.545613` is in the evidence; `54.6%` is
+        not, and neither is `54%`. Any number carrying a percent sign is refused
+        unless the evidence literally contains that percentage, which no field of
+        `ExplanationContext` does.
         """
-        return bool(re.search(r"\d\s*%", text))
+        supported = cls._supported_numbers(context)
+        unsupported: list[str] = []
+        for number, unit in _NUMERIC_CLAIM.findall(text):
+            if unit:
+                unsupported.append(f"{number}{unit.strip()}")
+            elif number not in supported:
+                unsupported.append(number)
+        return tuple(dict.fromkeys(unsupported))
 
     def __init__(
         self,
@@ -258,22 +308,14 @@ class PatientExplanationAgent:
         # The second gate. `None` -- prose stating no numbers at all -- does not
         # fail: avoiding numbers is a completeness concern, which the evaluation
         # protocol measures separately, not a fabrication.
-        fidelity = self._fidelity(generated, context)
-        if fidelity is not None and fidelity < 1.0:
+        unsupported = self._unsupported_numeric_claims(generated, context)
+        if unsupported:
+            listed = ", ".join(repr(item) for item in unsupported[:4])
             return self._fallback(
                 context,
                 payload,
-                "generated text stated a number not present in the evidence "
-                f"(fidelity {fidelity:.3f})",
-                identity=identity,
-                started_at=started,
-            )
-        if self._states_a_percentage(generated):
-            return self._fallback(
-                context,
-                payload,
-                "generated text converted a value to a percentage, which the "
-                "evidence does not contain",
+                f"generated text stated {len(unsupported)} numeric claim(s) the "
+                f"evidence does not contain: {listed}",
                 identity=identity,
                 started_at=started,
             )

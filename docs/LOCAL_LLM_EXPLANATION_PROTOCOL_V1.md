@@ -87,50 +87,51 @@ Existing behaviour, unchanged. `audit`, not `find_violations`, because the brief
 *requires* the canonical disclaimer and raw matching would reject a model for
 complying.
 
-### 4.2 Evidence fidelity — **new, and necessary**
+### 4.2 Numeric claim guard — **a guard, not the metric**
 
 `claims.audit()` is lexical. It cannot catch a fabricated *number*.
 
 Observed while selecting the model: asked to describe
 `peak_probability = 0.545613`, a small Qwen wrote *"an estimated peak
-probability of **54.6%**"*. `54.6` appears nowhere in the evidence object.
-**The claim guard passes that text cleanly**, because a percentage breaks no
-forbidden-claim pattern.
+probability of **54.6%**"*. **The claim guard passes that text cleanly**, because
+a percentage breaks no forbidden-claim pattern.
 
-So the generative path additionally computes `evidence_fidelity()` and **falls
-back when it is below 1.0**. Rounding is not fabrication — the supported set
-already includes sensible renderings of every context value.
+**The metric and the guard are different concepts and are kept apart.**
 
-`None` — an explanation stating no numbers at all — does **not** fail the gate.
-It is recorded. An explanation that avoids numbers has not fabricated one; it
-has answered a different question, and that is a completeness concern, which
-§3.3 of the evaluation protocol already measures.
-
-### 4.3 The gate is stricter than the metric, deliberately
-
-**The registered metric does not catch the example above, and this was verified
-rather than assumed.** `evidence_fidelity` extracts numbers matching
-`\d+\.\d{2,}` — two or more decimal places. Measured behaviour:
-
-| Generated text | Extracted | Fidelity |
+| | Registered metric | Governance guard |
 |---|---|---|
-| `54.6%` | *nothing* | `None` — **gate would not fire** |
-| `54.56%` | `54.56` | `0.0` — fires |
-| `0.812345` (invented) | `0.812345` | `0.0` — fires |
-| `0.546` (rounded) | `0.546` | `1.0` — correctly permitted |
+| Question | *what fraction of extractable values are supported* | *does the text assert a number the evidence never gave it* |
+| Extracts | `\d+\.\d{2,}` — two or more decimals | number **+ optional unit**, integers included |
+| Purpose | reporting, in the trade-off table | refusing output at runtime |
+| Registered in §3.1 | **yes — unchanged** | no |
 
-The two-decimal threshold is deliberate in the metric: window counts and clock
-parts are formatting noise, not evidence claims. **That metric is registered in
-`EXPLANATION_EVALUATION_PROTOCOL.md` §3.1 and is not changed here.** Redefining a
-registered statistic so that a gate works is the failure this programme's
-apparatus exists to prevent.
+The two-decimal threshold is deliberate *in the metric*: window counts and clock
+parts are formatting noise for that statistic. **It is not changed here.**
+Redefining a registered statistic so a gate works is the failure this
+programme's apparatus exists to prevent.
 
-A gate may be stricter than the metric beside it. The generative path therefore
-adds one narrow structural check: **a `%` adjacent to a digit fails.** No field
-of `ExplanationContext` is a percentage and the template never emits one, so a
-percentage in generated prose is always a unit conversion the evidence does not
-license — and turning `0.545613` into `54.6%` changes a reported value, which is
-exactly what this layer must not do.
+**A unit changes the claim.** `0.545613` is in the evidence; `54.6%` is not, and
+neither is `54%`. Any number carrying a percent sign is refused, because no field
+of `ExplanationContext` is a percentage.
+
+Measured behaviour of the guard:
+
+| Generated text | Verdict |
+|---|---|
+| `The peak score was 0.545613` | allowed — verbatim |
+| `reached 0.546` | allowed — rounding is not fabrication |
+| `for 640 seconds`, `across 129 windows`, `at 00:17:05` | allowed — all in the context |
+| `The system achieved 54% improvement` | **refused** — no such field |
+| `peak probability of 54.6%` | **refused** — a unit the evidence never had |
+| `reached 0.812345` | **refused** — invented |
+| `fired 999 times` | **refused** — invented, and **invisible to the metric** |
+
+**The guard must never reject the deterministic renderer**, which states a
+timestamp, a duration and a window count. A gate that rejected its own fallback
+would turn every generative failure into a second failure. A test asserts it.
+
+The supported set is built from **all four context sections**, and digit runs
+inside strings count — so `"00:17:05"` licenses `00`, `17` and `05`.
 
 ---
 
