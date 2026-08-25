@@ -301,7 +301,9 @@ claim guard sits between every generator and its output; a violation falls back
 to deterministic prose rather than publishing the claim. See
 `docs/ARCHITECTURE.md` §0.2 for the flow.
 
-**Two of its strings are now factually stale** — see defect 7.
+**Four of its provenance constants are now factually false** — `research.py:95,
+167, 258` and the claim-guard strings. See defect 7. These are hardcoded, not
+read from a lock, so nothing protects them and nothing excuses them.
 
 ---
 
@@ -450,19 +452,59 @@ and no path in it touches the test partition.
    copy, on one machine, outside git and outside the mirror. This is the
    highest-consequence defect in this list: every other loss is recoverable by
    recomputation and this one is not. §8.
-7. **Two code paths still tell their audience the sealed test is unopened.**
-   `src/cardiosentinel/edge/console.py:39` emits *"The sealed neural test is
-   unopened."* as a demo limitation, and
-   `src/cardiosentinel/agents/claims.py:216` registers *"any claim about the
-   sealed test, which is unopened"* as an approved disclaimer, with the
-   Appendix A claim 12 rationale at `claims.py:107` reading *"The neural chain
-   is unopened."* All three are user-visible and all three are now false.
-   `docs/DEMO_SCENARIO.md` §4 and §5 mirror the console strings and are pinned
-   to them by `tests/edge/test_demo_scenario.py`, so console, contract and test
-   have to move together. **Deliberately not fixed in the documentation pass**,
-   because it changes emitted behaviour and belongs in its own reviewed change.
+7. **Seven runtime assertions that the sealed test is unopened are now false.**
+   Found by running the full local suite, which CI cannot reproduce — see
+   defect 9.
+
+   *User-visible text:* `edge/console.py:39` emits *"The sealed neural test is
+   unopened."* as a demo limitation; `agents/claims.py:216` registers *"any
+   claim about the sealed test, which is unopened"* as an approved disclaimer;
+   `agents/claims.py:107` carries the Appendix A claim 12 rationale *"The neural
+   chain is unopened."* `docs/DEMO_SCENARIO.md` §4 and §5 mirror the console
+   strings and `tests/edge/test_demo_scenario.py` pins them, so console,
+   contract and test have to move together.
+
+   *Hardcoded provenance:* `edge/artifacts.py:101` and `agents/research.py:95,
+   167, 258` write `"sealed_test_state": "unopened"` into the provenance the
+   runtime reports. **These are constants, not values read from a lock.** They
+   are not attestations about a past run and carry none of the protection §8 and
+   handbook §43 extend to the frozen artifacts — they are the live system
+   answering a question wrongly.
+
+   `tests/agents/test_research_assistant.py::test_the_sealed_test_claim_matches_the_tree`
+   **is failing on this**, correctly, and its docstring reads *"The one fact a
+   reviewer will check first."* Do not weaken it; make the claim true.
+
+   **Deliberately not fixed in the documentation pass**, because it changes
+   emitted behaviour and belongs in its own reviewed change.
 8. **`stash@{0}` is a stale `CURRENT_STATE` refresh** pinned to `1018001`,
    predating the sealed test. Regenerate; do not pop.
+9. **M1 and P1 preflight are permanently pinned to one status.**
+   `m1_experiment.scan_test_artifacts()` walks
+   `REPOSITORY_ROOT/cardiosentinel-runs/**/TEST_*` **by design** — a hardcoded
+   `False` there "would make the firewall decorative", as its docstring says.
+   Its result feeds `m1_preflight`, where
+   `test_artifact_present_human_review_required` is the **highest-precedence**
+   status, and `p1_preflight`, where it sits above
+   `embedding_cache_materialization_required`.
+
+   So on any machine holding the evidence tree, **both preflights now return
+   that status for every run, forever**, masking cache readiness, encoder
+   verification and challenge validation underneath it.
+
+   **This is not a bug and it is not unsafe.** It fails closed, which is the
+   design. It is a gate whose trigger condition became permanently true because
+   four legitimate, authorized, recorded artifacts now exist, and it has no way
+   to say *"these four are known and expected"*. **What it should say instead is
+   a governance decision, not a coding one**, which is why it is recorded rather
+   than patched. Do not simply relax the gate.
+10. **The full local suite fails seven tests and CI cannot see any of them.**
+   On `01f035e`: **7 failed, 3343 passed, 1 skipped**. Six are defect 9's gate
+   and one is defect 7's claim. All seven are invisible to CI because
+   `cardiosentinel-runs/` is gitignored and the runner has no evidence tree.
+   **CI is authoritative for "did I break something" and blind to "is the system
+   still telling the truth about the evidence on disk."** Run the local suite
+   before believing the second, and read the failures rather than counting them.
 
 ### Closed since the previous refresh
 
@@ -496,8 +538,10 @@ rather than lifted — there is nothing left to open.
    and unwritten.
 4. **Back up the sealed-test artifacts** (defect 6) and re-verify the mirror with
    a date attached (defect 1).
-5. **Correct the two stale runtime strings** (defect 7), console and contract and
-   test together.
+5. **Correct the stale runtime strings** (defect 7), console and contract and
+   test together, and **decide what the M1/P1 preflight gate should say now**
+   (defect 9). The second is the more consequential of the two and is a
+   governance call, not a patch.
 
 Leaving the freeze requires a named experiment with a pre-registered protocol,
 as T1, T2, U1 and W1 each had. The two candidates are the **T2-score ablation**
