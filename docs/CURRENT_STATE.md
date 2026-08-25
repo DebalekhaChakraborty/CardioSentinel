@@ -412,10 +412,14 @@ and no path in it touches the test partition.
    **Experiment locks cannot be corrected in place even in principle.**
    `experiment_lock_sha256` is self-referential — the SHA-256 of the lock with
    that field removed, `sort_keys=True`, `separators=(",", ":")` — so editing
-   any field changes the lock's own digest, and B4-B's is registered in 28 files
-   including three downstream protocol documents and five other experiments'
-   locks. `neural.integrity.verify_experiment_lock()` (#104) implements the
-   check. **Translate; never edit.**
+   any field changes the lock's own digest, and B4-B's appears in **32 files**
+   — measured 2026-08-25, excluding caches — across the docs, the source, the
+   tests, the demo bundle and the evidence tree, **9 of them other experiments'
+   `EXPERIMENT_LOCK.json`**, 13 of them tracked in git.
+   `neural.integrity.verify_experiment_lock()` (#104) implements the check.
+   **Translate; never edit.** *(The ECG 18 handoff says 28 files. That figure
+   was inherited; re-counting gives 32. It changes no conclusion, but quote the
+   measured one.)*
 
    Pre-rewrite history is preserved in `refs/original/*`,
    `refs/local-backup/pre-coauthor-rewrite` and

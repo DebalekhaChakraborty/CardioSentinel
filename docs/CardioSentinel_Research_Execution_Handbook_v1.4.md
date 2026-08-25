@@ -709,10 +709,24 @@ one-shot semantics above are what make the state irreversible.
 `sealed_test_state: unopened`, and they are correct.** Each such field is an
 attestation about the run that wrote it — P1, M1, M2, U1, T1 and T2 each ran
 with the B4 test unopened, and each says so about itself. They are historical
-records, not a live status board, and roughly eighty of them sit inside sealed
-`EXPERIMENT_LOCK.json` files whose self-referential digest is registered
-elsewhere. **Do not "correct" them.** Read `sealed_test_state` as *"the state at
-the time this artifact was written"*, and read this section for the state now.
+records, not a live status board. **Do not "correct" them.** Read
+`sealed_test_state` as *"the state at the time this artifact was written"*, and
+read this section for the state now.
+
+**Measured 2026-08-25**, excluding `__pycache__` and `.pytest_cache`: the string
+`"sealed_test_state": "unopened"` occurs in **97 files** — **67 of them `.json`
+artifacts**, **58 of those under `cardiosentinel-runs/`**, and **13 of them
+`EXPERIMENT_LOCK.json`**. The other 29 are `.py` files in `src/` and `tests/`,
+where the value is the constant a T1 or T2 run writes about itself rather than a
+status anyone reads. *Earlier drafts of this section and of §51 said "80
+artifacts". That figure was inherited rather than counted, and it did not
+survive being counted.*
+
+Editing a lock is not merely wrong but arithmetically impossible in isolation.
+`experiment_lock_sha256` is self-referential, and B4-B's appears in **32 files**
+across the docs, the source, the tests, the demo bundle and the evidence tree —
+**9 of them other experiments' `EXPERIMENT_LOCK.json`**, 13 of them tracked in
+git. `neural.integrity.verify_experiment_lock()` implements the check.
 
 **Do not**, for the B4 chain, execute evaluate-locked-test; create a second
 `TEST_ATTEMPT.json`; re-score, amend or regenerate `TEST_METRICS.json`,

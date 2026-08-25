@@ -197,10 +197,11 @@ cardiosentinel agent graph s20201 --format lineage --of measurement:p_t \
 
 **`sealed_test_state: unopened` in that lock is correct and will not change.** It
 is U1's attestation about U1 — the calibrator was fitted with the B4 test
-unopened, and the lock says so about itself. It is not a status board. Around
-eighty artifacts carry that field, each pinned by a self-referential digest, and
-**editing one to reflect 2026-08-25 would be falsifying a record, not updating
-it.** Handbook §43 says how to read the field.
+unopened, and the lock says so about itself. It is not a status board. Sixty-seven
+`.json` artifacts carry that field, thirteen of them `EXPERIMENT_LOCK.json` files
+pinned by a self-referential digest, and **editing one to reflect 2026-08-25
+would be falsifying a record, not updating it.** Handbook §43 says how to read
+the field, and carries those counts with the date they were measured.
 
 **And this one needs the full evidence tree**, which is git-ignored and not
 distributed — it is what *we* run, listed so you can see what we check:
