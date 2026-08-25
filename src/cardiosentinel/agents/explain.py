@@ -23,6 +23,8 @@ handbook, no reports, no research prose. See `context.py`.
 
 from __future__ import annotations
 
+import re
+import time
 from dataclasses import asdict, dataclass, field
 from typing import Any, Protocol
 
@@ -76,6 +78,12 @@ class Explanation:
     fallback_reason: str | None = None
     claim_violations: tuple[str, ...] = ()
     context: dict[str, Any] = field(default_factory=dict)
+    #: Model id WITH revision, e.g. `Qwen/Qwen3-1.7B@<sha>`. A bare tag is a
+    #: moving pointer; provenance here is expected to outlive the tag moving.
+    model: str | None = None
+    #: Wall clock for the path actually taken, generative or deterministic.
+    #: Not comparable across hosts, and reported with that caveat.
+    latency_seconds: float | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -132,7 +140,46 @@ class TemplateRenderer:
 
 
 class PatientExplanationAgent:
-    """Graph in, guarded explanation out, with the mode always declared."""
+    """Graph in, guarded explanation out, with the mode always declared.
+
+    **Two gates, not one.** `claims.audit` is lexical and cannot catch a
+    fabricated *number*: asked to describe `peak_probability = 0.545613`, a
+    model that writes "an estimated peak probability of 54.6%" passes the claim
+    guard cleanly, because a percentage breaks no forbidden-claim pattern. So
+    generated text is additionally scored for evidence fidelity and falls back
+    when it states a number the evidence does not contain.
+    """
+
+    @staticmethod
+    def _fidelity(text: str, context: ExplanationContext) -> float | None:
+        """Fraction of stated numbers present in the evidence, or `None`.
+
+        Imported lazily: `evaluation` imports `runner`, which imports this
+        module, so a module-level import would be circular.
+        """
+        from .evaluation.metrics import evidence_fidelity
+
+        return evidence_fidelity(text, context)
+
+    @staticmethod
+    def _states_a_percentage(text: str) -> bool:
+        """A percentage the evidence never contained.
+
+        **Why this is separate from `_fidelity`.** The registered fidelity metric
+        extracts numbers matching `\d+\.\d{2,}` -- two or more decimals -- so a
+        probability rendered as "54.6%" is invisible to it: one decimal place,
+        nothing extracted, fidelity `None`. That threshold is deliberate in the
+        metric, which is registered in `EXPLANATION_EVALUATION_PROTOCOL.md` §3.1
+        and is **not changed here**; redefining a registered statistic to make a
+        gate work is the failure this programme's apparatus exists to prevent.
+
+        A gate may be stricter than the metric it sits beside. No field of
+        `ExplanationContext` is a percentage and the template never emits one, so
+        a `%` in generated prose is always a unit conversion the evidence does
+        not license -- and converting `0.545613` into `54.6%` changes a reported
+        value, which is precisely what this layer must not do.
+        """
+        return bool(re.search(r"\d\s*%", text))
 
     def __init__(
         self,
@@ -150,6 +197,8 @@ class PatientExplanationAgent:
         if self._provider is None:
             return self._fallback(context, payload, "no provider configured")
 
+        model_name = getattr(self._provider, "model_name", None)
+        started = time.perf_counter()
         try:
             import json
 
@@ -162,11 +211,16 @@ class PatientExplanationAgent:
                 payload,
                 f"provider {self._provider.name!r} failed: "
                 f"{type(error).__name__}",
+                model=model_name,
             )
+        elapsed = time.perf_counter() - started
 
         if not generated or not generated.strip():
             return self._fallback(
-                context, payload, f"provider {self._provider.name!r} returned nothing"
+                context,
+                payload,
+                f"provider {self._provider.name!r} returned nothing",
+                model=model_name,
             )
 
         # `audit`, not `find_violations`: the brief REQUIRES the canonical
@@ -181,6 +235,28 @@ class PatientExplanationAgent:
                 f"generated text broke the claim boundary "
                 f"({len(violations)} violation(s))",
                 violations=tuple(str(violation) for violation in violations),
+                model=model_name,
+            )
+
+        # The second gate. `None` -- prose stating no numbers at all -- does not
+        # fail: avoiding numbers is a completeness concern, which the evaluation
+        # protocol measures separately, not a fabrication.
+        fidelity = self._fidelity(generated, context)
+        if fidelity is not None and fidelity < 1.0:
+            return self._fallback(
+                context,
+                payload,
+                "generated text stated a number not present in the evidence "
+                f"(fidelity {fidelity:.3f})",
+                model=model_name,
+            )
+        if self._states_a_percentage(generated):
+            return self._fallback(
+                context,
+                payload,
+                "generated text converted a value to a percentage, which the "
+                "evidence does not contain",
+                model=model_name,
             )
 
         return Explanation(
@@ -188,6 +264,8 @@ class PatientExplanationAgent:
             explanation_mode=GENERATIVE,
             provider=self._provider.name,
             context=payload,
+            model=model_name,
+            latency_seconds=elapsed,
         )
 
     def _fallback(
@@ -197,10 +275,12 @@ class PatientExplanationAgent:
         reason: str,
         *,
         violations: tuple[str, ...] = (),
+        model: str | None = None,
     ) -> Explanation:
         # The template output is guarded too. If the deterministic renderer
         # ever breaks the boundary that is a defect in this repository, not a
         # model's fault, and it should fail loudly.
+        started = time.perf_counter()
         text = claims.enforce(self._renderer.render(context))
         return Explanation(
             text=text,
@@ -209,4 +289,6 @@ class PatientExplanationAgent:
             fallback_reason=reason,
             claim_violations=violations,
             context=payload,
+            model=model,
+            latency_seconds=time.perf_counter() - started,
         )
