@@ -514,10 +514,22 @@ and no path in it touches the test partition.
    opened and closed twice in three days. The guarantee is only as current as
    its last check, so re-verify with a date attached rather than inheriting
    this one.
-2. **The generative explanation path has never run against a real model.** An
-   opt-in local Qwen provider exists after #121, but its tests use stubs and no
-   real-model comparison has been reported. The unexercised status remains in
-   the table rather than being hidden in a footnote.
+2. ~~The generative explanation path has never run against a real model~~ —
+   **closed 2026-08-25.** Arm B is exercised: `Qwen/Qwen3-1.7B` at revision
+   `70d244cc`, greedy on CPU, reported in
+   `docs/EXPLANATION_EVALUATION_REPORT_V1.md`. Fidelity 1.000, **0 claim
+   violations**, completeness 1.000, 63.4 s.
+
+   **The result worth carrying forward is not the table.** The same generation
+   asserted that a `G1`–`G6` range passed while G4 and G5 were blocked, and named
+   a lifecycle state the event never carried. Three gates and four registered
+   metrics passed it; the categorical alignment validator refused it and the user
+   received the deterministic explanation. The failure reproduced across two
+   independent runs.
+
+   **The harness measures raw model output** — it calls `provider.generate()`
+   directly and no runtime gate runs during evaluation. That table is not what a
+   user receives, and reading it as such would be wrong.
 3. **Three empty packages** advertise an architecture the code does not use.
    Repair named in `docs/ARCHITECTURE.md` §5, deliberately not done during the
    freeze.
