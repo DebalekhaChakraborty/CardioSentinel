@@ -15,6 +15,12 @@ decide and why"*. Read
 governing account of itself, `docs/ARCHITECTURE.md` for where the code actually
 lives, and `docs/EXPERIMENT_CATALOGUE.md` for what has been spent.
 
+For the sealed test specifically:
+`docs/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md` for **what the number is made
+of** — written after the values were read, and explicitly not a revision of
+anything pre-registered — and `docs/IMPROVEMENT_ROADMAP_V1.md` for what follows
+from it. **Neither authorizes an experiment.**
+
 ---
 
 **As of:** `origin/master` `c5595b3` (merge of PR #116), 2026-08-25 ·
@@ -104,7 +110,9 @@ remote.** It is the pre-rewrite identifier for `544581e`. Translate through
 ## 2. Where this stands vs. the plan docs
 
 `docs/IMPLEMENTATION_PLAN.md` was refreshed in #68 and #77.
-`docs/README.md` and `docs/REPO_AUDIT.md` were refreshed in #77.
+`docs/REPO_AUDIT.md` was refreshed in #77. *(#77 also refreshed a
+`docs/README.md`; no such file exists on master today, and this line has carried
+the claim forward unchecked ever since.)*
 `docs/RESEARCH_SCOPE.md` has not been revised since 2026-08-07 and does not
 need to be: the objective it states is unchanged.
 
@@ -584,7 +592,13 @@ rather than lifted — there is nothing left to open.
    test together, and **decide what the M1/P1 preflight gate should say now**
    (defect 9). The second is the more consequential and is a governance call,
    not a patch.
-5. **Re-verify the mirror when the session next expires** (defect 1, closed
+5. **Correct §7's description of what was scored.** The sealed test evaluated
+   the **B4-B encoder alone** — `input_contract [B, 1, 2500]`, raw mV,
+   uncalibrated sigmoid — not the assembled stack. `TEST_AUDIT.json` contains no
+   reference to S4D, M1L, M2-G, P1-B or U1. Any sentence implying the reported
+   number characterises the full pipeline is wrong on the record.
+   `B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md` §1.
+6. **Re-verify the mirror when the session next expires** (defect 1, closed
    twice now). §8.1 lists what a real check is: contents, not a headcount.
 
 Leaving the freeze requires a named experiment with a pre-registered protocol,
