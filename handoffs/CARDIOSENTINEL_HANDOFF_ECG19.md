@@ -155,12 +155,37 @@ claim, and only one arrangement refuses before writing a receipt.
 > paper is allowed to say, and the roadmap's §6 lists what is prohibited and
 > why.
 >
-> **One thing from that analysis belongs here rather than three clicks away.
-> The sealed test evaluated the B4-B encoder alone** — `input_contract
-> [B, 1, 2500]`, raw mV, uncalibrated sigmoid — **not the assembled stack.**
-> `TEST_AUDIT.json` contains no reference to S4D, M1L, M2-G, P1-B or U1. If you
-> write, review or accept a sentence implying the reported number characterises
-> the full pipeline, that sentence is wrong on the record.
+> **Two things from that analysis belong here rather than three clicks away.**
+>
+> **First: the sealed test evaluated the B4-B encoder alone, and that is
+> correct.** `B4_PROTOCOL_V1` §Scope pre-registered it as *"a global,
+> single-channel comparator to the frozen B0–B3 classical baselines… not the
+> CardioSentinel contribution"*. Nothing went wrong; the IPS was never in scope
+> for this budget. But **§7 must not imply the number characterises the
+> assembled pipeline**, and no sealed-test result for the IPS exists or ever
+> will.
+>
+> **Second, and it is the finding: the registered comparison is to B0–B3, and
+> B4-B loses it.** Same partition, same denominators, all consumed:
+>
+> ```
+> B0 constant prior   pooled AUPRC 0.0460529   AUROC 0.5000
+> B1 signal logreg                 0.1172989         0.7900
+> B2 morphology lr                 0.1640117         0.8227
+> B3 morphology HGB                0.1682901         0.8360   <- best
+> B4-B neural                      0.0935334         0.7332
+> ```
+>
+> **The registered research question is answered NO.** B4-B was below B3 on
+> validation too (0.3805 vs 0.6801), so the sealed test confirmed the
+> development ordering rather than reversing it. **This is a clean
+> pre-registered negative finding and the paper should report it as one**, in
+> the same voice RQ3's rejected router gets.
+>
+> **ECG 18 got this wrong twice before getting it right**, and the lesson is
+> §8.1 of the analysis: it diagnosed from B4-B's numbers alone while the
+> comparator sat consumed and unread in `phase3b-classical-v3/`. **Compare
+> against what already exists before diagnosing.**
 
 ### 4.1 §2 Related Work — the blocker, still unstarted
 
