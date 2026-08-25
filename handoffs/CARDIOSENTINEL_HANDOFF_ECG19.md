@@ -148,6 +148,20 @@ claim, and only one arrangement refuses before writing a receipt.
 
 ## 4. Open items for ECG 19, in priority order
 
+> **Read `docs/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md` before touching the
+> manuscript, and `docs/IMPROVEMENT_ROADMAP_V1.md` before proposing any
+> experiment.** Both were written by ECG 18 after the sealed-test values were
+> read. Neither authorizes anything. The analysis' §1 changes what §7 of the
+> paper is allowed to say, and the roadmap's §6 lists what is prohibited and
+> why.
+>
+> **One thing from that analysis belongs here rather than three clicks away.
+> The sealed test evaluated the B4-B encoder alone** — `input_contract
+> [B, 1, 2500]`, raw mV, uncalibrated sigmoid — **not the assembled stack.**
+> `TEST_AUDIT.json` contains no reference to S4D, M1L, M2-G, P1-B or U1. If you
+> write, review or accept a sentence implying the reported number characterises
+> the full pipeline, that sentence is wrong on the record.
+
 ### 4.1 §2 Related Work — the blocker, still unstarted
 
 Still does not exist, still blocks §9.3, and carries the §6.3 condition of
@@ -264,6 +278,22 @@ provenance-incident subsection as accepted-and-unwritten; reconcile the two.
 ### 4.5 RQ5 / edge
 
 Still open. A laptop replay is not an edge measurement. Nothing has changed.
+
+### 4.6 The improvement work — do not start it before §2 is written
+
+`docs/IMPROVEMENT_ROADMAP_V1.md` has a Phase 1 exit gate that says *manuscript
+submitted*, and it is there for a reason: **§2 carries a non-contamination
+condition whose integrity degrades the longer anyone holds the failure analysis
+in mind.** The roadmap is deliberately sequenced so the interesting work comes
+second.
+
+When Phase 2 does open, its first two items are the cheapest in the document
+and neither trains anything: build the leave-subjects-out transfer instrument
+over the 68-subject development pool, and **measure M2-G's admission rate over
+full recordings.** The demo contract records 0 admissions over 2,400 s, which is
+correct during an event and unmeasured everywhere else. If that rate is near
+zero in general, the per-subject calibrator — the roadmap's highest-leverage
+build — is inert before it starts.
 
 ---
 
