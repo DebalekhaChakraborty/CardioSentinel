@@ -27,13 +27,16 @@ open one.
 
 | | |
 |---|---|
-| **Latest** | **ECG 17** — the one to read |
-| Covers | master `be70d65`, PR #99 open, branch tree cleaned to four, S3 mirror re-verified 2026-08-24 |
+| **Latest** | **ECG 20** — the one to read |
+| Covers | master `6be26f9`, no open PRs, the open-weight explanation layer built and exercised |
 
 ## Index, newest first
 
 | Session | Date | The danger it named for the session after it |
 |---|---|---|
+| **ECG 20** | 2026-08-25 | the governance layer generating its own work, all of it defensible |
+| ECG 19 | 2026-08-25 | making true documents truer, instead of writing §2 |
+| ECG 18 | 2026-08-25 | *(named by ECG 19)* |
 | **ECG 17** | 2026-08-24 | planning and tidying in place of writing — the next defensible task |
 | ECG 16 | 2026-08-24 | stopping short of the manuscript |
 | ECG 15 | 2026-08-23 | the codebase outrunning its documentation |
