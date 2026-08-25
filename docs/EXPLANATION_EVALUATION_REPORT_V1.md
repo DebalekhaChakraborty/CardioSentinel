@@ -23,8 +23,8 @@ authorization.
 | Contexts evaluated | **1** — the scenario produces exactly one alert |
 | Arm A | `TemplateRenderer` |
 | Arm B | `LocalQwenProvider` |
-| Model | `Qwen/Qwen3-1.7B` |
-| Revision | `70d244cc86ccca08cf5af4e1e306ecf908b1ad5e` |
+| Models | `Qwen/Qwen3-1.7B` and `Qwen/Qwen3-4B-Instruct-2507` |
+| Revisions | `70d244cc86ccca08cf5af4e1e306ecf908b1ad5e` · `cdbee75f17c01a7cc42f958dc650907174af0554` |
 | Quantization | none |
 | Runtime · host | `transformers` · CPU, 32 cores, no GPU |
 | Decoding | greedy, `do_sample=False`, `max_new_tokens=400` |
@@ -74,12 +74,10 @@ wrong.
 mode = DETERMINISTIC
   gate_range_passed : the range asserts G4, G5 as passed,
                       which the evidence does not record
-  lifecycle_state   : NORMAL is named, but the event records
-                      only EVENT, RECOVERY, WATCH
 ```
 
-The user received the deterministic explanation, with the mode and both
-contradictions recorded.
+The user received the deterministic explanation, with the mode and the
+contradiction recorded.
 
 ### 4.1 The generation was fluent, faithful, and wrong
 
@@ -87,8 +85,7 @@ It scored **fidelity 1.000**, **0 claim violations**, **completeness 1.000**. It
 rounded correctly, ended with the canonical disclaimer, and invented no number.
 
 It also asserted that a `G1`–`G6` range passed when **G4 and G5 were blocked** —
-inverting the fact the contamination control exists to communicate — and named a
-lifecycle state the event never carried.
+inverting the fact the contamination control exists to communicate.
 
 **The first three gates passed it. The fourth did not.**
 
@@ -98,11 +95,45 @@ The categorical inversion appeared on **two independent runs**, before and after
 the reasoning-mode fix, on the same context. That makes it a repeatable failure
 mode of this model on this evidence, not an anecdote.
 
-### 4.3 A failure that was not anticipated
+### 4.3 A reported failure that was not one
 
-The lifecycle check was implemented because it was specified, not because there
-was evidence it was needed. **It fired.** No prior run had produced a fabricated
-state, and none of the three earlier gates detects one.
+**An earlier draft of this report recorded a second violation — a fabricated
+lifecycle state — against both models. That was a defect in the validator, not a
+failure of either model, and it is corrected here rather than quietly dropped.**
+
+`NORMAL` is a lifecycle state and *normal* is an ordinary adjective. The
+validator matched case-insensitively, and `safety.reasons` carries the gate
+reason verbatim: *"the window did not look normal enough to learn from."* Any
+explanation quoting that reason — **including the deterministic renderer's own
+output** — was reported as naming a state the event never carried.
+
+The regression test written for exactly this property passed, because its fixture
+set `closed_into` to `NORMAL` and so licensed the state. **The fixture agreed
+with the code; only the real data disagreed.**
+
+Fixed by matching case-sensitively, since the evidence and every brief name
+states in upper case. The residual risk is a lower-case state escaping the check
+— a false negative, which is safer than a false positive that rejects the
+fallback and leaves the user with nothing.
+
+**The lifecycle dimension remains registered and remains unproven.** No run has
+yet produced a genuine fabricated state.
+
+### 4.4 What the two models did, corrected
+
+| Model | Outcome |
+|---|---|
+| `Qwen3-1.7B` @ `70d244cc` | **DETERMINISTIC** — `gate_range_passed`. The inversion is real, reproduces, and is caught |
+| `Qwen3-4B-Instruct-2507` @ `cdbee75f` | **GENERATIVE** — no gate fired; the generation was served |
+
+The 4B model stated the same fact correctly: *"passed conditions G1, G2, G3, and
+G6, and the baseline update was blocked by rules G4 and G5."*
+
+**Two models, one context. That is not a scaling law**, and this report does not
+offer it as one. What it shows is that the failure the guard was built for is
+model-dependent rather than universal, which makes the guard's value dependent on
+which model is deployed — and small models are the ones most likely to be
+deployed on constrained hardware.
 
 ---
 
