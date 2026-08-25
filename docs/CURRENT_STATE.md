@@ -17,36 +17,44 @@ lives, and `docs/EXPERIMENT_CATALOGUE.md` for what has been spent.
 
 ---
 
-**As of:** `origin/master` `0480b34` (merge of PR #97), 2026-08-24 ·
+**As of:** `origin/master` `61d9009` (merge of PR #110), 2026-08-25 ·
 tags `research-freeze-v1.0` · `ips-agentic-runtime-v1.0`
-**Working tree:** clean
-**Open PRs:** none. *(Snapshot only — `gh pr list` is authoritative and free;
-this line is stale the moment a PR opens or merges.)*
+**Working tree:** shared by three workers; run `git status` before assuming
+anything about it
+**Open PRs:** #111, #112 at the time of writing. *(Snapshot only — `gh pr list`
+is authoritative and free; this line is stale the moment a PR opens or merges.)*
 **Canonical T1 attempt:** **CONSUMED** — failed post-claim at stage 24
 **T1 measurement continuation:** **COMPLETED** — the single authorization is spent
 **T2 outer validation:** **CONSUMED and ANALYSED** — values published
-**Sealed B4/neural TEST:** **unopened — the last irreversible budget**
+**Sealed B4/neural TEST:** **CONSUMED 2026-08-25 — attempt 1 of 1, and the last
+budget in the programme**
 
 ---
 
-## Live flag — the system is complete and the paper is not
+## Live flag — every budget is spent, and the paper is still not written
 
-Every derived analysis that required no new authorization has been executed, and
-the intelligent physical system built on top of that frozen evidence is now
-complete: it senses, decides, explains, and refuses claims its evidence does not
-support.
+**The B4 / neural sealed test was consumed on 2026-08-25, 00:17:57Z to
+00:43:22Z.** It was the fifteenth of fifteen one-shot budgets and the last
+unspent one. **There is now no budget left to protect and none left to spend.**
 
-**Nothing further can be run without one of three things:** a new human
-authorization, a re-scoring run, or data the project does not have.
+This changes what the governance machinery is *for*. Until 2026-08-25 it
+protected an unspent access; from now on it protects the **record** of accesses
+already taken. Consumed attempt directories are immutable, the four sealed-test
+artifacts are immutable, and every `*_AUTHORIZED` flag sitting `True` on disk is
+a spent token rather than a live permission.
+
+**Nothing further can be measured without one of three things:** a new human
+authorization, a re-scoring run, or data the project does not have. That was
+true before the sealed test opened; the one remaining exception has now been
+taken.
 
 **The remaining gap is the manuscript, not model capability.** §2 Related Work
-and §9 Discussion still do not exist as prose, and the literature search that
-§2 depends on has not been started.
-
-The flags `T1_CONTINUATION_AUTHORIZED` and
-`T2_OUTER_VALIDATION_EXECUTION_AUTHORIZED` are both `True` on disk. **Both are
-spent tokens, not live permissions.** The re-run guard is the persistence claim
-— an attempt directory that already exists is refused — not the flag.
+still does not exist and its literature search has not been started — and it now
+carries the §6.3 condition of `B4_TEST_AUTHORIZATION_V1.md`: **§2 must not be
+shaped by the sealed-test result.** §9 Discussion exists as a merged skeleton and
+draft (#105), both written *before* the test opened, which is the point: a
+discussion revised in light of the result would be post-hoc reasoning whatever
+it concluded.
 
 ---
 
@@ -54,33 +62,42 @@ spent tokens, not live permissions.** The re-run guard is the persistence claim
 
 | | |
 |---|---|
-| `origin/master` | `0480b34c9c3eaef7a31039edaf13d21590835033` — merge of PR #97 |
-| Tags | `research-freeze-v1.0` (science frozen) · `ips-agentic-runtime-v1.0` (agentic layer complete) |
+| `origin/master` | `61d9009b17293304ec3f4590a9ace1f3b8421acd` — merge of PR #110 |
+| Tags | `research-freeze-v1.0` · `ips-agentic-runtime-v1.0` · `legacy/v0` · three `archive/*` tags |
 | Releases | none |
-| Working tree | clean, no untracked non-ignored files |
-| Open PRs | none at the pin above |
-| Tracked Python | 287 files · 124,672 LOC |
-| Tests | 116 files · **3,302 collected** — 3,301 passed, 1 skipped |
-| Documents | 74 in `docs/` (67 `.md`) |
-| Handbook | **v1.4** (v1.2 and v1.3 retained, superseded, unedited) |
+| Working tree | **shared.** Two Claude sessions and the user work in this checkout; `HEAD` moves under you |
+| Open PRs | #111 (ECG 18 handoff), #112 (CI repair) |
+| Tracked Python | 291 files · 126,060 LOC |
+| Tests | 119 files |
+| Documents | 82 in `docs/` (75 `.md`) |
+| Handbook | **v1.4**, amended 2026-08-25 (v1.2 and v1.3 retained, superseded, unedited) |
+| `neural/` | 87 files · 54,897 LOC — still where the work lives |
+| `edge/` · `agents/` | 1,666 · 3,065 lines |
+| `reproducibility/` | 35 tracked files including the 1.63 MiB demo bundle |
 | Evidence on disk | `cardiosentinel-runs` 2.3 GB · `cardiosentinel-data` 5.6 GB · `cardiosentinel-features` 16 GB (all gitignored) |
 
-### Merged since the previous refresh (`9f38f47`, PR #88)
+### Merged since the previous refresh (`544581e`, PR #97)
 
 ```
-#89 documentation alignment + RQ5 contradiction fix
-#90 reproducibility package — committed 1.63 MiB demo bundle
-#91 recovered usability tests that lost #90's merge race
-#92 Architecture Selection Intelligence Agent
-#93 IPS demonstration console
-#94 Evidence-Constrained Explanation Evaluation framework
-#95 PAPER_OUTLINE_V2.md + handbook §53.2 corrected to five findings
-#96 tracked-generator digest that had been false since #72
-#97 CURRENT_STATE.md and ARCHITECTURE.md synchronised
+#98  documentation state sync
+#99  README written for paper readers
+#100 session handoffs tracked in-repo
+#101 legacy archive tag corrected, remote rename recorded  (squash-merged)
+#102 COMMIT_PIN_TRANSLATION_V1 — the provenance repair
+#103 B4 test authorization + Route A decline
+#104 experiment-lock digest verifier
+#105 paper sections 5.6 and 9, drafted before the test opened
+#106 sealed evaluator bound to the SELECTED architecture
+#107 B4-B sealed evaluation orchestrator
+#108 end-to-end orchestrator coverage on synthetic data
+#109 audit-schema pre-flight, non-masking failure recording
+#110 rejected-candidate path disarmed at its source
 ```
 
-**#95–#97 are documentation only.** No experiment, no budget, no artifact, no
-code.
+**The previous refresh pinned `0480b34`, which no longer resolves on the
+remote.** It is the pre-rewrite identifier for `544581e`. Translate through
+`docs/COMMIT_PIN_TRANSLATION_V1.md` rather than following any pin written before
+2026-08-24 — see defect 0.
 
 ---
 
@@ -91,14 +108,21 @@ code.
 `docs/RESEARCH_SCOPE.md` has not been revised since 2026-08-07 and does not
 need to be: the objective it states is unchanged.
 
-**The handbook is v1.4.** v1.2 and v1.3 are superseded but tracked and unedited,
-on purpose — v1.2 is the document that recorded "not one of the seven research
-questions is affirmatively answered", and that statement is now evidence of a
-moment rather than a fact.
+**The handbook is v1.4, amended 2026-08-25** to record the consumed sealed test
+(§35.3, §43, new §43.2, §44, §49.1, §50.2, §50.3, §51, §56, Appendix A claim 12).
+The amendment changed no number, interval or finding. v1.2 and v1.3 are
+superseded but tracked and unedited, on purpose — v1.2 is the document that
+recorded "not one of the seven research questions is affirmatively answered",
+and that statement is now evidence of a moment rather than a fact.
 
-**`docs/PAPER_OUTLINE_V2.md` is the current outline** (merged in #95). It
-supersedes `PAPER_OUTLINE_V1.md`, which predates the runtime and the agentic
-layer and is retained unedited under the `_V1` convention.
+**`docs/PAPER_OUTLINE_V2.md` is the current outline** (merged in #95, amended
+2026-08-25). It supersedes `PAPER_OUTLINE_V1.md`, which predates the runtime and
+the agentic layer and is retained unedited under the `_V1` convention.
+
+**`docs/B4_TEST_DEFERRAL_DECISION_V1.md` is superseded and frozen.** It argued
+for not opening the sealed test; it was overridden in writing by
+`B4_TEST_AUTHORIZATION_V1.md`. It is not edited, because a decision that was
+reconsidered is evidence and a deleted one is not.
 
 ---
 
@@ -107,7 +131,7 @@ layer and is retained unedited under the `_V1` convention.
 | Component | Evidence | Outcome |
 |---|---|---|
 | **B0–B3** classical baselines | `phase3b-classical-v3` | complete · sealed test **CONSUMED**, chain not extensible |
-| **B4-B** neural encoder | `phase3b2-architecture-v1` | complete · **selected** over B4-A and B4-C |
+| **B4-B** neural encoder | `phase3b2-architecture-v1` | complete · **selected** over B4-A and B4-C · **sealed test CONSUMED 2026-08-25** |
 | **P1-B** physiology fusion | `phase4-p1-physiology-v1` | complete · **retained**, FPR caveat recorded |
 | **M1L** long-timescale memory | `phase5-m1-dual-memory-v2` | complete · **retained** |
 | **M2-G** contamination-safe gate | `phase6-m2-development-v1` | complete · **retained** |
@@ -124,6 +148,12 @@ layer and is retained unedited under the `_V1` convention.
 **Not started:** E1 edge hardware. RQ5 is open and a laptop is not an edge
 device.
 
+**Declined rather than not-yet-done:** EDB `overlap_clean` as a secondary
+evaluation, refused in writing on 2026-08-24
+(`EXTERNAL_VALIDATION_ROUTE_A_DECISION_V1.md`). No EDB data was accessed. Its
+§2.4 records the price: **no second cohort will corroborate any result in this
+paper, permanently.**
+
 Full ledger with the consumed/available column: `docs/EXPERIMENT_CATALOGUE.md`
 and handbook §51.
 
@@ -137,6 +167,7 @@ and handbook §51.
 | **T2** | `pooled_auprc_difference` **0.093215** | **[-0.015229, 0.148951]** — includes zero |
 | **W1** | T1 − W **0.1921** | **[0.0505, 0.3455]** — excludes zero |
 | **U1** | Platt NLL **0.143708** / Brier **0.040344** | vs baseline 0.231705 / 0.063567 |
+| **B4-B sealed test** | pooled AUPRC **0.0935334** at prevalence **0.0460529** | subject-macro AUPRC 0.354901 over **8 of 12**, 95% **[0.033058, 0.239284]** |
 
 **T2's difference IS the selection criterion**, not an independent discovery.
 **W1's answer is bounded** by an operating point selected with the state machine
@@ -144,11 +175,76 @@ in the loop. **U1's baseline is not an out-of-fold artifact** — the artifact s
 so.
 
 Each headline carries a caveat about what its denominator actually is; the
-pattern is recorded as a finding in handbook §49.4.
+pattern is recorded as a finding in handbook §49.4, and the sealed test is its
+fourth instance.
+
+### 4.1 The sealed-test row, with the boundary that is not optional
+
+Registered primary: **pooled-window AUPRC 0.0935334**, over 453,804 primary
+windows from 12 subjects — 20,899 positive, 432,905 negative.
+
+| Pooled secondary | | | Subject-macro | value | contributing |
+|---|---|---|---|---|---|
+| AUROC | 0.7332374 | | AUPRC | 0.354901 | **8 / 12** |
+| F1 | 0.0687550 | | AUROC | 0.780837 | **8 / 12** |
+| Sensitivity | 0.0705775 | | Balanced accuracy | 0.563647 | **8 / 12** |
+| Specificity | 0.9525716 | | MCC | 0.231071 | **8 / 12** |
+| PPV | 0.0670241 | | Sensitivity | 0.169043 | **8 / 12** |
+| NPV | 0.9550159 | | F1 | 0.142821 | 12 / 12 |
+| Balanced accuracy | 0.5115746 | | NPV | 0.972640 | 12 / 12 |
+| MCC | 0.0225878 | | PPV | 0.332849 | 12 / 12 |
+| | | | Specificity | 0.947705 | 12 / 12 |
+
+**Never quote a subject-macro figure without its denominator.** Four of the
+twelve test subjects are single-class, and `METRICS_PROTOCOL.md` excludes them
+from discrimination metrics rather than assigning them 0.0 or 1.0.
+
+95% subject-bootstrap, 1,000 replicates at seed 2026, 1000/1000 successful and
+0 undefined for every metric:
+
+| | 95% interval | | | 95% interval |
+|---|---|---|---|---|
+| AUPRC | [0.033058, 0.239284] | | NPV | [0.912590, 0.993000] |
+| AUROC | [0.653182, 0.836523] | | PPV | [0.019556, 0.415725] |
+| Balanced accuracy | [0.481415, 0.650244] | | Sensitivity | [0.029482, 0.334282] |
+| F1 | [0.027598, 0.222080] | | Specificity | [0.896129, 0.994691] |
+| **MCC** | **[-0.033876, 0.221346]** — **includes zero** | | | |
+
+Threshold **0.8329097628593445**, `threshold_selected_on_test: false`, taken
+from the immutable development lock and never recomputed. Confusion at it:
+TP 1,475 · FP 20,532 · FN 19,424 · TN 412,373. Scores are **uncalibrated sigmoid
+model scores, not calibrated probabilities.**
+
+Challenge strata at the frozen threshold — registered quantitative secondary:
+rate-related FP fraction **0.2292818** (1,162/5,068, 4 subjects, 95%
+[0.073911, 0.493590]); axis-shift FP fraction **0.0389143** (119/3,058, 8
+subjects, 95% [0.003330, 0.229638]). **Exploratory and descriptive, never
+bootstrapped and never headlined:** conduction-change, 8 of 10 windows in a
+single subject.
+
+**Provenance.** `attempt_sequence 1`, `attempt_status COMPLETE`,
+`repeat_attempt_permitted false`, `evaluator_git_sha 61d9009` with
+`evaluator_git_dirty false`, duration 1,524.2 s, 463,035 scored rows. Model
+state digest identical before and after inference; no optimizer constructed and
+`backward` never called.
+
+**Two digests are both named `test_audit_sha256` and they are not the same
+number.** `TEST_AUDIT.json`'s own field, `79447d4d…`, is self-referential — the
+SHA-256 of the audit payload with that field removed, `sort_keys=True`,
+`separators=(",", ":")`, the same rule the experiment locks use.
+`TEST_ATTEMPT.json`'s field of the same name, `2f6af19c…`, is the SHA-256 of the
+`TEST_AUDIT.json` **file bytes**. Both were recomputed and both match. Quote the
+one you mean and say which it is.
+
+**What this row does not establish.** One dataset, twelve subjects, one attempt,
+and no cohort exists to corroborate it. It supports no claim of generalisation,
+superiority or clinical utility. Handbook Appendix A claim 12 states the
+reporting requirement; §6.4 of `B4_TEST_AUTHORIZATION_V1.md` fixed it before
+access.
 
 **The IPS layer changed none of these.** #82–#94 ran no experiment, opened no
 budget, touched no artifact and computed no new metric. Handbook §56 states this
-explicitly.
+explicitly, and the sealed test was run separately from and after that work.
 
 ---
 
@@ -173,6 +269,11 @@ dropped when quoting it.
 
 **RQ3's negative finding is a result, not a gap.** Literature in that area
 overwhelmingly reports adoption.
+
+**The sealed test answered no research question.** It characterises the selected
+encoder on held-out subjects; it is not an arm of any comparison and it moved no
+RQ from open to answered. RQ1 and RQ5 are open for exactly the reasons they were
+open on 2026-08-24.
 
 **Still unanswered and not an RQ:** what the S4D architecture contributed. T2's
 interval spans zero and `s4d_temporal_evidence_s_t` feeds both W1 arms.
@@ -200,28 +301,31 @@ claim guard sits between every generator and its output; a violation falls back
 to deterministic prose rather than publishing the claim. See
 `docs/ARCHITECTURE.md` §0.2 for the flow.
 
+**Two of its strings are now factually stale** — see defect 7.
+
 ---
 
 ## 7. Code maturity
 
 Strongest: governance. One-shot claims, negative-capability proofs (AST plus
 `sys.modules`), frozen dependency digests, immutable attempt directories,
-pre-registration workflow, tracked provenance generators, and the publication
-claim boundary compiled into code.
+pre-registration workflow, tracked provenance generators, the publication
+claim boundary compiled into code, and — new since 2026-08-25 — a
+selected-architecture binding that makes "the model the authorization names" and
+"the model the evaluator loads" one comparable object, verified before any
+sealed access is attempted (`neural/b4b_sealed_test.py`, handbook §43.2).
 
 Weakest: the top-level package tree still partly misrepresents the codebase.
 `edge/` and `agents/` now hold real code (see `ARCHITECTURE.md` §0.1 and §0.2);
 `episodes/`, `personalization/` and `uncertainty/` remain two-line docstring
-stubs, while the work lives in `neural/` — 86 files, 54,097 LOC, 43% of the code.
+stubs, while the work lives in `neural/` — 87 files, 54,897 LOC, 44% of the code.
 Two of those three stubs describe research that is complete elsewhere.
 
 ---
 
-## 8. Data preservation — **mirror re-verified 2026-08-24**
+## 8. Data preservation — **the mirror is unverified again, and now incomplete**
 
-A full evidence mirror was created on 2026-08-22 and **re-verified on
-2026-08-24**, after the expired session that had left it unverifiable since
-2026-08-23 was renewed:
+A full evidence mirror was created 2026-08-22 and verified 2026-08-24:
 
 ```
 s3://cardiosentinel-evidence-341181499761/snapshot-2026-08-22-1bbbd47/
@@ -229,25 +333,36 @@ s3://cardiosentinel-evidence-341181499761/snapshot-2026-08-22-1bbbd47/
 Versioning · Object Lock GOVERNANCE 365 days · SSE-S3 · public access blocked
 ```
 
-**What was checked on 2026-08-24**, all read-only:
+**Two things are true about it on 2026-08-25, and both matter.**
 
-| | |
-|---|---|
-| Object count and bytes | **786** / **24,779,296,980** — exact match to creation |
-| Delete markers | **none.** Nothing has ever been deleted |
-| Object versions | **786** — one per object, no overwrites |
-| Retention, on a sampled object | `GOVERNANCE`, `RetainUntilDate 2027-08-22T19:07:55Z` — applied to the object, not merely a bucket default |
-| Public access · encryption | all four blocks `true` · `AES256` (SSE-S3) |
-| Against the local tree | **785 of 786** objects match on path and size, zero mismatches. The 786th is `MANIFEST_SHA256.txt`, which lives in the snapshot root and is not part of the local tree |
-| Against the manifest | **785/785** rows resolve locally, **785/785** sizes match, and **15/15** randomly sampled `sha256` digests recomputed and matched (seed 2026) |
+**First, the AWS session has expired again** and the mirror cannot be verified
+from this machine. `aws s3 ls` returns *"Your session has expired."* The
+2026-08-24 verification was thorough — 785/786 objects matched on path and size,
+785/785 manifest rows resolved, 15/15 sampled `sha256` digests recomputed and
+matched — and the guarantee is now inherited rather than current. The previous
+refresh predicted exactly this: *"It will degrade again: the guarantee is only as
+current as its last check."* Re-verify with a date attached rather than
+inheriting one.
 
-**This is a verification of contents, not only of existence.** A headcount would
-have passed even if every file had been replaced.
+**Second, and more serious: the snapshot predates the sealed test by three
+days.** The four artifacts written on 2026-08-25 —
+
+```
+cardiosentinel-runs/phase3b2-architecture-v1/B4B_cnn_transformer_v1/
+  TEST_ATTEMPT.json  TEST_METRICS.json  TEST_PREDICTIONS.npz  TEST_AUDIT.json
+```
+
+— are **not in the mirror, not in git** (`cardiosentinel-runs/` is gitignored)
+**and exist in exactly one place: the local disk of this machine.** They are the
+only irreplaceable evidence in the programme. Every other result could in
+principle be recomputed from data that still exists; this one could not, because
+`repeat_attempt_permitted` is `false` and no authorization can make it true.
+**A snapshot that covers everything except the one unrepeatable thing still
+passes a headcount.** See defect 6.
 
 **`MANIFEST_SHA256.txt` has four fields — `sha256 size mtime path`** — the same
 shape the restore procedure below reads. A two-field parse silently resolves
-zero rows and reports success, which is worse than failing: the first attempt at
-the check above did exactly that before it was caught.
+zero rows and reports success, which is worse than failing.
 
 **Restoring bytes is not restoring evidence state.** S3 assigns its own
 `LastModified`, and immutability here is asserted in timestamps. A restore must
@@ -271,41 +386,46 @@ asserts **usability**. A manifest check cannot detect a file that was never
 staged — which is exactly how three checkpoints were briefly lost to a
 `.gitignore` rule while the integrity tests passed.
 
+**The package does not reproduce the sealed test and is not meant to.** It
+carries development artifacts only, the scenario replays a validation record,
+and no path in it touches the test partition.
+
 ---
 
 ## 10. Open defects and next steps
 
 ### Defects
 
-0. **Every commit SHA pinned in this repository's documents is dangling on the
-   remote, as of 2026-08-24.** Master's history was rewritten to strip
-   `Co-Authored-By` trailers, and force-pushed. **No content changed** — the new
-   tree hash `dd89bf37…` is byte-identical to the pre-rewrite tree — but every
-   commit from `ea27846` (2026-08-07) forward has a new SHA.
+0. **Every commit SHA pinned before 2026-08-24 is dangling on the remote.**
+   Master's history was rewritten to strip `Co-Authored-By` trailers and
+   force-pushed; **no content changed** — every tree object is identical — but
+   268 commit identifiers moved and **69 commits cited across 71 tracked files
+   stopped resolving**.
 
-   **What this costs.** Pins such as `CURRENT_STATE.md`'s own, and the
-   *"Analysis executed at commit"* lines in
-   `W1_WINDOW_COMPARATOR_REPORT_V1.md` and `T2_ARM_COMPARISON_REPORT_V1.md`,
-   resolve on a machine that still holds `refs/original/*` and **on no fresh
-   clone**. Those lines exist so a third party can check which code produced a
-   published number; on the public remote they now point at nothing.
+   **Now translated rather than repaired.** `docs/COMMIT_PIN_TRANSLATION_V1.md`
+   (#102) carries **326 exact mappings**, both directions, with the derivation
+   stated so a third party can re-derive it, and
+   `docs/PROVENANCE_INCIDENT_V1.md` carries the dated chronology. The pins in
+   frozen `_V1` records are **not** edited: rewriting them would mean editing
+   records whose immutability is itself a claim.
 
-   **Recorded rather than repaired, deliberately.** Rewriting the pins would mean
-   editing frozen `_V1` records whose immutability is itself a claim, and
-   publishing the old history would partly undo what the rewrite was for. The
-   pre-rewrite history is preserved in a local bundle and in
-   `refs/local-backup/pre-coauthor-rewrite`, **available on request**. This is
-   the same honesty the S3 mirror gets: *not verifiable* is neither *verified*
-   nor *false*, and it is stated rather than papered over.
+   **Experiment locks cannot be corrected in place even in principle.**
+   `experiment_lock_sha256` is self-referential — the SHA-256 of the lock with
+   that field removed, `sort_keys=True`, `separators=(",", ":")` — so editing
+   any field changes the lock's own digest, and B4-B's is registered in 28 files
+   including three downstream protocol documents and five other experiments'
+   locks. `neural.integrity.verify_experiment_lock()` (#104) implements the
+   check. **Translate; never edit.**
 
-   **The mapping is recoverable.** Old and new commits correspond one-to-one in
-   order, so any pin can be translated from the bundle if a reviewer asks.
+   Pre-rewrite history is preserved in `refs/original/*`,
+   `refs/local-backup/pre-coauthor-rewrite` and
+   `~/cardiosentinel-recovery/pre-coauthor-rewrite.bundle`. **Do not run
+   `git gc --prune=now`.** Note the trap this creates: `git cat-file -t` on an
+   old SHA succeeds *on this machine* and fails on a fresh clone, so it is not a
+   test of whether a pin resolves.
 
-1. ~~AWS session expired, S3 mirror unverified~~ — **closed 2026-08-24.** The
-   session was renewed and the mirror verified against both the local tree and
-   its own manifest (§8). **It will degrade again**: the guarantee is only as
-   current as its last check, so re-verify with a date attached rather than
-   inheriting this one.
+1. **AWS session expired again; the S3 mirror is unverified as of 2026-08-25.**
+   Reopened one day after being closed. §8.
 2. **The generative explanation path has never run against a real model.** No
    credentials exist here and no generative SDK is a project dependency. #94
    reports this in the table rather than in a footnote, which is the correct
@@ -314,38 +434,75 @@ staged — which is exactly how three checkpoints were briefly lost to a
    Repair named in `docs/ARCHITECTURE.md` §5, deliberately not done during the
    freeze.
 4. **`scripts/provenance/` is ruff-excluded**, so lint errors there are
-   invisible to CI. Passing explicit paths reports 116 errors, 9 auto-fixable.
-   **Reformatting a generator changes its digest**, so any such pass must update
-   `scripts/provenance/README.md` in the same commit.
-5. **Nothing asserts the four tracked-generator digests.** One was false on
-   master from #72 until #96 corrected it, and no automated reader would have
-   noticed. All four match as of this pin; the assertion test is recommended and
-   unwritten.
-6. **Eleven stale scratch worktrees** remain registered from two dead sessions,
-   all on merged or pushed branches with no uncommitted work.
+   invisible to CI. Passing explicit paths still reports **116 errors, 9
+   auto-fixable**, unchanged. **Reformatting a generator changes its digest**,
+   so any such pass must update `scripts/provenance/README.md` in the same
+   commit.
+5. **Nothing asserts the four tracked-generator digests.** All four match as of
+   this pin — recomputed 2026-08-25 — but one was false on master from #72 until
+   #96 and no automated reader would have noticed. The assertion test is
+   recommended and still unwritten.
+6. **The sealed-test artifacts are unbacked and unrepeatable.** Four files, one
+   copy, on one machine, outside git and outside the mirror. This is the
+   highest-consequence defect in this list: every other loss is recoverable by
+   recomputation and this one is not. §8.
+7. **Two code paths still tell their audience the sealed test is unopened.**
+   `src/cardiosentinel/edge/console.py:39` emits *"The sealed neural test is
+   unopened."* as a demo limitation, and
+   `src/cardiosentinel/agents/claims.py:216` registers *"any claim about the
+   sealed test, which is unopened"* as an approved disclaimer, with the
+   Appendix A claim 12 rationale at `claims.py:107` reading *"The neural chain
+   is unopened."* All three are user-visible and all three are now false.
+   `docs/DEMO_SCENARIO.md` §4 and §5 mirror the console strings and are pinned
+   to them by `tests/edge/test_demo_scenario.py`, so console, contract and test
+   have to move together. **Deliberately not fixed in the documentation pass**,
+   because it changes emitted behaviour and belongs in its own reviewed change.
+8. **`stash@{0}` is a stale `CURRENT_STATE` refresh** pinned to `1018001`,
+   predating the sealed test. Regenerate; do not pop.
+
+### Closed since the previous refresh
+
+- **Eleven stale scratch worktrees** — gone. `git worktree list` shows one entry.
+- **CI was red on master** for two independent reasons, neither a defect in the
+  code under test: fifteen ruff errors from #107–#110, and
+  `test_b4b_sealed_test_identity.py`, whose autouse fixture asserted that no
+  `TEST_ATTEMPT` existed anywhere. That assertion conflated *"this suite created
+  no attempt"* with *"no attempt has ever been taken"*, and the second stopped
+  being true when the budget was legitimately spent. Repaired in #112: the guard
+  now compares an inventory of attempt paths and digests across each test, and
+  the tests that need the gitignored evidence tree skip without it.
 
 ### Next steps
 
-Under **Research Baseline v1.0** (handbook §51) the repository is frozen for
-documentation, analysis of existing evidence, and paper drafting. No new
-experiment, no architecture change, no threshold generation, no sealed-test
-access.
+The **Research Baseline v1.0** freeze (handbook §51) still governs: documentation,
+analysis of existing evidence, and paper drafting. No new experiment, no
+architecture change, no threshold generation. The sealed-test clause is now moot
+rather than lifted — there is nothing left to open.
 
-1. **The literature search for §2.** It is the only unstarted item in the paper
-   plan, and the gap statement must be written *after* the search rather than to
-   fit the contribution.
-2. **Draft prose**, beginning with the five claim-boundary findings. The outline
-   is finished; the manuscript is not.
-3. **Do not open the B4 sealed test.** Handbook §43 argues this on evidence: the
-   headline contrast spans zero, and no cohort exists to corroborate a test
-   number.
+1. **Paper §7 gains a fifth row**, with its boundary inline, and **one sentence
+   in §9.1**. Per `PAPER_S9_DISCUSSION_SKELETON.md` §9.8: the number goes in §7,
+   the sentence goes in §9.1, and **no thesis in §9 moves.**
+2. **The literature search for §2.** Still the only unstarted item in the paper
+   plan, still blocking §9.3, and now bound by §6.3 of the authorization: it must
+   not be shaped by the sealed-test result. The gap statement must be written
+   *after* the search rather than to fit the contribution.
+3. **Review the drafts already merged** — `PAPER_S5_6_CLAIM_BOUNDARY_DRAFT.md`,
+   `PAPER_S9_DISCUSSION_SKELETON.md`, `PAPER_S9_DISCUSSION_DRAFT.md` (#105). §9.3
+   is deliberately stubbed; §9.7, the provenance-incident subsection, is accepted
+   and unwritten.
+4. **Back up the sealed-test artifacts** (defect 6) and re-verify the mirror with
+   a date attached (defect 1).
+5. **Correct the two stale runtime strings** (defect 7), console and contract and
+   test together.
 
 Leaving the freeze requires a named experiment with a pre-registered protocol,
 as T1, T2, U1 and W1 each had. The two candidates are the **T2-score ablation**
 (what did S4D contribute?) and the **RQ1 no-memory arm** — both require a
-re-scoring run, neither can reuse the W1 trick.
+re-scoring run, neither can reuse the W1 trick, and **neither has a budget**:
+every one-shot access in the programme is spent, so each would need a fresh
+human authorization.
 
 ---
 
-_Last refreshed: 2026-08-24, against `origin/master` `0480b34`, after the
-documentation-synchronisation PRs merged (#95-#97)._
+_Last refreshed: 2026-08-25, against `origin/master` `61d9009`, after the B4/
+neural sealed test was consumed and the four sealed-test artifacts were written._
