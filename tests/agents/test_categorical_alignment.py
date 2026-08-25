@@ -30,7 +30,11 @@ def context() -> ExplanationContext:
         event={
             "type": "EVENT",
             "entered_from": "WATCH",
-            "closed_into": "NORMAL",
+            # RECOVERY, not NORMAL, and deliberately so: the demo scenario
+            # closes into RECOVERY, and a fixture that licenses NORMAL hides the
+            # collision between the lifecycle state and the ordinary English
+            # word carried in `safety.reasons`.
+            "closed_into": "RECOVERY",
             "still_open": False,
             "opened_at": "00:17:05",
             "duration_seconds": 640,
@@ -132,16 +136,29 @@ def test_a_blocked_passed_inversion_fails(context):
 
 
 def test_a_lifecycle_state_the_event_never_carried_fails(context):
-    violations = categorical_violations(
-        "The system entered RECOVERY after the event.", context
-    )
+    """This event went EVENT -> RECOVERY from WATCH. It never entered NORMAL."""
+    violations = categorical_violations("The system entered NORMAL.", context)
     assert violations
     assert violations[0].kind == "lifecycle_state"
 
 
 def test_licensed_lifecycle_states_pass(context):
-    text = "The system entered the EVENT state from WATCH and closed into NORMAL."
+    text = "The system entered the EVENT state from WATCH and closed into RECOVERY."
     assert categorical_violations(text, context) == ()
+
+
+def test_the_english_word_normal_is_not_a_lifecycle_claim(context):
+    """The regression that shipped: `safety.reasons` contains the word "normal".
+
+    `NORMAL` is a lifecycle state and *normal* is an ordinary adjective. Matching
+    case-insensitively flagged the deterministic renderer's own output -- which
+    quotes the gate reason verbatim -- as naming a fabricated state. A fixture
+    that licensed NORMAL hid it, so this test pins the collision itself rather
+    than the fixture that happened to mask it.
+    """
+    text = "The window did not look normal enough to learn from."
+    assert categorical_violations(text, context) == ()
+
 
 
 # -- integration: the agent falls back and records why ----------------------
