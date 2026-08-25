@@ -88,6 +88,52 @@ def test_approved_disclaimers_are_exempt_from_enforce():
         claims.enforce("The alert supports a diagnosis of ischemia.")
 
 
+def test_approved_disclaimers_are_user_facing_not_a_dead_exemption():
+    """The tuple is printed to users and emitted as graph structure.
+
+    Recorded as a test because reading it as a mere exemption list produced a
+    real error: a grep for one entry's literal text found it in this file only,
+    which looks like dead code and is not. `evidence.py` aliases the tuple, so
+    the value travels where the literal does not.
+    """
+    from cardiosentinel.agents import evidence
+
+    assert evidence.CANNOT_SUPPORT is claims.APPROVED_DISCLAIMERS
+
+
+def test_no_approved_disclaimer_says_the_sealed_test_is_unopened():
+    """It said so on every alert, from before authorization until after it was
+    consumed on 2026-08-25.
+
+    These strings are shown to a user under *"This alert does not establish"*
+    and stored as `constraint` nodes, so a stale one is a false boundary on a
+    user-facing surface. **Claim 12 and this disclaimer describe the same
+    boundary and must not drift apart**, which is what the second assertion
+    binds -- the first alone would have passed for any rewording at all.
+    """
+    sealed = [d for d in claims.APPROVED_DISCLAIMERS if "sealed test" in d]
+    assert len(sealed) == 1
+    assert "unopened" not in sealed[0]
+    assert "pre-registered boundary" in sealed[0]
+
+    claim_12 = next(c for c in claims.FORBIDDEN_CLAIMS if c[0] == 12)
+    assert "pre-registered boundary" in claim_12[3]
+
+
+def test_no_approved_disclaimer_carries_research_prose():
+    """They reach the patient context, which is closed and carries none.
+
+    `test_the_context_carries_no_research_prose` asserts this downstream, on a
+    built context. It is asserted here too, at the definition site, because a
+    rewording of the sealed-test entry spelled out its denominators and its
+    interval and only failed three files away.
+    """
+    for disclaimer in claims.APPROVED_DISCLAIMERS:
+        lowered = disclaimer.lower()
+        for leaked in ("handbook", "appendix", "auprc", "bootstrap"):
+            assert leaked not in lowered, disclaimer
+
+
 def test_the_exemption_cannot_be_used_to_smuggle_a_claim():
     """Stripping a disclaimer must not blind the guard to the rest of the text."""
     text = (
