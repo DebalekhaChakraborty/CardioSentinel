@@ -713,14 +713,22 @@ records, not a live status board. **Do not "correct" them.** Read
 `sealed_test_state` as *"the state at the time this artifact was written"*, and
 read this section for the state now.
 
-**Measured 2026-08-25**, excluding `__pycache__` and `.pytest_cache`: the string
-`"sealed_test_state": "unopened"` occurs in **97 files** — **67 of them `.json`
-artifacts**, **58 of those under `cardiosentinel-runs/`**, and **13 of them
-`EXPERIMENT_LOCK.json`**. The other 29 are `.py` files in `src/` and `tests/`,
-where the value is the constant a T1 or T2 run writes about itself rather than a
-status anyone reads. *Earlier drafts of this section and of §51 said "80
-artifacts". That figure was inherited rather than counted, and it did not
-survive being counted.*
+**Measured 2026-08-25**, over artifacts and source, excluding documentation
+prose and excluding `__pycache__` and `.pytest_cache`: the string
+`"sealed_test_state": "unopened"` occurs in **97 files**.
+
+| | |
+|---|---|
+| `.json` artifacts | **67** — of which **58** under `cardiosentinel-runs/` and **13** are `EXPERIMENT_LOCK.json` |
+| `.py` in `src/` and `tests/` | **29** — the constant a T1 or T2 run writes about itself, not a status anyone reads |
+| `.log` | 1 |
+
+*Earlier drafts of this section and of §51 said "80 artifacts". That figure was
+inherited rather than counted, and it matched no partition of the count.*
+**Documentation is excluded from the population on purpose, and this paragraph
+is why:** the moment it was written, the handbook began containing the string it
+counts. A count that includes the document reporting it cannot be restated
+without changing.
 
 Editing a lock is not merely wrong but arithmetically impossible in isolation.
 `experiment_lock_sha256` is self-referential, and B4-B's appears in **32 files**
