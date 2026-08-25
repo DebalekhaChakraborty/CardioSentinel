@@ -977,6 +977,16 @@ objects, 24,779,296,980 bytes, manifest
 object count, byte total, manifest round-trip and a 16/16 sample re-hash.
 Versioning · Object Lock GOVERNANCE 365 days · SSE-S3 · public access blocked.
 
+**The sealed-test artifacts are mirrored separately**, at
+`snapshot-2026-08-25-sealed-test/` — five objects, 5,015,638 bytes, GOVERNANCE
+until 2027-08-25, each round-tripped and compared by digest. **A new prefix, not
+an addition to the 2026-08-22 snapshot**: appending would have made that
+snapshot's 785-row manifest wrong and destroyed the property that a snapshot is
+a point in time. Both were re-verified by content on 2026-08-25;
+`docs/CURRENT_STATE.md` §8 carries what was checked. **Read the date on any such
+sentence** — the AWS session is time-limited and this guarantee has lapsed and
+been restored twice in three days, silently both times.
+
 **mtime preservation is mandatory.** Immutability is asserted in timestamps —
 *"20 files at `2026-08-21T19:57:57`"*. Object storage assigns its own
 `LastModified`, so **restoring bytes is not restoring evidence state**:

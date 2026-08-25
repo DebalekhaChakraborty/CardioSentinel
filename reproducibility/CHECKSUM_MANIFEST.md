@@ -18,12 +18,22 @@ byte size, source path and the loader that reads it.
 `cardiosentinel-features/`, `cardiosentinel-data/`. These are gitignored, not
 distributed, and carry their own manifests and experiment locks.
 
-**External mirror: verified 2026-08-24.** An S3 mirror of the evidence tree
-exists and was re-verified on 2026-08-24 — 786 objects, 24,779,296,980 bytes,
-no delete markers, Object Lock GOVERNANCE until 2027-08-22, and 15 sampled
-`sha256` digests recomputed against its manifest. It had been *not verified*
-since 2026-08-23, when the session expired; that state was neither *verified*
-nor *lost*, and it is recorded here because it will recur.
+**External mirror: verified 2026-08-25.** An S3 mirror of the evidence tree
+exists and was re-verified on 2026-08-25 — 786 objects, 24,779,296,980 bytes, no
+delete markers, 786 versions, Object Lock GOVERNANCE until 2027-08-22, manifest
+digest `dd42385631ded573…` matching handbook §47, 785/785 manifest rows resolving
+locally with matching sizes, and 15 sampled `sha256` digests recomputed and
+matched. **The four sealed-test artifacts produced on 2026-08-25 are mirrored
+separately**, to `snapshot-2026-08-25-sealed-test` — five objects under
+GOVERNANCE until 2027-08-25, each round-tripped and compared by digest rather
+than by size. They went to a new prefix rather than into the 2026-08-22
+snapshot, because appending would have made that snapshot's 785-row manifest
+wrong.
+
+**This has now lapsed and been restored twice.** It was *not verified* from
+2026-08-23 and again from some point before 2026-08-25, both times because the
+AWS session expired; each time the state was neither *verified* nor *lost*. It
+is recorded here in that form because it will recur.
 
 **A preservation guarantee degrades silently.** An expired credential turns a
 verified backup into an unverified claim without anything failing, so this line
