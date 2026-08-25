@@ -5,9 +5,13 @@
 > `1018001`. **§9.3 is stubbed and not written** — it is gated on the §2
 > literature search, which has not started.
 >
-> **Contains no sealed-test result and assumes none.** §9.8 of the skeleton
-> binds what may change here if B4 is ever opened: the number goes in §7, a
-> single sentence goes in §9.1, and nothing else moves.
+> **Written with no sealed-test result in existence.** §9.8 of the skeleton
+> bound what could change here if B4 were ever opened: the number goes in §7, a
+> single sentence goes in §9.1, and nothing else moves. **B4 was opened on
+> 2026-08-25**, one day after this draft merged in #105, and that is exactly
+> what happened — the sentence below marked *[added under §9.8 clause 2]* is the
+> only change this document has taken because of it. Diff it across that date;
+> the ordering is the claim.
 
 ---
 
@@ -34,6 +38,13 @@ would be scored on a different task. STAFF III, the obvious alternative, fails o
 five separate axes of our benchmark contract. **External validation of this
 system is not merely unfunded; on the public record as it stands, it is not
 possible.**
+
+A sealed-test characterisation of the selected encoder exists: it was authorized
+in writing, executed once on 2026-08-25 after this section was drafted, and is
+reported in §7 with the boundary that was fixed before it was produced; it
+corroborates nothing and is corroborated by nothing, because the cohort that
+would have done so does not exist. *[added under §9.8 clause 2 — this sentence
+records that the number exists and does nothing else with it]*
 
 The methodology framing is therefore not a fallback chosen after the numbers
 disappointed. It is the accurate description of where the effort went. What this

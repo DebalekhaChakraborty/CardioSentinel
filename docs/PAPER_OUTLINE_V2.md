@@ -310,7 +310,7 @@ and that were **never computed** — false alarms per hour and temporal IoU. Tha
 gap is reported, not glossed, and the corresponding claims are forbidden
 (Appendix A claim 21).
 
-## 7. Results — **unchanged from V1, and that is the point**
+## 7. Results — **one row added since V1, and where it came from is the point**
 
 Reported in the order the evidence was produced, each with its boundary inline
 rather than deferred to section 8. **Nothing in #82–#94 altered a single figure
@@ -318,17 +318,50 @@ in this table**; a reader should be told so explicitly, because a paper that
 adds a runtime and reports new numbers in the same revision has not shown that
 the runtime changed nothing.
 
+**V1 said this section was unchanged, and that was the claim. It is now one row
+longer.** The B4-B sealed test was authorized and executed once on 2026-08-25,
+and the row below is its result. What has *not* changed is §9: the discussion
+was drafted before the test opened and no thesis in it moved afterwards. That
+ordering is checkable in the history, which is why it was done that way.
+
 | | Reported | Boundary that travels with it |
 |---|---|---|
 | T1 | subject-macro `episode_f1` 0.2524, 95% [0.0826, 0.4415] | seven of twelve zero, for two incomparable reasons that push the operating point in opposite directions |
 | T2 | difference 0.093215, 95% paired **[-0.015229, 0.148951]** | **includes zero**; the difference **is** the selection rule; scores uncalibrated; subject-macro is a mean over **9 of 12** subjects |
 | U1 | router **rejected**; Platt retained | split retention; edge/cloud routing does not exist |
 | W1 | difference 0.1921, 95% paired **[0.0505, 0.3455]** | **excludes zero**; bounded at one operating point selected with the state machine in the loop |
-| External validation | **no independent cohort exists** | a finding about the public record, not a gap awaiting effort |
+| **B4-B sealed test** | pooled AUPRC **0.0935334** at prevalence **0.0460529**; subject-macro AUPRC **0.354901**, 95% **[0.033058, 0.239284]** | **one attempt, twelve subjects, one dataset, and nothing to corroborate it against.** Subject-macro discrimination is a mean over **8 of 12** — four test subjects are single-class and are excluded rather than scored 0 or 1. The MCC interval **[-0.033876, 0.221346]** includes zero. Threshold **0.8329097628593445** came from validation, `test_informed: false`. Scores are **uncalibrated sigmoid outputs, not probabilities** |
+| External validation | **no independent cohort exists** | a finding about the public record, not a gap awaiting effort. The one candidate route, EDB `overlap_clean`, was **declined in writing** on 2026-08-24 — so this is now permanent for this paper rather than pending |
 
 **Two research questions are answered — one negatively, one affirmatively and
 bounded. Four remain open and every one needs a run.** RQ4 is *"Supported
-(bounded)"*, never bare *"Supported"*.
+(bounded)"*, never bare *"Supported"*. **The sealed-test row answers none of
+them**: it characterises the selected encoder on held-out subjects and is not an
+arm of any comparison.
+
+### 7.5 Reporting the sealed test — the pre-registered form — **new**
+
+§6.4 of `B4_TEST_AUTHORIZATION_V1.md` fixed how this number would be reported
+**before** it existed. The commitment, not paraphrased:
+
+- **Registered primary is pooled-window AUPRC.** It leads. Everything else is
+  secondary.
+- **Every subject-macro figure carries its denominator.** AUPRC, AUROC, balanced
+  accuracy, MCC and sensitivity are over **8 of 12**; F1, NPV, PPV and
+  specificity are over 12 of 12. **Never quote one without saying which.** This
+  is the §9.2 denominator finding recurring in the final evaluation, and it was
+  pre-registered precisely because it had already happened in T2.
+- **Intervals are 1,000 subject-bootstrap replicates at seed 2026**, 1000/1000
+  successful, 0 undefined.
+- **Challenge strata are secondary and bounded**: rate-related FP fraction
+  0.2292818 (4 subjects), axis-shift 0.0389143 (8 subjects). Conduction-change
+  — 8 of 10 windows in **one** subject — is **exploratory and descriptive, never
+  bootstrapped and never headlined.**
+- **Score semantics stated every time:** uncalibrated sigmoid model score.
+
+**The reason to print the commitment beside the number** is that a reader cannot
+otherwise distinguish a boundary chosen before the result from one chosen after
+it, and those are different claims.
 
 ### 7.6 System behaviour — measurements, not findings — **new in V2**
 
