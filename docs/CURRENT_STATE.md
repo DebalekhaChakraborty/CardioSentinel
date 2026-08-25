@@ -17,11 +17,11 @@ lives, and `docs/EXPERIMENT_CATALOGUE.md` for what has been spent.
 
 ---
 
-**As of:** `origin/master` `61d9009` (merge of PR #110), 2026-08-25 ·
+**As of:** `origin/master` `c5595b3` (merge of PR #116), 2026-08-25 ·
 tags `research-freeze-v1.0` · `ips-agentic-runtime-v1.0`
 **Working tree:** shared by three workers; run `git status` before assuming
 anything about it
-**Open PRs:** #111, #112 at the time of writing. *(Snapshot only — `gh pr list`
+**Open PRs:** #111 at the time of writing. *(Snapshot only — `gh pr list`
 is authoritative and free; this line is stale the moment a PR opens or merges.)*
 **Canonical T1 attempt:** **CONSUMED** — failed post-claim at stage 24
 **T1 measurement continuation:** **COMPLETED** — the single authorization is spent
@@ -325,42 +325,76 @@ Two of those three stubs describe research that is complete elsewhere.
 
 ---
 
-## 8. Data preservation — **the mirror is unverified again, and now incomplete**
+## 8. Data preservation — **verified 2026-08-25, and the sealed test is now in it**
 
-A full evidence mirror was created 2026-08-22 and verified 2026-08-24:
-
-```
-s3://cardiosentinel-evidence-341181499761/snapshot-2026-08-22-1bbbd47/
-786 objects · 24,779,296,980 bytes
-Versioning · Object Lock GOVERNANCE 365 days · SSE-S3 · public access blocked
-```
-
-**Two things are true about it on 2026-08-25, and both matter.**
-
-**First, the AWS session has expired again** and the mirror cannot be verified
-from this machine. `aws s3 ls` returns *"Your session has expired."* The
-2026-08-24 verification was thorough — 785/786 objects matched on path and size,
-785/785 manifest rows resolved, 15/15 sampled `sha256` digests recomputed and
-matched — and the guarantee is now inherited rather than current. The previous
-refresh predicted exactly this: *"It will degrade again: the guarantee is only as
-current as its last check."* Re-verify with a date attached rather than
-inheriting one.
-
-**Second, and more serious: the snapshot predates the sealed test by three
-days.** The four artifacts written on 2026-08-25 —
+Two snapshots, both Object-Locked, both verified by content on **2026-08-25**:
 
 ```
-cardiosentinel-runs/phase3b2-architecture-v1/B4B_cnn_transformer_v1/
-  TEST_ATTEMPT.json  TEST_METRICS.json  TEST_PREDICTIONS.npz  TEST_AUDIT.json
+s3://cardiosentinel-evidence-341181499761/
+  snapshot-2026-08-22-1bbbd47/        786 objects ·  24,779,296,980 bytes
+  snapshot-2026-08-25-sealed-test/      5 objects ·           5,015,638 bytes
+Versioning · Object Lock GOVERNANCE · SSE-S3 · public access blocked
 ```
 
-— are **not in the mirror, not in git** (`cardiosentinel-runs/` is gitignored)
-**and exist in exactly one place: the local disk of this machine.** They are the
-only irreplaceable evidence in the programme. Every other result could in
-principle be recomputed from data that still exists; this one could not, because
-`repeat_attempt_permitted` is `false` and no authorization can make it true.
-**A snapshot that covers everything except the one unrepeatable thing still
-passes a headcount.** See defect 6.
+**Read the date, not the sentence.** The guarantee is exactly as current as its
+last check, and it degrades silently: between 2026-08-24 and this check the AWS
+session expired and the mirror was unverifiable, with nothing failing to
+announce it. It will happen again.
+
+### 8.1 What was checked on 2026-08-25, all read-only
+
+| | `snapshot-2026-08-22-1bbbd47` |
+|---|---|
+| Object count · bytes | **786** / **24,779,296,980** — exact match to creation |
+| Delete markers | **none.** Nothing has ever been deleted |
+| Object versions | **786** — one per object, no overwrites |
+| Retention, sampled object | `GOVERNANCE`, `RetainUntilDate 2027-08-22T19:07:47Z` — on the object, not merely a bucket default |
+| Public access · encryption | all four blocks `true` · `AES256` |
+| Manifest integrity | `MANIFEST_SHA256.txt` digest **`dd42385631ded573…`**, matching handbook §47 exactly |
+| Against the local tree | **785/785** manifest rows resolve, **785/785** sizes match, **0** missing |
+| Content re-hash | **15/15** sampled `sha256` recomputed and matched, seed 2026, 191,976,558 bytes |
+
+**This is a verification of contents, not of existence.** A headcount would have
+passed even if every file had been replaced.
+
+### 8.2 The sealed-test artifacts are mirrored
+
+Uploaded 2026-08-25 to a **separate prefix**, deliberately. Appending to
+`snapshot-2026-08-22-1bbbd47` would have made its 785-row manifest wrong and
+destroyed the property that a snapshot is a point in time.
+
+```
+snapshot-2026-08-25-sealed-test/
+  MANIFEST_SHA256.txt                                    686 B
+  …/B4B_cnn_transformer_v1/TEST_ATTEMPT.json          34,513 B
+  …/B4B_cnn_transformer_v1/TEST_AUDIT.json            34,129 B
+  …/B4B_cnn_transformer_v1/TEST_METRICS.json           6,521 B
+  …/B4B_cnn_transformer_v1/TEST_PREDICTIONS.npz    4,939,789 B
+```
+
+All five carry `GOVERNANCE` until **2027-08-25T07:59Z**, confirmed per object.
+**All four artifacts and the manifest were round-tripped from S3 and compared by
+digest, not by size** — five of five matched. The three digests the manifest
+records for `TEST_AUDIT`, `TEST_METRICS` and `TEST_PREDICTIONS` were also
+cross-checked against the values `TEST_ATTEMPT.json` itself records for them,
+so the mirrored bytes are provably the ones the attempt receipt describes.
+
+**An `AccessDenied` on `put-object-retention` here is the lock working, not a
+failure.** The bucket's 365-day default applies GOVERNANCE at PUT time; an
+explicit call asking for an earlier date is refused because *shortening*
+GOVERNANCE needs `s3:BypassGovernanceRetention`. Read the retention back rather
+than concluding it was not applied.
+
+### 8.3 The 788 / 789 arithmetic, resolved
+
+An earlier draft of this file flagged a one-file discrepancy: the manifest
+covers 785 files and the three evidence trees now hold 788, and 785 + 4 ≠ 788.
+**There was no loss.** The manifest also covers `artifacts/README.md`, which is
+outside those three trees. In-tree at snapshot time: 784. Plus the four
+sealed-test artifacts: **788.** Every manifest row resolves locally.
+
+Recorded because the reasoning matters more than the number: a count that is off
+by one and shrugged at is how a mirror check passes while being wrong.
 
 **`MANIFEST_SHA256.txt` has four fields — `sha256 size mtime path`** — the same
 shape the restore procedure below reads. A two-field parse silently resolves
@@ -430,8 +464,14 @@ and no path in it touches the test partition.
    old SHA succeeds *on this machine* and fails on a fresh clone, so it is not a
    test of whether a pin resolves.
 
-1. **AWS session expired again; the S3 mirror is unverified as of 2026-08-25.**
-   Reopened one day after being closed. §8.
+1. ~~**AWS session expired; the S3 mirror is unverified.**~~ **Closed
+   2026-08-25.** The session was renewed and both snapshots verified by content
+   — 786 objects exact, 0 delete markers, manifest digest matching handbook §47,
+   785/785 rows resolving, 15/15 sampled digests recomputed (§8.1). **It will
+   degrade again**, silently and with nothing failing: this defect has now been
+   opened and closed twice in three days. The guarantee is only as current as
+   its last check, so re-verify with a date attached rather than inheriting
+   this one.
 2. **The generative explanation path has never run against a real model.** No
    credentials exist here and no generative SDK is a project dependency. #94
    reports this in the table rather than in a footnote, which is the correct
@@ -448,10 +488,14 @@ and no path in it touches the test partition.
    this pin — recomputed 2026-08-25 — but one was false on master from #72 until
    #96 and no automated reader would have noticed. The assertion test is
    recommended and still unwritten.
-6. **The sealed-test artifacts are unbacked and unrepeatable.** Four files, one
-   copy, on one machine, outside git and outside the mirror. This is the
-   highest-consequence defect in this list: every other loss is recoverable by
-   recomputation and this one is not. §8.
+6. ~~**The sealed-test artifacts are unbacked and unrepeatable.**~~ **Closed
+   2026-08-25.** Mirrored to `snapshot-2026-08-25-sealed-test`, five objects
+   under `GOVERNANCE` until 2027-08-25, **round-tripped and compared by digest
+   rather than by size** (§8.2). They remain unrepeatable —
+   `repeat_attempt_permitted` is `false` and no authorization can make it true —
+   so the second copy is the whole of the protection they will ever have.
+   **Anything that changes them must be treated as a finding, not a file to
+   regenerate.**
 7. **Seven runtime assertions that the sealed test is unopened are now false.**
    Found by running the full local suite, which CI cannot reproduce — see
    defect 9.
@@ -536,12 +580,12 @@ rather than lifted — there is nothing left to open.
    `PAPER_S9_DISCUSSION_SKELETON.md`, `PAPER_S9_DISCUSSION_DRAFT.md` (#105). §9.3
    is deliberately stubbed; §9.7, the provenance-incident subsection, is accepted
    and unwritten.
-4. **Back up the sealed-test artifacts** (defect 6) and re-verify the mirror with
-   a date attached (defect 1).
-5. **Correct the stale runtime strings** (defect 7), console and contract and
+4. **Correct the stale runtime strings** (defect 7), console and contract and
    test together, and **decide what the M1/P1 preflight gate should say now**
-   (defect 9). The second is the more consequential of the two and is a
-   governance call, not a patch.
+   (defect 9). The second is the more consequential and is a governance call,
+   not a patch.
+5. **Re-verify the mirror when the session next expires** (defect 1, closed
+   twice now). §8.1 lists what a real check is: contents, not a headcount.
 
 Leaving the freeze requires a named experiment with a pre-registered protocol,
 as T1, T2, U1 and W1 each had. The two candidates are the **T2-score ablation**

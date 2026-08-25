@@ -160,30 +160,34 @@ open item for three sessions.** Every previous session found something else to
 do first, and each of those things was genuinely worth doing. That is what makes
 it the danger this handoff names.
 
-### 4.2 Back up the sealed-test artifacts — the highest-consequence defect
+### 4.2 Preservation — **closed 2026-08-25, and it will reopen**
 
-`CURRENT_STATE.md` defect 6. Four files, **one copy**, on one machine, outside
-git and outside the S3 mirror:
+Defects 1 and 6 are both closed. The user renewed the AWS session, ECG 18
+verified both snapshots by content, and the four sealed-test artifacts are
+mirrored to `snapshot-2026-08-25-sealed-test` — five objects, GOVERNANCE until
+2027-08-25, each round-tripped and compared by digest rather than by size.
+`CURRENT_STATE.md` §8 records what was checked.
 
-```
-cardiosentinel-runs/phase3b2-architecture-v1/B4B_cnn_transformer_v1/
-  TEST_ATTEMPT.json  TEST_METRICS.json  TEST_PREDICTIONS.npz  TEST_AUDIT.json
-```
+**Three things to carry forward.**
 
-Every other result in the programme could in principle be recomputed. This one
-cannot: `repeat_attempt_permitted` is `false` and no authorization can make it
-true. The S3 snapshot is `snapshot-2026-08-22-1bbbd47` — **three days older than
-the artifacts** — and a headcount on it still passes.
+1. **This will lapse again.** The AWS session is time-limited and needs a human
+   at a browser; the guarantee has now been restored twice in three days and
+   nothing fails when it goes stale. Re-verify with a date attached rather than
+   inheriting one, and check *contents* — a headcount passes even if every file
+   has been replaced.
+2. **The artifacts are still unrepeatable.** A second copy is the whole of the
+   protection they will ever have. If a digest ever fails to match, that is a
+   finding to record, not a file to regenerate.
+3. **An `AccessDenied` on `put-object-retention` is the lock working.** The
+   bucket applies GOVERNANCE for 365 days at PUT time, so an explicit call
+   asking for an earlier date is refused — shortening GOVERNANCE needs
+   `s3:BypassGovernanceRetention`. Read the retention back rather than
+   concluding it was not applied.
 
-The AWS session has **expired again**, one day after the mirror was verified, so
-defect 1 is reopened and the mirror cannot currently be checked at all. Renewing
-needs a human at a browser (`aws login`, MFA, no static root keys).
-
-ECG 18 wrote a step-by-step runbook and ran none of it. **Ask the user where it
-went** — it was left outside the repo per the scratch-file constraint. It
-includes one unresolved discrepancy worth carrying: the manifest covers 785
-files, the trees now hold 788, and 785 + 4 new ≠ 788. **Resolve that before
-trusting any count.**
+The 788/789 arithmetic an earlier draft flagged **was not a loss**: the manifest
+also covers `artifacts/README.md`, outside the three evidence trees. 784 in-tree
+at snapshot time plus four sealed-test artifacts is 788, and all 785 manifest
+rows resolve locally.
 
 ### 4.3 The runtime still asserts the test is unopened, in seven places, and
 two safety gates are now permanently pinned because of it
@@ -388,18 +392,16 @@ The full list with reasoning is `CURRENT_STATE.md` §10. The four that should
 shape ECG 19's plan:
 
 1. **§2 Related Work does not exist** and the literature search has not started.
-2. **The sealed-test artifacts have one copy** and cannot be regenerated (§4.2).
-3. **M1 and P1 preflight are permanently pinned** to
+2. **M1 and P1 preflight are permanently pinned** to
    `test_artifact_present_human_review_required` on any machine holding the
    evidence, masking every other readiness signal (§4.3 Group C).
-4. **The S3 mirror is unverified**, the session expired one day after it was
-   last checked.
-5. **Seven runtime assertions that the test is unopened are false**, four of
+3. **Seven runtime assertions that the test is unopened are false**, four of
    them hardcoded provenance rather than frozen attestations, and one test is
    correctly failing on it (§4.3).
 
-**`CURRENT_STATE.md` §10 defect 7 understates this** — it was written before the
-full local suite had been run. Items 3 and 5 above supersede it.
+Preservation is no longer on this list: defects 1 and 6 were closed on
+2026-08-25 (§4.2). **They will reopen** — the AWS session expires — but they are
+not what should shape ECG 19's plan.
 
 ---
 
