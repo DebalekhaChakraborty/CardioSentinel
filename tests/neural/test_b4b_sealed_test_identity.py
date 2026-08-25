@@ -1,15 +1,28 @@
 """The selected-architecture evaluator must refuse anything but B4-B.
 
-Every negative case asserts the same two things: the call raises, and no
-`TEST_ATTEMPT.json` exists anywhere afterwards. A refusal that consumed the
-one-shot budget would be worse than the defect these tests exist to prevent.
+Every negative case asserts the same two things: the call raises, and **this
+module leaves the recorded attempts exactly as it found them**. A refusal that
+consumed a budget would be worse than the defect these tests exist to prevent.
 
 None of these tests reads a sealed-test row, label or cache. The positive cases
 use development artifacts and the validation partition only.
+
+**The guard is an invariant on change, not a count.** It was originally written
+as `assert no TEST_ATTEMPT exists anywhere`, which conflated two different
+claims: *"this test suite created no attempt"* and *"no attempt has ever been
+taken"*. The second stopped being true on 2026-08-25, when the B4-B sealed test
+was legitimately consumed under `B4_TEST_AUTHORIZATION_V1`, and the whole module
+then errored at setup on any machine holding the evidence tree -- reporting a
+violation of a property it was never asked to protect. The inventory below
+asserts the property that was actually meant: no attempt is created, deleted or
+modified by anything here. It is strictly stronger than the count for that
+purpose, because a count of one would also have passed if the byte content had
+changed underneath it.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import replace
 from pathlib import Path
@@ -42,16 +55,41 @@ B4A_LOCK_SHA256 = (
 )
 
 
-def _no_attempt_anywhere() -> int:
-    return len(list(RUNS.rglob("TEST_ATTEMPT*")))
+#: The gitignored evidence tree is present on a research machine and absent on
+#: a CI runner and in a fresh clone. Tests that must read a real development
+#: artifact are marked with `needs_evidence` rather than left to fail on a
+#: missing directory, which is a different failure wearing the same red tick.
+needs_evidence = pytest.mark.skipif(
+    not (B4B_ROOT.is_dir() and B4A_ROOT.is_dir()),
+    reason="requires the gitignored evidence tree under cardiosentinel-runs/",
+)
+
+
+def _attempt_inventory() -> dict[str, str]:
+    """Every recorded sealed-test attempt, by path and content digest."""
+    if not RUNS.is_dir():
+        return {}
+    return {
+        str(path.relative_to(RUNS)): hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in sorted(RUNS.rglob("TEST_ATTEMPT*"))
+    }
 
 
 @pytest.fixture(autouse=True)
-def sealed_test_stays_unopened():
-    """Guard every test in this module on both sides of the call."""
-    assert _no_attempt_anywhere() == 0, "A TEST_ATTEMPT existed before the test."
+def sealed_test_budget_untouched():
+    """Guard every test in this module on both sides of the call.
+
+    Records what attempts exist and what they contain, then proves nothing here
+    added, removed or rewrote one. On a machine with no evidence tree both
+    inventories are empty and the assertion still holds.
+    """
+    before = _attempt_inventory()
     yield
-    assert _no_attempt_anywhere() == 0, "A TEST_ATTEMPT was created by the test."
+    after = _attempt_inventory()
+    assert after == before, (
+        "This module changed the recorded sealed-test attempts. "
+        f"Before: {sorted(before)}. After: {sorted(after)}."
+    )
 
 
 # --------------------------------------------------------------------------
@@ -76,6 +114,7 @@ def test_binding_agrees_with_the_frozen_selection_record():
     assert record["experiment_lock_sha256"] == B4B_BINDING.experiment_lock_sha256
 
 
+@needs_evidence
 def test_identity_verifies_for_the_selected_model():
     result = verify_selection_identity(B4B_ROOT)
     assert result["identity_verified"] is True
@@ -95,6 +134,7 @@ def test_model_factory_builds_the_authorized_class():
 # --------------------------------------------------------------------------
 
 
+@needs_evidence
 def test_refuses_b4a_run_root():
     """The B4-A collection holds no directory for the bound experiment."""
     with pytest.raises(SelectionIdentityError):
@@ -108,6 +148,7 @@ def test_refuses_b4a_experiment_id():
     assert "rejected candidate" in str(excinfo.value)
 
 
+@needs_evidence
 def test_refuses_b4a_lock_digest():
     binding = replace(B4B_BINDING, experiment_lock_sha256=B4A_LOCK_SHA256)
     with pytest.raises(SelectionIdentityError) as excinfo:
@@ -115,6 +156,7 @@ def test_refuses_b4a_lock_digest():
     assert "not the one the authorization names" in str(excinfo.value)
 
 
+@needs_evidence
 def test_refuses_b4a_checkpoint_digest():
     binding = replace(B4B_BINDING, checkpoint_sha256=B4A_CHECKPOINT_SHA256)
     with pytest.raises(SelectionIdentityError) as excinfo:
@@ -122,6 +164,7 @@ def test_refuses_b4a_checkpoint_digest():
     assert "not the one the authorization names" in str(excinfo.value)
 
 
+@needs_evidence
 def test_refuses_mismatched_model_class():
     """A factory that builds the rejected architecture is refused."""
     binding = replace(B4B_BINDING, model_factory=B4CompactCNN)
@@ -130,6 +173,7 @@ def test_refuses_mismatched_model_class():
     assert "B4CompactCNN" in str(excinfo.value)
 
 
+@needs_evidence
 def test_refuses_architecture_name_disagreeing_with_the_lock():
     binding = replace(
         B4B_BINDING, architecture="B4CompactCNN", model_factory=B4CompactCNN
@@ -148,6 +192,7 @@ def test_refuses_absent_run_directory(tmp_path):
 # --------------------------------------------------------------------------
 
 
+@needs_evidence
 def test_b4b_checkpoint_loads_into_the_selected_architecture():
     """Development artifact only. No test partition is touched."""
     run_dir = resolve_selected_run_dir(B4B_ROOT)
@@ -173,6 +218,7 @@ def test_b4a_checkpoint_cannot_load_into_the_selected_architecture():
         B4BTransformerCNN().load_state_dict(state)
 
 
+@needs_evidence
 def test_b4b_checkpoint_cannot_load_into_the_rejected_architecture():
     run_dir = resolve_selected_run_dir(B4B_ROOT)
     state = torch.load(
@@ -194,6 +240,7 @@ def test_describe_binding_reports_the_selected_identity():
     assert described["checkpoint_sha256"] == B4B_BINDING.checkpoint_sha256
 
 
+@needs_evidence
 def test_identity_result_carries_provenance_for_the_receipt():
     result = verify_selection_identity(B4B_ROOT)
     for field in (
@@ -237,7 +284,7 @@ def test_attempt_refuses_rejected_candidate_without_writing_a_receipt(tmp_path):
         open_selected_sealed_test_attempt(
             tmp_path, tmp_path, B4A_ROOT, binding
         )
-    # the autouse fixture re-asserts zero TEST_ATTEMPT across the real tree
+    # the autouse fixture re-asserts the real tree's attempts are unchanged
     assert not list(tmp_path.rglob("TEST_ATTEMPT*"))
 
 

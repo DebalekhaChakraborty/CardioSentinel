@@ -59,3 +59,15 @@ extend-exclude = ["legacy/v0", "scripts/provenance"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# `b4b_sealed_test` is deliberately two modules in one file, split by a comment
+# banner: the identity-verification half above, which reads development
+# artifacts only and must be able to refuse before anything sealed is resolved,
+# and the evaluation half below. The lower half's imports sit below that banner
+# on purpose, and several tests assert that source order rather than only the
+# behaviour, because a behavioural test passes whether the gate sits above or
+# below the attempt claim and only one of those refuses before writing a
+# receipt. Hoisting them to satisfy E402 would erase the separation the file
+# exists to make legible.
+"src/cardiosentinel/neural/b4b_sealed_test.py" = ["E402"]
