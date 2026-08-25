@@ -37,10 +37,10 @@ isolated-window false alerts. These are hypotheses, not established results.
 Current state: EDB and LTSTDB are integrated with validated annotation labels,
 and models exist across every layer above (classical, neural, physiology,
 memory, calibration, and longitudinal temporal); see `docs/CURRENT_STATE.md`
-for the experiment-by-experiment ladder. Validation-set performance is
-measured throughout. None of this is clinical validation or a statistically
-established result: the sealed test partition has been opened only for the
-classical baselines, no significance testing or confidence-interval claim has
-been made for anything after them, and no edge hardware target has been
-selected.
-
+for the experiment-by-experiment ladder. The B4-B neural sealed evaluation was
+consumed once on 2026-08-25: attempt 1 completed, repeat is prohibited, and the
+registered result is available through
+`docs/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md`. All fifteen one-shot budgets are
+now spent. None of this is clinical validation or evidence of generalization:
+the neural result is one uncorroborated evaluation on twelve test subjects from
+one dataset, and no edge-hardware target has been selected.

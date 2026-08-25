@@ -12,6 +12,7 @@ system's behaviour, not its scientific claims.
 | U1 router **rejected**, ratio 6.4536 vs limit 3.0 | `phase7-u1-development-v1` | `U1_EXPERIMENT_LOCK.json` | `docs/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md` |
 | U1 calibration retained, NLL 0.143708 vs 0.231705 | same | same | `gen_u1_reliability_report.py` |
 | B4-B selected, 309,809 params | `phase3b2-architecture-v1` | `EXPERIMENT_LOCK.json` | `docs/B4_GLOBAL_ENCODER_SELECTION_V1.md` |
+| B4-B sealed evaluation consumed once, pooled AUPRC 0.0935334 | `phase3b2-architecture-v1/B4B_cnn_transformer_v1/TEST_*` | `TEST_ATTEMPT.json`, attempt 1 `COMPLETE`, repeat prohibited | `docs/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md` + immutable `TEST_AUDIT.json` |
 | Live representation == frozen corpus (6 ULP) | full feature corpus | — | `tests/edge/test_representation_matches_frozen_cache.py` |
 | M2 order preserved by `step()` extraction | corpus rows | — | `tests/neural/test_m2_step_matches_replay.py` |
 
@@ -24,6 +25,10 @@ gitignored and failed on every machine that held it.
 
 ## One-shot budgets
 
-**15 tracked, 14 spent.** The B4 neural sealed test is the only one unspent, and
-no path in this package touches it. Handbook §51 is the ledger; §43.1 argues it
-should stay unspent.
+**15 tracked, 15 spent.** The B4 neural sealed evaluation was consumed once on
+2026-08-25: attempt 1 is `COMPLETE` and `repeat_attempt_permitted` is `false`.
+No path in this package touches or reproduces its test artifacts; the demo tier
+continues to use development artifacts and a validation record only. Handbook
+§51 is the canonical ledger, and
+`docs/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md` is the bounded account of the
+registered result.

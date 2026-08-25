@@ -229,34 +229,68 @@ RESEARCH_REGISTRY: tuple[ResearchEvidence, ...] = (
         keywords=("b4", "b4-b", "b4b", "encoder", "transformer", "cnn", "ssm"),
     ),
     ResearchEvidence(
-        topic="sealed_test_unopened",
-        question="Why has the sealed test not been opened?",
-        component="B4 / neural sealed test",
-        decision="deliberately deferred; the last unspent one-shot budget",
+        topic="sealed_test_consumed",
+        question="What happened in the B4 sealed evaluation?",
+        component="B4-B / neural sealed evaluation",
+        decision="consumed once; attempt 1 COMPLETE; repeat prohibited",
         basis={
             "budgets_tracked": 15,
-            "budgets_spent": 14,
-            "remaining": "B4 / neural sealed test",
-            "test_attempt_files_present": 0,
-            "classical_chain": "consumed in Phase 3B-1 and not extensible",
-            "reason": (
-                "the headline T2 contrast spans zero and no independent cohort "
-                "exists to corroborate a test number, so opening it would spend "
-                "the final firewall on a result nothing can check"
+            "budgets_spent": 15,
+            "test_attempt_files_present": 1,
+            "attempt_sequence": 1,
+            "attempt_status": "COMPLETE",
+            "repeat_attempt_permitted": False,
+            "registered_primary": "pooled-window AUPRC",
+            "pooled_auprc": 0.0935334,
+            "prevalence": 0.0460529,
+            "subject_macro_auprc": 0.354901,
+            "subject_macro_contributing_subjects": "8 of 12",
+            "subject_bootstrap_95": [0.033058, 0.239284],
+            "comparison": (
+                "B4-B was below B1, B2 and B3, and above only the constant "
+                "prior; this confirmed the development ordering"
+            ),
+            "result_available_through": (
+                "docs/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md"
+            ),
+            "boundary": (
+                "one attempt, twelve subjects, one dataset, uncalibrated "
+                "scores, and no independent cohort for corroboration"
             ),
         },
         claims_allowed=(
-            "the neural sealed test is unopened",
-            "the classical sealed test was consumed in Phase 3B-1",
-            "'TEST is sealed' is only half true and must be qualified",
+            "the B4-B sealed evaluation was consumed exactly once",
+            "attempt 1 completed and repeat is prohibited",
+            "the registered primary pooled-window AUPRC is 0.0935334, with "
+            "its pre-registered boundary attached",
+            "the post-hoc analysis explains existing values and authorizes no "
+            "experiment",
         ),
         claims_forbidden=(
-            "test performance",
-            "the model was evaluated on held-out test data",
+            "B4-B outperforms the classical baselines",
+            "the result establishes generalization or clinical utility",
+            "the assembled IPS has a sealed evaluation result",
+            "a second attempt is permitted",
         ),
-        source_document="docs/CardioSentinel_Research_Execution_Handbook_v1.3.md",
-        source_lock={"sealed_test_state": "unopened", "test_accessed": False},
-        keywords=("sealed", "test", "unopened", "budget", "firewall"),
+        source_document="docs/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md",
+        source_lock={
+            "experiment_id": "B4B_cnn_transformer_v1",
+            "sealed_test_state": "consumed",
+            "test_accessed": True,
+            "attempt_sequence": 1,
+            "attempt_status": "COMPLETE",
+            "repeat_attempt_permitted": False,
+        },
+        keywords=(
+            "b4",
+            "sealed",
+            "test",
+            "consumed",
+            "unopened",
+            "attempt",
+            "budget",
+            "result",
+        ),
     ),
 )
 

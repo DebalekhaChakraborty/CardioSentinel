@@ -185,8 +185,10 @@ Present in `cardiosentinel-runs/` and easily mistaken for evidence:
 # locks are case-inconsistent: 4 classical runs use lowercase experiment_lock.json
 find cardiosentinel-runs -iname "*experiment_lock*.json" | wc -l      # expect 20
 
-# the one that matters
-find . -name "TEST_ATTEMPT.json" -not -path "./.git/*"                # expect empty
+# the one that matters: exactly one consumed B4-B attempt, never zero or two
+find . -name "TEST_ATTEMPT.json" -not -path "./.git/*"                # expect 1
+# receipt must say: attempt_sequence 1, attempt_status COMPLETE,
+#                   repeat_attempt_permitted false
 
 # frozen T1 sources — bare filenames, from src/cardiosentinel/neural/
 sha256sum t1_protocol.py t1_execution_spec.py t1_evidence_store.py \

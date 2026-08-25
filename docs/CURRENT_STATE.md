@@ -23,12 +23,12 @@ from it. **Neither authorizes an experiment.**
 
 ---
 
-**As of:** `origin/master` `c5595b3` (merge of PR #116), 2026-08-25 ·
+**As of:** `origin/master` `84991e1` (merge of PR #121), 2026-08-25 ·
 tags `research-freeze-v1.0` · `ips-agentic-runtime-v1.0`
 **Working tree:** shared by three workers; run `git status` before assuming
 anything about it
-**Open PRs:** #111 at the time of writing. *(Snapshot only — `gh pr list`
-is authoritative and free; this line is stale the moment a PR opens or merges.)*
+**Open PRs:** none at the time of writing. *(Snapshot only — `gh pr list`
+is authoritative; this line is stale the moment a PR opens or merges.)*
 **Canonical T1 attempt:** **CONSUMED** — failed post-claim at stage 24
 **T1 measurement continuation:** **COMPLETED** — the single authorization is spent
 **T2 outer validation:** **CONSUMED and ANALYSED** — values published
@@ -68,17 +68,17 @@ it concluded.
 
 | | |
 |---|---|
-| `origin/master` | `61d9009b17293304ec3f4590a9ace1f3b8421acd` — merge of PR #110 |
+| `origin/master` | `84991e147d94c74481a1458645e8796781ebe14e` — merge of PR #121 |
 | Tags | `research-freeze-v1.0` · `ips-agentic-runtime-v1.0` · `legacy/v0` · three `archive/*` tags |
 | Releases | none |
 | Working tree | **shared.** Two Claude sessions and the user work in this checkout; `HEAD` moves under you |
-| Open PRs | #111 (ECG 18 handoff), #112 (CI repair) |
-| Tracked Python | 291 files · 126,060 LOC |
-| Tests | 119 files |
-| Documents | 82 in `docs/` (75 `.md`) |
+| Open PRs | none |
+| Tracked Python | 292 files · 126,844 LOC |
+| Tests | 120 files |
+| Documents | 85 in `docs/` (78 `.md`) |
 | Handbook | **v1.4**, amended 2026-08-25 (v1.2 and v1.3 retained, superseded, unedited) |
-| `neural/` | 87 files · 54,897 LOC — still where the work lives |
-| `edge/` · `agents/` | 1,666 · 3,065 lines |
+| `neural/` | 87 files · 54,964 LOC — still where the work lives |
+| `edge/` · `agents/` | 1,692 · 3,289 lines |
 | `reproducibility/` | 35 tracked files including the 1.63 MiB demo bundle |
 | Evidence on disk | `cardiosentinel-runs` 2.3 GB · `cardiosentinel-data` 5.6 GB · `cardiosentinel-features` 16 GB (all gitignored) |
 
@@ -98,6 +98,17 @@ it concluded.
 #108 end-to-end orchestrator coverage on synthetic data
 #109 audit-schema pre-flight, non-masking failure recording
 #110 rejected-candidate path disarmed at its source
+#111 ECG 18 handoff
+#112 CI repair after the sealed attempt changed a world-state assumption
+#113 living sealed-test state reconciled after consumption
+#114 sealed-test row added to paper §7 outline
+#115 experiment catalogue updated with the consumed result
+#116 local evidence-tree suite findings recorded
+#117 evidence mirror verified; sealed-test artifacts mirrored separately
+#118 B4-B post-hoc analysis and improvement roadmap
+#119 runtime sealed-test provenance assertions corrected
+#120 post-hoc diagnosis corrected against the classical comparators
+#121 opt-in local Qwen explanation provider; real-model arm still unexercised
 ```
 
 **The previous refresh pinned `0480b34`, which no longer resolves on the
@@ -113,8 +124,9 @@ remote.** It is the pre-rewrite identifier for `544581e`. Translate through
 `docs/REPO_AUDIT.md` was refreshed in #77. *(#77 also refreshed a
 `docs/README.md`; no such file exists on master today, and this line has carried
 the claim forward unchecked ever since.)*
-`docs/RESEARCH_SCOPE.md` has not been revised since 2026-08-07 and does not
-need to be: the objective it states is unchanged.
+`docs/RESEARCH_SCOPE.md` retains its original objective and now states the
+post-B4 execution boundary explicitly: attempt 1 completed, repeat is
+prohibited, and the bounded result is available through the post-hoc analysis.
 
 **The handbook is v1.4, amended 2026-08-25** to record the consumed sealed test
 (§35.3, §43, new §43.2, §44, §49.1, §50.2, §50.3, §51, §56, Appendix A claim 12).
@@ -147,9 +159,9 @@ reconsidered is evidence and a deleted one is not.
 | **T1 episode reasoning** | `phase9-t1-*` | complete · measured and reported |
 | **T2 longitudinal comparison** | `phase8-t2-development-v1` | complete · S4D selected; contrast interval spans zero |
 | **W1 window comparator** | derived — no run directory | complete · **RQ4 supported (bounded)** |
-| **IPS runtime** | `edge/`, 1,666 lines | complete · replay simulation on a laptop; **not edge hardware** |
+| **IPS runtime** | `edge/`, 1,692 lines | complete · replay simulation on a laptop; **not edge hardware** |
 | **Evidence graph** | `agents/graph.py` | complete · 35 nodes / 39 edges per alert, closed vocabularies |
-| **Explanation agents** | `agents/context.py`, `explain.py`, `providers.py` | complete · guarded generation, deterministic fallback |
+| **Explanation agents** | `agents/context.py`, `explain.py`, `providers.py` | complete · guarded generation, opt-in local provider, deterministic fallback; real-model arm unexercised |
 | **Architecture Selection Agent** | `agents/architecture.py` | complete · lifecycle, not recommendation |
 | **Explanation evaluation framework** | `agents/evaluation/` | complete · deterministic arm measured, generative arm **unexercised** |
 
@@ -329,10 +341,11 @@ claim guard sits between every generator and its output; a violation falls back
 to deterministic prose rather than publishing the claim. See
 `docs/ARCHITECTURE.md` §0.2 for the flow.
 
-**One of its curated objects is now false** — the `sealed_test_unopened` topic.
-See defect 7. `research.py:95` and `:167` restate the U1 and T2 `source_lock`
-values and are **correct**: those locks say `unopened` permanently, about their
-own runs.
+The research assistant's current-state topic is `sealed_test_consumed`: it
+reports attempt 1 `COMPLETE`, repeat prohibited, and routes stale-premise
+questions about an "unopened" test to the consumed record. `research.py` also
+repeats U1 and T2 `source_lock` values that say `unopened`; those remain correct
+historical attestations about those runs, not claims about today's repository.
 
 ---
 
@@ -501,10 +514,10 @@ and no path in it touches the test partition.
    opened and closed twice in three days. The guarantee is only as current as
    its last check, so re-verify with a date attached rather than inheriting
    this one.
-2. **The generative explanation path has never run against a real model.** No
-   credentials exist here and no generative SDK is a project dependency. #94
-   reports this in the table rather than in a footnote, which is the correct
-   handling, not a fix.
+2. **The generative explanation path has never run against a real model.** An
+   opt-in local Qwen provider exists after #121, but its tests use stubs and no
+   real-model comparison has been reported. The unexercised status remains in
+   the table rather than being hidden in a footnote.
 3. **Three empty packages** advertise an architecture the code does not use.
    Repair named in `docs/ARCHITECTURE.md` §5, deliberately not done during the
    freeze.
@@ -525,8 +538,7 @@ and no path in it touches the test partition.
    so the second copy is the whole of the protection they will ever have.
    **Anything that changes them must be treated as a finding, not a file to
    regenerate.**
-7. **Runtime assertions that the sealed test is unopened — mostly fixed; one
-   editorial decision remains.**
+7. ~~**Runtime assertions that the sealed test is unopened.**~~ **Closed.**
 
    **Fixed:** `agents/claims.py:107` (the Appendix A claim-12 rationale, which
    told authors *"The neural chain is unopened"* while refusing their §7 text),
@@ -544,15 +556,10 @@ and no path in it touches the test partition.
    the **U1** and **T2** experiments. Those locks do say
    `sealed_test_state: unopened`, permanently and correctly, so those two lines
    are accurate — hardcoded rather than read, which is a lesser fault, but not
-   false. Only the `sealed_test_unopened` topic itself is false.
-
-   **Remaining, and deliberately not fixed:** that topic
-   (`agents/research.py:231–259`). Its name, question, decision, `basis` counts,
-   `claims_allowed` and stated reason are all the deferral argument, and
-   rewriting them means stating what the programme now says about the sealed
-   test — editorial, not a refactor.
-   `tests/agents/test_research_assistant.py::test_the_sealed_test_claim_matches_the_tree`
-   is still failing on it, correctly, and **must not be weakened to go green.**
+   false. The former `sealed_test_unopened` current-state topic is now
+   `sealed_test_consumed`, backed by the one immutable attempt receipt and the
+   post-hoc analysis. The coupled test checks the receipt's sequence, status and
+   repeat prohibition rather than asserting absence.
 
 8. **`stash@{0}` is a stale `CURRENT_STATE` refresh** pinned to `1018001`,
    predating the sealed test. Regenerate; do not pop.
@@ -570,15 +577,15 @@ and no path in it touches the test partition.
    rather than an exemption. The gate was not relaxed — its information content
    was restored, and it can now say something other than one status again.
 
-10. **The full local suite fails where CI cannot see it.** Seven failures on
-   `01f035e` became **one** once defects 7 and 9 were addressed: only
-   `test_the_sealed_test_claim_matches_the_tree` remains, and it is failing
-   correctly on the editorial item in defect 7. All of them were invisible to CI
-   because `cardiosentinel-runs/` is gitignored and the runner has no evidence
-   tree. **CI is authoritative for "did I break something" and blind to "is the
-   system still telling the truth about the evidence on disk."** Run the local
-   suite before believing the second, and read the failures rather than counting
-   them.
+10. ~~**The full local suite fails where CI cannot see it.**~~ **Closed by the
+    post-sealed-test reconciliation.** The last failure was the research
+    assistant's zero-attempt claim. Its replacement asserts exactly one receipt
+    and verifies `attempt_sequence`, `attempt_status` and
+    `repeat_attempt_permitted` against the immutable file. The structural CI
+    asymmetry remains: `cardiosentinel-runs/` is gitignored, so CI is
+    authoritative for "did I break tracked code" and the local evidence-tree
+    suite is authoritative for "does runtime curation match the evidence on
+    disk."
 
 ### Closed since the previous refresh
 
@@ -591,6 +598,9 @@ and no path in it touches the test partition.
   being true when the budget was legitimately spent. Repaired in #112: the guard
   now compares an inventory of attempt paths and digests across each test, and
   the tests that need the gitignored evidence tree skip without it.
+- **Research Assistant claimed the B4 evaluation was unopened.** Reconciled to
+  the consumed attempt: one receipt, attempt 1 `COMPLETE`, repeat prohibited,
+  with the result bounded through `B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md`.
 
 ### Next steps
 
@@ -599,9 +609,10 @@ analysis of existing evidence, and paper drafting. No new experiment, no
 architecture change, no threshold generation. The sealed-test clause is now moot
 rather than lifted — there is nothing left to open.
 
-1. **Paper §7 gains a fifth row**, with its boundary inline, and **one sentence
-   in §9.1**. Per `PAPER_S9_DISCUSSION_SKELETON.md` §9.8: the number goes in §7,
-   the sentence goes in §9.1, and **no thesis in §9 moves.**
+1. **The manuscript's §7 must carry the fifth row already registered in the
+   outline**, with its boundary inline, and §9.1 gets one sentence. Per
+   `PAPER_S9_DISCUSSION_SKELETON.md` §9.8: the number goes in §7, the sentence
+   goes in §9.1, and **no thesis in §9 moves.**
 2. **The literature search for §2.** Still the only unstarted item in the paper
    plan, still blocking §9.3, and now bound by §6.3 of the authorization: it must
    not be shaped by the sealed-test result. The gap statement must be written
@@ -610,9 +621,8 @@ rather than lifted — there is nothing left to open.
    `PAPER_S9_DISCUSSION_SKELETON.md`, `PAPER_S9_DISCUSSION_DRAFT.md` (#105). §9.3
    is deliberately stubbed; §9.7, the provenance-incident subsection, is accepted
    and unwritten.
-4. **Decide what the `sealed_test_unopened` research topic becomes**
-   (defect 7), and **what phrasing the claim guard approves for reporting the
-   sealed test.** Appendix A claim 12 in the handbook now reads *"test
+4. **Decide what phrasing the claim guard approves for reporting the sealed
+   test.** Appendix A claim 12 in the handbook now reads *"test
    performance, stated unqualified"* with a reporting requirement, while
    `agents/claims.py` still encodes the absolute form and **blocks the §7 text
    the manuscript must contain** — `"on the sealed test set"` and `"test
@@ -638,5 +648,6 @@ human authorization.
 
 ---
 
-_Last refreshed: 2026-08-25, against `origin/master` `61d9009`, after the B4/
-neural sealed test was consumed and the four sealed-test artifacts were written._
+_Last refreshed: 2026-08-25, against `origin/master` `84991e1` (merge of PR
+#121), after reconciling the research assistant and living state documents to
+the single consumed B4-B attempt._
