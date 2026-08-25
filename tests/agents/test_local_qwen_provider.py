@@ -10,7 +10,8 @@ from __future__ import annotations
 import json
 import pathlib
 import re
-from types import SimpleNamespace
+import sys
+from types import ModuleType, SimpleNamespace
 
 import pytest
 
@@ -134,16 +135,14 @@ def _compliant(graph) -> str:
 # -- the provider is opt-in and never downloads on construction -------------
 
 
-def test_an_uncached_model_refuses_rather_than_downloading(monkeypatch):
+def test_an_uncached_model_refuses_rather_than_downloading(fake_runtime):
     """Constructing a provider must never trigger a multi-gigabyte fetch."""
-    import huggingface_hub
-
     def unavailable(_model_id, *, revision, local_files_only):
         assert revision == REVISION
         assert local_files_only is True
         raise OSError("not in cache")
 
-    monkeypatch.setattr(huggingface_hub, "snapshot_download", unavailable)
+    fake_runtime.huggingface_hub.snapshot_download = unavailable
     with pytest.raises(ProviderUnavailable, match="not completely cached locally"):
         LocalQwenProvider(
             model="cardiosentinel/definitely-not-a-real-model", revision=REVISION
@@ -169,41 +168,67 @@ def _snapshot(
     return snapshot
 
 
-def _resolve_to(monkeypatch, snapshot: pathlib.Path) -> None:
-    import huggingface_hub
+@pytest.fixture
+def fake_runtime(monkeypatch):
+    """Dependency-free stand-ins: CI installs no LLM runtime or weights."""
+    huggingface_hub = ModuleType("huggingface_hub")
+    transformers = ModuleType("transformers")
+    torch = ModuleType("torch")
+
+    def unconfigured(*_args, **_kwargs):
+        raise AssertionError("fake runtime call was not configured by the test")
+
+    huggingface_hub.snapshot_download = unconfigured
+    transformers.AutoConfig = SimpleNamespace(from_pretrained=unconfigured)
+    transformers.AutoTokenizer = SimpleNamespace(from_pretrained=unconfigured)
+    transformers.AutoModelForCausalLM = SimpleNamespace(from_pretrained=unconfigured)
+    torch.float32 = "float32"
+    torch.set_num_threads = lambda _count: None
+
+    class NoGrad:
+        def __enter__(self):
+            return None
+
+        def __exit__(self, *_args):
+            return False
+
+    torch.no_grad = NoGrad
+    monkeypatch.setitem(sys.modules, "huggingface_hub", huggingface_hub)
+    monkeypatch.setitem(sys.modules, "transformers", transformers)
+    monkeypatch.setitem(sys.modules, "torch", torch)
+    return SimpleNamespace(
+        huggingface_hub=huggingface_hub,
+        transformers=transformers,
+        torch=torch,
+    )
+
+
+def _resolve_to(fake_runtime, snapshot: pathlib.Path) -> None:
 
     def resolve(_model_id, *, revision, local_files_only):
         assert revision == REVISION
         assert local_files_only is True
         return str(snapshot)
 
-    monkeypatch.setattr(huggingface_hub, "snapshot_download", resolve)
+    fake_runtime.huggingface_hub.snapshot_download = resolve
 
 
 @pytest.mark.parametrize("revision", [None, "main", "abcdef1"])
-def test_a_moving_or_unknown_revision_is_refused(monkeypatch, revision):
-    import huggingface_hub
-
-    monkeypatch.setattr(
-        huggingface_hub,
-        "snapshot_download",
-        lambda *_args, **_kwargs: pytest.fail("a moving revision reached the cache"),
+def test_a_moving_or_unknown_revision_is_refused(fake_runtime, revision):
+    fake_runtime.huggingface_hub.snapshot_download = (
+        lambda *_args, **_kwargs: pytest.fail("a moving revision reached the cache")
     )
     with pytest.raises(ProviderUnavailable, match="revision cannot be resolved"):
         LocalQwenProvider(model=REPORTED_LOCAL_MODEL, revision=revision)
 
 
 def test_the_resolved_snapshot_must_equal_the_requested_revision(
-    monkeypatch, tmp_path
+    fake_runtime, tmp_path
 ):
-    import huggingface_hub
-
     other_revision = "b" * 40
     snapshot = _snapshot(tmp_path, revision=other_revision)
-    monkeypatch.setattr(
-        huggingface_hub,
-        "snapshot_download",
-        lambda *_args, **_kwargs: str(snapshot),
+    fake_runtime.huggingface_hub.snapshot_download = (
+        lambda *_args, **_kwargs: str(snapshot)
     )
     with pytest.raises(ProviderUnavailable, match="unexpected cached snapshot"):
         LocalQwenProvider(model=REPORTED_LOCAL_MODEL, revision=REVISION)
@@ -218,7 +243,7 @@ def test_the_resolved_snapshot_must_equal_the_requested_revision(
     ],
 )
 def test_config_tokenizer_and_weights_are_all_required_before_generation(
-    monkeypatch, tmp_path, missing, message
+    fake_runtime, tmp_path, missing, message
 ):
     snapshot = _snapshot(
         tmp_path,
@@ -226,12 +251,12 @@ def test_config_tokenizer_and_weights_are_all_required_before_generation(
         tokenizer=missing != "tokenizer",
         weights=missing != "weights",
     )
-    _resolve_to(monkeypatch, snapshot)
+    _resolve_to(fake_runtime, snapshot)
     with pytest.raises(ProviderUnavailable, match=message):
         LocalQwenProvider(model=REPORTED_LOCAL_MODEL, revision=REVISION)
 
 
-def test_every_weight_shard_named_by_the_index_must_exist(monkeypatch, tmp_path):
+def test_every_weight_shard_named_by_the_index_must_exist(fake_runtime, tmp_path):
     snapshot = _snapshot(tmp_path, weights=False)
     (snapshot / "model.safetensors.index.json").write_text(
         json.dumps(
@@ -245,60 +270,45 @@ def test_every_weight_shard_named_by_the_index_must_exist(monkeypatch, tmp_path)
         encoding="utf-8",
     )
     (snapshot / "model-00001-of-00002.safetensors").write_bytes(b"first")
-    _resolve_to(monkeypatch, snapshot)
+    _resolve_to(fake_runtime, snapshot)
     with pytest.raises(ProviderUnavailable, match="00002-of-00002"):
         LocalQwenProvider(model=REPORTED_LOCAL_MODEL, revision=REVISION)
 
 
 def test_quantization_is_none_when_the_cached_config_is_unquantized(
-    monkeypatch, tmp_path
+    fake_runtime, tmp_path
 ):
-    import transformers
-
     snapshot = _snapshot(tmp_path)
-    _resolve_to(monkeypatch, snapshot)
-    monkeypatch.setattr(
-        transformers.AutoConfig,
-        "from_pretrained",
-        lambda _path, **_options: SimpleNamespace(),
+    _resolve_to(fake_runtime, snapshot)
+    fake_runtime.transformers.AutoConfig.from_pretrained = (
+        lambda _path, **_options: SimpleNamespace()
     )
-    monkeypatch.setattr(
-        transformers.AutoTokenizer,
-        "from_pretrained",
-        lambda _path, **_options: object(),
+    fake_runtime.transformers.AutoTokenizer.from_pretrained = (
+        lambda _path, **_options: object()
     )
     provider = LocalQwenProvider(model=REPORTED_LOCAL_MODEL, revision=REVISION)
     assert provider.identity.quantization == "none"
 
 
-def test_an_unresolvable_quantization_record_is_refused(monkeypatch, tmp_path):
-    import transformers
-
+def test_an_unresolvable_quantization_record_is_refused(fake_runtime, tmp_path):
     snapshot = _snapshot(tmp_path)
-    _resolve_to(monkeypatch, snapshot)
-    monkeypatch.setattr(
-        transformers.AutoConfig,
-        "from_pretrained",
-        lambda _path, **_options: SimpleNamespace(quantization_config={}),
+    _resolve_to(fake_runtime, snapshot)
+    fake_runtime.transformers.AutoConfig.from_pretrained = (
+        lambda _path, **_options: SimpleNamespace(quantization_config={})
     )
-    monkeypatch.setattr(
-        transformers.AutoTokenizer,
-        "from_pretrained",
-        lambda _path, **_options: object(),
+    fake_runtime.transformers.AutoTokenizer.from_pretrained = (
+        lambda _path, **_options: object()
     )
     with pytest.raises(ProviderUnavailable, match="quantization cannot be resolved"):
         LocalQwenProvider(model=REPORTED_LOCAL_MODEL, revision=REVISION)
 
 
 def test_fake_cached_model_runs_through_provider_and_audit(
-    monkeypatch, tmp_path, graph
+    fake_runtime, tmp_path, graph
 ):
     """CI contract: fake weights -> real provider adapter -> both output gates."""
-    import torch
-    import transformers
-
     snapshot = _snapshot(tmp_path)
-    _resolve_to(monkeypatch, snapshot)
+    _resolve_to(fake_runtime, snapshot)
     calls: dict[str, object] = {}
 
     class FakeTokenizer:
@@ -312,7 +322,7 @@ def test_fake_cached_model_runs_through_provider_and_audit(
         def __call__(self, text, *, return_tensors):
             assert text == "rendered prompt"
             assert return_tensors == "pt"
-            return {"input_ids": torch.tensor([[1, 2]])}
+            return {"input_ids": SimpleNamespace(shape=(1, 2))}
 
         def decode(self, _tokens, *, skip_special_tokens):
             assert skip_special_tokens is True
@@ -324,7 +334,7 @@ def test_fake_cached_model_runs_through_provider_and_audit(
 
         def generate(self, **options):
             calls["generate"] = options
-            return torch.tensor([[1, 2, 3]])
+            return [[1, 2, 3]]
 
     def config_from_pretrained(path, **options):
         calls["config"] = (path, options)
@@ -340,16 +350,11 @@ def test_fake_cached_model_runs_through_provider_and_audit(
         calls["model"] = (path, options)
         return FakeModel()
 
-    monkeypatch.setattr(
-        transformers.AutoConfig, "from_pretrained", config_from_pretrained
+    fake_runtime.transformers.AutoConfig.from_pretrained = config_from_pretrained
+    fake_runtime.transformers.AutoTokenizer.from_pretrained = tokenizer_from_pretrained
+    fake_runtime.transformers.AutoModelForCausalLM.from_pretrained = (
+        model_from_pretrained
     )
-    monkeypatch.setattr(
-        transformers.AutoTokenizer, "from_pretrained", tokenizer_from_pretrained
-    )
-    monkeypatch.setattr(
-        transformers.AutoModelForCausalLM, "from_pretrained", model_from_pretrained
-    )
-    monkeypatch.setattr(torch, "set_num_threads", lambda _count: None)
 
     provider = LocalQwenProvider(
         model=REPORTED_LOCAL_MODEL,
