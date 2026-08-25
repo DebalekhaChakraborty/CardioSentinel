@@ -12,12 +12,11 @@ from pathlib import Path
 import numpy as np
 import pytest
 import torch
+from test_sealed_test import THRESHOLD, WINDOW, _synthetic_references  # noqa: E402
 
 from cardiosentinel.neural import b4b_sealed_test as b4b
 from cardiosentinel.neural import sealed_test
 from cardiosentinel.neural.candidates import B4BTransformerCNN
-
-from test_sealed_test import _synthetic_references, THRESHOLD, WINDOW  # noqa: E402
 
 
 @pytest.fixture
@@ -72,8 +71,10 @@ def harness(monkeypatch, b4b_run_dir, tmp_path):
     )
     monkeypatch.setattr(
         b4b, "verify_selection_identity",
-        lambda root, bind=binding, **kw: {"identity_verified": True,
-                                          "authorized_experiment_id": bind.experiment_id}
+        lambda root, bind=binding, **kw: {
+            "identity_verified": True,
+            "authorized_experiment_id": bind.experiment_id,
+        },
     )
     monkeypatch.setattr(
         b4b, "git_provenance",

@@ -37,7 +37,6 @@ from cardiosentinel.baseline.cache import read_json
 from cardiosentinel.data.provenance import sha256_file
 from cardiosentinel.neural.candidates import B4BTransformerCNN
 from cardiosentinel.neural.experiment import (
-    EXPERIMENT_LOCK_NAME,
     validate_experiment_lock,
 )
 from cardiosentinel.neural.integrity import verify_experiment_lock
