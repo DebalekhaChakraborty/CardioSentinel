@@ -49,6 +49,7 @@ signal = [
 llm = [
   "torch>=2.4,<3",
   "transformers>=5,<6",
+  "huggingface-hub>=0.34",
 ]
 
 [project.scripts]

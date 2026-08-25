@@ -7,6 +7,7 @@ harness against deliberately bad providers rather than against a real model.
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import pathlib
 import re
@@ -592,7 +593,69 @@ def test_the_llm_extra_declares_no_package_the_frozen_set_lacks():
         re.split(r"[<>=!~\[]", entry, maxsplit=1)[0].strip().lower()
         for entry in declared
     }
-    assert names == {"torch", "transformers"}, (
+    assert names == {"torch", "transformers", "huggingface-hub"}, (
         "the llm extra must name only packages the frozen environment already "
         f"contains; found {sorted(names)}"
     )
+
+
+# -- against the REAL libraries, not the fakes ------------------------------
+#
+# Everything above runs on a `fake_runtime` that shadows `huggingface_hub`,
+# `transformers` and `torch` in `sys.modules`. That is the right way to test
+# cache-validation logic -- CI has no weights and a corrupt snapshot is easier
+# to fabricate than to obtain -- but it means those tests never touch the real
+# libraries, so real API drift would pass them unnoticed. The `apply_chat_template`
+# signature changing in transformers 5.x is exactly that kind of drift.
+#
+# These two run against the genuine packages, which is what installing the `llm`
+# extra in CI buys. They need no weights and no network.
+
+def _llm_extra_installed() -> bool:
+    """True when the real libraries are importable.
+
+    `find_spec` is wrapped because it does not merely return `None` for every
+    absent module -- it propagates `ImportError` when a parent package cannot be
+    imported, so a bare call is itself a way for this guard to fail for a reason
+    unrelated to what it is checking.
+    """
+    for module in ("huggingface_hub", "transformers", "torch"):
+        try:
+            if importlib.util.find_spec(module) is None:
+                return False
+        except (ImportError, ValueError):
+            return False
+    return True
+
+
+real_runtime = pytest.mark.skipif(
+    not _llm_extra_installed(),
+    reason="the llm extra is not installed in this environment",
+)
+
+
+@real_runtime
+def test_a_bogus_model_refuses_through_the_real_hub():
+    """The real `snapshot_download` miss must surface as `ProviderUnavailable`.
+
+    This is the failure the original CI run hit as a bare `ModuleNotFoundError`.
+    Whatever the hub raises for an uncached repository, the provider must
+    translate it into the one exception callers degrade on.
+    """
+    with pytest.raises(ProviderUnavailable):
+        LocalQwenProvider(
+            model="cardiosentinel/definitely-not-a-real-model",
+            revision="0" * 40,
+        )
+
+
+@real_runtime
+@pytest.mark.parametrize("revision", [None, "main", "abcdef1", "0" * 39])
+def test_a_moving_revision_is_refused_before_the_hub_is_consulted(revision):
+    """Reproducibility is enforced by the rule, not by the cache being warm.
+
+    A tag or a short hash is rejected on its own terms, so the refusal does not
+    depend on what happens to be downloaded.
+    """
+    with pytest.raises(ProviderUnavailable, match="immutable"):
+        LocalQwenProvider(model="Qwen/Qwen3-1.7B", revision=revision)
