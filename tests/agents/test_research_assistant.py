@@ -7,6 +7,7 @@ object that stops matching the evidence fails here rather than in a paper.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -132,9 +133,30 @@ def test_the_calibration_numbers_match_the_retention_decision():
 def test_the_sealed_test_claim_matches_the_tree():
     """The one fact a reviewer will check first."""
     attempts = list(REPOSITORY_ROOT.rglob("TEST_ATTEMPT.json"))
-    assert topic("sealed_test_unopened").basis["test_attempt_files_present"] == len(
-        attempts
-    ) == 0
+    basis = topic("sealed_test_consumed").basis
+    assert basis["test_attempt_files_present"] == len(attempts) == 1
+    receipt = json.loads(attempts[0].read_text(encoding="utf-8"))
+    for key in (
+        "attempt_sequence",
+        "attempt_status",
+        "repeat_attempt_permitted",
+    ):
+        assert basis[key] == receipt[key]
+
+
+def test_the_sealed_evaluation_numbers_match_the_post_hoc_record():
+    report = (DOCS / "B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md").read_text(
+        encoding="utf-8"
+    )
+    basis = topic("sealed_test_consumed").basis
+    for key in (
+        "pooled_auprc",
+        "prevalence",
+        "subject_macro_auprc",
+    ):
+        assert str(basis[key]) in report, key
+    low, high = basis["subject_bootstrap_95"]
+    assert str(low) in report and str(high) in report
 
 
 # -- retrieval and refusal -------------------------------------------------
@@ -147,7 +169,9 @@ def test_the_sealed_test_claim_matches_the_tree():
         ("Why was S4D selected instead of GRU?", "t2_s4d_selected"),
         ("Does episode reasoning help?", "w1_rq4_answered"),
         ("Why was the B4-B encoder selected?", "b4b_encoder_selected"),
-        ("Why is the sealed test unopened?", "sealed_test_unopened"),
+        ("What happened in the B4 sealed evaluation?", "sealed_test_consumed"),
+        # A stale-premise question must route to the current record and correct it.
+        ("Why is the sealed test unopened?", "sealed_test_consumed"),
         ("Why was Platt calibration retained?", "u1_calibration_retained"),
     ],
 )
