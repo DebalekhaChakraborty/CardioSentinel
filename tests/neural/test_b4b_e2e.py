@@ -150,3 +150,121 @@ def test_failure_path_records_and_reraises(harness, monkeypatch):
     assert receipt["human_review_required"] is True
     assert receipt["repeat_attempt_permitted"] is False
     assert receipt["error_type"] == "RuntimeError"
+
+
+# --------------------------------------------------------------------------
+# 1. audit schema pre-flight fails before the attempt is claimed
+# --------------------------------------------------------------------------
+
+
+def test_malformed_lock_fails_before_attempt_claim(harness, monkeypatch, tmp_path):
+    """A lock missing an audit reference is refused with no receipt written."""
+    lock_path = harness["run_dir"] / "EXPERIMENT_LOCK.json"
+    lock = json.loads(lock_path.read_text())
+    lock.pop("split_sha256")
+    lock["experiment_lock_sha256"] = sealed_test.canonical_sha256(
+        {k: v for k, v in lock.items() if k != "experiment_lock_sha256"}
+    )
+    lock_path.write_text(json.dumps(lock, indent=2, sort_keys=True), encoding="utf-8")
+    monkeypatch.setattr(b4b, "validate_experiment_lock", lambda run_dir: lock)
+
+    with pytest.raises(b4b.AuditSchemaError, match="missing audit references"):
+        b4b.evaluate_selected_locked_test(
+            harness["source"], harness["feature_root"], harness["run_root"],
+            harness["binding"], requested_device="cpu", _reader=harness["reader"])
+    assert not (harness["run_dir"] / "TEST_ATTEMPT.json").exists()
+    assert not (harness["run_dir"] / "TEST_METRICS.json").exists()
+
+
+def test_wrong_architecture_in_audit_identity_fails_before_claim(harness):
+    from dataclasses import replace as _replace
+
+    binding = _replace(harness["binding"], architecture="B4CompactCNN")
+    with pytest.raises((b4b.AuditSchemaError, b4b.SelectionIdentityError)):
+        b4b.evaluate_selected_locked_test(
+            harness["source"], harness["feature_root"], harness["run_root"],
+            binding, requested_device="cpu", _reader=harness["reader"])
+    assert not (harness["run_dir"] / "TEST_ATTEMPT.json").exists()
+
+
+def test_malformed_checkpoint_digest_fails_before_claim(harness):
+    from dataclasses import replace as _replace
+
+    binding = _replace(harness["binding"], checkpoint_sha256="not-a-digest")
+    with pytest.raises(b4b.AuditSchemaError, match="not a SHA-256 digest"):
+        b4b.evaluate_selected_locked_test(
+            harness["source"], harness["feature_root"], harness["run_root"],
+            binding, requested_device="cpu", _reader=harness["reader"])
+    assert not (harness["run_dir"] / "TEST_ATTEMPT.json").exists()
+
+
+def test_incomplete_audit_payload_is_refused_before_writing():
+    with pytest.raises(b4b.AuditSchemaError, match="missing fields"):
+        b4b.validate_audit_payload({"experiment_id": "B4B_cnn_transformer_v1"})
+
+
+def test_audit_payload_naming_the_rejected_experiment_is_refused():
+    payload = {field: None for field in b4b.REQUIRED_AUDIT_FIELDS}
+    payload["experiment_id"] = "B4_raw_compact_cnn_v1"
+    payload["architecture"] = "B4BTransformerCNN"
+    with pytest.raises(b4b.AuditSchemaError, match="wrong experiment"):
+        b4b.validate_audit_payload(payload)
+
+
+def test_preflight_runs_before_the_claim_in_source_order():
+    import inspect
+
+    body = inspect.getsource(b4b.open_selected_sealed_test_attempt)
+    assert body.index("preflight_audit_schema(") < body.index(
+        "claim_attempt_exclusively("
+    )
+
+
+# --------------------------------------------------------------------------
+# 2. failure recording must never replace the failure
+# --------------------------------------------------------------------------
+
+
+def test_failure_recording_failure_preserves_original_exception(
+    harness, monkeypatch
+):
+    """If _update_attempt itself fails, the ORIGINAL error still surfaces."""
+    monkeypatch.setattr(
+        b4b, "score_sealed_test",
+        lambda *a, **k: (_ for _ in ()).throw(RuntimeError("original failure")))
+
+    calls = {"n": 0}
+
+    def exploding_update(access, **fields):
+        calls["n"] += 1
+        if fields.get("attempt_status") == "FAILED_OR_INTERRUPTED":
+            raise KeyError("recording blew up")
+        return {}
+
+    monkeypatch.setattr(b4b, "_update_attempt", exploding_update)
+
+    with pytest.raises(RuntimeError, match="original failure") as excinfo:
+        b4b.evaluate_selected_locked_test(
+            harness["source"], harness["feature_root"], harness["run_root"],
+            harness["binding"], requested_device="cpu", _reader=harness["reader"])
+
+    notes = getattr(excinfo.value, "__notes__", [])
+    assert any("Failure recording ALSO failed" in n for n in notes), notes
+    assert any("KeyError" in n for n in notes), notes
+    assert any("requires\nhuman review" in n or "human review" in n for n in notes)
+
+
+def test_failure_recording_failure_is_not_limited_to_oserror(harness, monkeypatch):
+    """A non-OSError recording fault must not propagate in place of the original."""
+    monkeypatch.setattr(
+        b4b, "score_sealed_test",
+        lambda *a, **k: (_ for _ in ()).throw(ValueError("scoring died")))
+    monkeypatch.setattr(
+        b4b, "_update_attempt",
+        lambda access, **f: (_ for _ in ()).throw(TypeError("not an OSError"))
+        if f.get("attempt_status") == "FAILED_OR_INTERRUPTED" else {})
+
+    with pytest.raises(ValueError, match="scoring died"):
+        b4b.evaluate_selected_locked_test(
+            harness["source"], harness["feature_root"], harness["run_root"],
+            harness["binding"], requested_device="cpu", _reader=harness["reader"])

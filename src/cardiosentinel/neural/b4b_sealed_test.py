@@ -315,6 +315,7 @@ def describe_binding(
 # being wrong costs the budget.
 # ---------------------------------------------------------------------------
 
+import re
 import time
 import traceback
 
@@ -360,6 +361,129 @@ from cardiosentinel.neural.sealed_test import (
 
 SELECTED_DEFAULT_COMMAND = "cardiosentinel b4b evaluate-selected-locked-test"
 
+SELECTED_EXPERIMENT_ID = "B4B_cnn_transformer_v1"
+SELECTED_ARCHITECTURE = "B4BTransformerCNN"
+
+#: Fields the audit artifact must carry. The reporting commitment in
+#: B4_TEST_AUTHORIZATION_V1 depends on every one of them, so a payload missing
+#: any is not a partial result -- it is an unreportable one.
+REQUIRED_AUDIT_FIELDS: frozenset[str] = frozenset({
+    "experiment_id",
+    "architecture",
+    "selection_identity",
+    "attempt_status",
+    "attempt_sequence",
+    "repeat_attempt_permitted",
+    "experiment_lock_sha256",
+    "initial_attempt_receipt_sha256",
+    "development_git_sha",
+    "evaluator_git_sha",
+    "checkpoint_sha256",
+    "locked_validation_threshold",
+    "threshold_source",
+    "split_sha256",
+    "dataset",
+    "dataset_version",
+    "sealed_test_feature_integrity_sha256",
+    "sealed_test_source_integrity_sha256",
+    "test_primary_counts",
+    "test_challenge_counts",
+    "scored_row_count",
+    "predictions_sha256",
+    "metrics_sha256",
+    "model_state_sha256_before_inference",
+    "model_state_sha256_after_inference",
+    "model_weights_unchanged",
+    "optimizer_constructed",
+    "backward_invoked",
+    "threshold_selection_performed",
+})
+
+#: Lock keys the audit assembly reads. Absence would raise KeyError after the
+#: rows had been read, which spends the budget and produces nothing.
+REQUIRED_LOCK_KEYS: tuple[str, ...] = (
+    "experiment_id",
+    "experiment_lock_sha256",
+    "checkpoint_sha256",
+    "locked_inference_model",
+    "validation_threshold",
+    "threshold_selection_rule",
+    "split_sha256",
+    "git_sha",
+)
+
+_SHA256_PATTERN = re.compile(r"\A[0-9a-f]{64}\Z")
+
+
+class AuditSchemaError(RuntimeError):
+    """Raised when the audit payload could not be assembled or is incomplete.
+
+    Like `SelectionIdentityError`, raising this before the attempt is claimed
+    leaves the sealed test unopened. The pre-flight exists so that a payload
+    defect is discovered then, rather than after the rows have been read.
+    """
+
+
+def preflight_audit_schema(
+    binding: SelectedArchitectureBinding,
+    lock: dict[str, Any],
+    identity: dict[str, Any],
+    run_dir: Path,
+) -> dict[str, Any]:
+    """Prove the audit payload is assemblable **before** any sealed-test access.
+
+    Reads development artifacts only. Every failure here happens before
+    `TEST_ATTEMPT.json` exists and before a single test row is loaded.
+    """
+    if binding.experiment_id != SELECTED_EXPERIMENT_ID:
+        raise AuditSchemaError(
+            f"Audit identity is {binding.experiment_id!r}; the authorized "
+            f"experiment is {SELECTED_EXPERIMENT_ID!r}."
+        )
+    if binding.architecture != SELECTED_ARCHITECTURE:
+        raise AuditSchemaError(
+            f"Audit architecture is {binding.architecture!r}; the authorized "
+            f"architecture is {SELECTED_ARCHITECTURE!r}."
+        )
+    if identity.get("identity_verified") is not True:
+        raise AuditSchemaError("Selection identity was not verified.")
+
+    for key in ("checkpoint_sha256", "experiment_lock_sha256"):
+        value = getattr(binding, key)
+        if not isinstance(value, str) or not _SHA256_PATTERN.match(value):
+            raise AuditSchemaError(f"Binding {key} is not a SHA-256 digest.")
+
+    missing = [key for key in REQUIRED_LOCK_KEYS if key not in lock]
+    if missing:
+        raise AuditSchemaError(f"Lock is missing audit references: {missing}.")
+    if lock["experiment_id"] != binding.experiment_id:
+        raise AuditSchemaError("Lock experiment does not match the binding.")
+    for key in ("checkpoint_sha256", "experiment_lock_sha256", "split_sha256"):
+        if not _SHA256_PATTERN.match(str(lock[key])):
+            raise AuditSchemaError(f"Lock {key} is not a SHA-256 digest.")
+
+    checkpoint = Path(run_dir) / str(lock["locked_inference_model"])
+    if not checkpoint.is_file():
+        raise AuditSchemaError("Lock references a checkpoint that does not resolve.")
+
+    return {
+        "audit_schema_verified": True,
+        "required_audit_fields": sorted(REQUIRED_AUDIT_FIELDS),
+        "required_lock_keys": list(REQUIRED_LOCK_KEYS),
+    }
+
+
+def validate_audit_payload(audit: dict[str, Any]) -> dict[str, Any]:
+    """Refuse to write an audit that the reporting commitment cannot use."""
+    missing = sorted(REQUIRED_AUDIT_FIELDS - set(audit))
+    if missing:
+        raise AuditSchemaError(f"Audit payload is missing fields: {missing}.")
+    if audit.get("experiment_id") != SELECTED_EXPERIMENT_ID:
+        raise AuditSchemaError("Audit payload names the wrong experiment.")
+    if audit.get("architecture") != SELECTED_ARCHITECTURE:
+        raise AuditSchemaError("Audit payload names the wrong architecture.")
+    return audit
+
 
 def open_selected_sealed_test_attempt(
     source: Path,
@@ -397,6 +521,11 @@ def open_selected_sealed_test_attempt(
     if not isinstance(threshold, float) or not np.isfinite(threshold):
         raise SealedTestAttemptError("The lock has no finite validation threshold.")
 
+    # Audit schema pre-flight. Assembling the audit is the last thing the
+    # evaluation does, and a defect there would surface after the rows had been
+    # read. Prove it is assemblable now, while failing still costs nothing.
+    schema = preflight_audit_schema(binding, lock, identity, run_dir)
+
     receipt_path = run_dir / TEST_ATTEMPT_NAME
     determinism = initialize_determinism(requested_device=requested_device)
     environment = runtime_environment(determinism.device, workers)
@@ -408,6 +537,7 @@ def open_selected_sealed_test_attempt(
         "experiment_id": binding.experiment_id,
         "architecture": binding.architecture,
         "selection_identity": identity,
+        "audit_schema": schema,
         "attempt_sequence": ATTEMPT_SEQUENCE,
         "attempt_status": ATTEMPT_STARTED,
         "repeat_attempt_permitted": False,
@@ -556,6 +686,7 @@ def evaluate_selected_locked_test(
             "threshold_selection_performed": False,
             "duration_seconds": duration,
         }
+        validate_audit_payload(audit)
         audit["test_audit_sha256"] = canonical_sha256(audit)
         audit_sha256 = write_json_durable(run_dir / TEST_AUDIT_NAME, audit)
         _update_attempt(
@@ -586,6 +717,11 @@ def evaluate_selected_locked_test(
             "repeat_attempt_permitted": False,
         }
     except BaseException as error:
+        # Recording the failure must never replace the failure. Catching only
+        # OSError here would let any other recording fault -- a KeyError, a
+        # serialisation fault, a full disk surfacing as something else --
+        # propagate in place of the original, and the original is the one that
+        # explains what happened to the budget.
         try:
             _update_attempt(
                 access,
@@ -597,6 +733,16 @@ def evaluate_selected_locked_test(
                 human_review_required=True,
                 repeat_attempt_permitted=False,
             )
-        except OSError:  # pragma: no cover - receipt already proves the attempt
-            pass
+        except BaseException as recording_error:  # noqa: BLE001
+            note = (
+                "Failure recording ALSO failed: "
+                f"{type(recording_error).__name__}: {recording_error}. "
+                f"The attempt receipt at {access.receipt_path} may be stale or "
+                "absent; the attempt was nonetheless consumed and requires "
+                "human review."
+            )
+            try:
+                error.add_note(note)
+            except AttributeError:  # pragma: no cover - Python < 3.11
+                pass
         raise
