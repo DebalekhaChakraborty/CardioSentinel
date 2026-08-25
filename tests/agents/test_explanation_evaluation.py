@@ -20,6 +20,7 @@ from cardiosentinel.agents.evaluation import (
     evidence_fidelity,
     render_report,
 )
+from cardiosentinel.agents.providers import ProviderIdentity
 
 CONTEXT = ExplanationContext(
     event={
@@ -150,6 +151,47 @@ def test_a_compliant_generator_scores_clean():
     assert generative.total_violations == 0
     assert generative.mean_fidelity == 1.0
     assert generative.mean_completeness == 1.0
+
+
+def test_generative_evaluation_records_immutable_provider_identity():
+    provider = Stub(claims.SYSTEM_BEHAVIOUR_ONLY)
+    provider.identity = ProviderIdentity(
+        provider="local_qwen",
+        model_id="Qwen/Qwen3-4B-Instruct-2507",
+        revision="a" * 40,
+        quantization="Q4",
+        runtime="transformers",
+        device="cpu",
+    )
+    report = evaluate_arms([CONTEXT], provider=provider)
+    generative = report.arms[1]
+    serialized = generative.as_dict()
+    assert serialized["provider"] == "local_qwen"
+    assert serialized["model"] == "Qwen/Qwen3-4B-Instruct-2507"
+    assert serialized["revision"] == "a" * 40
+    assert serialized["quantization"] == "Q4"
+    assert serialized["runtime"] == "transformers"
+    assert serialized["host"] == "cpu"
+    assert serialized["latency_scope"] == "total generation latency"
+    assert generative.provider == "local_qwen"
+    assert generative.model == "Qwen/Qwen3-4B-Instruct-2507"
+    assert generative.revision == "a" * 40
+    assert generative.quantization == "Q4"
+    assert generative.runtime == "transformers"
+    assert generative.host == "cpu"
+    assert generative.latency_scope == "total generation latency"
+
+    rendered = render_report(report)
+    for field in (
+        "provider",
+        "model",
+        "revision",
+        "quantization",
+        "runtime",
+        "host",
+        "latency scope",
+    ):
+        assert any(line.startswith(field) for line in rendered.splitlines())
 
 
 # -- reporting discipline --------------------------------------------------

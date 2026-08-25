@@ -27,6 +27,12 @@ class ArmResult:
     arm: str
     exercised: bool
     provider: str | None
+    model: str | None = None
+    revision: str | None = None
+    quantization: str | None = None
+    runtime: str | None = None
+    host: str | None = None
+    latency_scope: str | None = None
     scores: tuple[Any, ...] = ()
     note: str | None = None
 

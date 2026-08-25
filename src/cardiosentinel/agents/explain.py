@@ -31,6 +31,7 @@ from typing import Any, Protocol
 from . import claims
 from .context import ExplanationContext, build_context
 from .graph import EvidenceGraph
+from .providers import ProviderIdentity
 
 GENERATIVE = "GENERATIVE"
 DETERMINISTIC = "DETERMINISTIC"
@@ -75,15 +76,19 @@ class Explanation:
     explanation_mode: str
     context_source: str = "EVIDENCE_GRAPH"
     provider: str | None = None
+    renderer: str | None = None
     fallback_reason: str | None = None
     claim_violations: tuple[str, ...] = ()
     context: dict[str, Any] = field(default_factory=dict)
-    #: Model id WITH revision, e.g. `Qwen/Qwen3-1.7B@<sha>`. A bare tag is a
-    #: moving pointer; provenance here is expected to outlive the tag moving.
-    model: str | None = None
-    #: Wall clock for the path actually taken, generative or deterministic.
-    #: Not comparable across hosts, and reported with that caveat.
+    model_id: str | None = None
+    revision: str | None = None
+    quantization: str | None = None
+    runtime: str | None = None
+    device: str | None = None
+    #: Total wall clock from explanation request to returned response. A
+    #: provider failure therefore includes both the failed attempt and fallback.
     latency_seconds: float | None = None
+    latency_scope: str = "total response latency"
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -166,7 +171,7 @@ class PatientExplanationAgent:
         """A percentage the evidence never contained.
 
         **Why this is separate from `_fidelity`.** The registered fidelity metric
-        extracts numbers matching `\d+\.\d{2,}` -- two or more decimals -- so a
+        extracts numbers matching `\\d+\\.\\d{2,}` -- two or more decimals -- so a
         probability rendered as "54.6%" is invisible to it: one decimal place,
         nothing extracted, fidelity `None`. That threshold is deliberate in the
         metric, which is registered in `EXPLANATION_EVALUATION_PROTOCOL.md` §3.1
@@ -190,15 +195,25 @@ class PatientExplanationAgent:
         self._provider = provider
         self._renderer = renderer or TemplateRenderer()
 
+    @staticmethod
+    def _identity(provider: ExplanationProvider) -> ProviderIdentity | None:
+        identity = getattr(provider, "identity", None)
+        return identity if isinstance(identity, ProviderIdentity) else None
+
     def explain(self, graph: EvidenceGraph) -> Explanation:
+        started = time.perf_counter()
         context = build_context(graph)
         payload = context.as_dict()
 
         if self._provider is None:
-            return self._fallback(context, payload, "no provider configured")
+            return self._fallback(
+                context,
+                payload,
+                "no provider configured",
+                started_at=started,
+            )
 
-        model_name = getattr(self._provider, "model_name", None)
-        started = time.perf_counter()
+        identity = self._identity(self._provider)
         try:
             import json
 
@@ -211,16 +226,17 @@ class PatientExplanationAgent:
                 payload,
                 f"provider {self._provider.name!r} failed: "
                 f"{type(error).__name__}",
-                model=model_name,
+                identity=identity,
+                started_at=started,
             )
-        elapsed = time.perf_counter() - started
 
         if not generated or not generated.strip():
             return self._fallback(
                 context,
                 payload,
                 f"provider {self._provider.name!r} returned nothing",
-                model=model_name,
+                identity=identity,
+                started_at=started,
             )
 
         # `audit`, not `find_violations`: the brief REQUIRES the canonical
@@ -235,7 +251,8 @@ class PatientExplanationAgent:
                 f"generated text broke the claim boundary "
                 f"({len(violations)} violation(s))",
                 violations=tuple(str(violation) for violation in violations),
-                model=model_name,
+                identity=identity,
+                started_at=started,
             )
 
         # The second gate. `None` -- prose stating no numbers at all -- does not
@@ -248,7 +265,8 @@ class PatientExplanationAgent:
                 payload,
                 "generated text stated a number not present in the evidence "
                 f"(fidelity {fidelity:.3f})",
-                model=model_name,
+                identity=identity,
+                started_at=started,
             )
         if self._states_a_percentage(generated):
             return self._fallback(
@@ -256,16 +274,21 @@ class PatientExplanationAgent:
                 payload,
                 "generated text converted a value to a percentage, which the "
                 "evidence does not contain",
-                model=model_name,
+                identity=identity,
+                started_at=started,
             )
 
         return Explanation(
             text=generated.strip(),
             explanation_mode=GENERATIVE,
-            provider=self._provider.name,
+            provider=identity.provider if identity else self._provider.name,
             context=payload,
-            model=model_name,
-            latency_seconds=elapsed,
+            model_id=identity.model_id if identity else None,
+            revision=identity.revision if identity else None,
+            quantization=identity.quantization if identity else None,
+            runtime=identity.runtime if identity else None,
+            device=identity.device if identity else None,
+            latency_seconds=time.perf_counter() - started,
         )
 
     def _fallback(
@@ -275,20 +298,25 @@ class PatientExplanationAgent:
         reason: str,
         *,
         violations: tuple[str, ...] = (),
-        model: str | None = None,
+        identity: ProviderIdentity | None = None,
+        started_at: float,
     ) -> Explanation:
         # The template output is guarded too. If the deterministic renderer
         # ever breaks the boundary that is a defect in this repository, not a
         # model's fault, and it should fail loudly.
-        started = time.perf_counter()
         text = claims.enforce(self._renderer.render(context))
         return Explanation(
             text=text,
             explanation_mode=DETERMINISTIC,
-            provider=self._renderer.name,
+            provider=identity.provider if identity else self._renderer.name,
+            renderer=self._renderer.name,
             fallback_reason=reason,
             claim_violations=violations,
             context=payload,
-            model=model,
-            latency_seconds=time.perf_counter() - started,
+            model_id=identity.model_id if identity else None,
+            revision=identity.revision if identity else None,
+            quantization=identity.quantization if identity else None,
+            runtime=identity.runtime if identity else None,
+            device=identity.device if identity else None,
+            latency_seconds=time.perf_counter() - started_at,
         )

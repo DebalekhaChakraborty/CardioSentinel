@@ -338,7 +338,7 @@ def _evaluate(args: argparse.Namespace) -> int:
     from .evaluation import evaluate_arms, render_report
     from .evidence import EvidenceAgent
     from .graph import build_evidence_graph
-    from .providers import default_provider
+    from .providers import ProviderUnavailable, default_provider
 
     try:
         result = replay_record(
@@ -366,7 +366,12 @@ def _evaluate(args: argparse.Namespace) -> int:
         )
         for index, alert in enumerate(result.alerts)
     ]
-    report = evaluate_arms(contexts, provider=default_provider())
+    try:
+        provider = default_provider(strict_local=True)
+    except ProviderUnavailable as error:
+        print(f"refused: {error}")
+        return 2
+    report = evaluate_arms(contexts, provider=provider)
     if args.json:
         print(json.dumps(report.as_dict(), indent=2, default=str))
         return 0
