@@ -7,6 +7,9 @@ harness against deliberately bad providers rather than against a real model.
 
 from __future__ import annotations
 
+import pathlib
+import re
+
 import pytest
 
 from cardiosentinel.agents import claims
@@ -218,13 +221,57 @@ def test_rounding_is_not_fabrication(graph):
 
 # -- the frozen environment is not modified ---------------------------------
 
+FROZEN_DIGEST = "b0fd6eaa592537b7e4d5574ca68b675e85e923ae3c4a5ba411028ba6fcd7297a"
 
+
+def _observed_digest() -> str:
+    from cardiosentinel.neural import provenance
+
+    return provenance.dependency_environment()["installed_packages_sha256"]
+
+
+#: The same convention the T1/M2 suites use. CI legitimately builds its own
+#: environment -- it installed 71 packages where the scientific interpreter has
+#: 335 -- so an assertion about the frozen set can only run where that set is.
+ON_FROZEN_INTERPRETER = _observed_digest() == FROZEN_DIGEST
+
+
+@pytest.mark.skipif(
+    not ON_FROZEN_INTERPRETER,
+    reason=(
+        "asserts the frozen scientific identity; this environment reports a "
+        "different installed-package digest, which CI does by design"
+    ),
+)
 def test_the_scientific_environment_is_unchanged():
-    """Adding this provider must not add a package. Ever."""
+    """On the frozen interpreter, this provider must not have added a package."""
     from cardiosentinel.neural import provenance
 
     environment = provenance.dependency_environment()
     assert environment["installed_package_count"] == 335
-    assert environment["installed_packages_sha256"] == (
-        "b0fd6eaa592537b7e4d5574ca68b675e85e923ae3c4a5ba411028ba6fcd7297a"
+    assert environment["installed_packages_sha256"] == FROZEN_DIGEST
+
+
+def test_the_llm_extra_declares_no_package_the_frozen_set_lacks():
+    """The assertion that bites everywhere, including CI.
+
+    The digest test above cannot run on CI, and a skipped test guards nothing.
+    This one states the property that actually matters and is checkable from the
+    declaration alone: the `llm` extra exists to *document* dependencies already
+    present in the frozen environment, never to add one. If it grows a package,
+    installing this extra would change the scientific interpreter's digest and
+    void the reproducibility claim that digest supports.
+    """
+    import tomllib
+
+    root = pathlib.Path(__file__).resolve().parents[2]
+    manifest = tomllib.loads((root / "pyproject.toml").read_text())
+    declared = manifest["project"]["optional-dependencies"]["llm"]
+    names = {
+        re.split(r"[<>=!~\[]", entry, maxsplit=1)[0].strip().lower()
+        for entry in declared
+    }
+    assert names == {"torch", "transformers"}, (
+        "the llm extra must name only packages the frozen environment already "
+        f"contains; found {sorted(names)}"
     )
