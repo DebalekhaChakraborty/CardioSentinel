@@ -10,8 +10,9 @@ demonstrated, and the handbook's is the better one: it tracks fifteen budgets at
 the level of *access* — including M1's and M2's failed attempts as budgets in
 their own right — where an experiment-level table would have hidden them.
 
-> **§51: fourteen of fifteen budgets are spent. The B4 neural sealed test is
-> the only one left.**
+> **§51: all fifteen budgets are spent.** The B4 neural sealed test — the last
+> of them — was consumed on 2026-08-25 under `B4_TEST_AUTHORIZATION_V1`.
+> **There is no unspent one-shot access anywhere in this programme.**
 
 What follows is the operational companion to that ledger: where each experiment
 lives on disk, how far each result can be trusted without further work, what in
@@ -59,7 +60,10 @@ None. Every started experiment reached a recorded conclusion, including the one
 that failed.
 
 **🔵 RESERVED**
-B4 neural sealed test.
+None. The category is empty as of 2026-08-25 — the B4 neural sealed test was its
+only member and it has been consumed. **Nothing is held in reserve any more**,
+which is a different statement from *"nothing is left to do"*: the remaining work
+in §5 needs authorizations that do not exist yet, not budgets that do.
 
 ---
 
@@ -71,12 +75,22 @@ B4 neural sealed test.
 | T2 | `pooled_auprc_difference` **0.093215** | **[-0.015229, 0.148951]** — includes zero | `T2_ARM_COMPARISON_REPORT_V1.md` |
 | W1 | T1 − W **0.1921** | **[0.0505, 0.3455]** — excludes zero | `W1_WINDOW_COMPARATOR_REPORT_V1.md` |
 | U1 | Platt NLL **0.143708** / Brier **0.040344** | vs baseline 0.231705 / 0.063567 | `U1_CALIBRATION_RELIABILITY_REPORT_V1.md` |
+| **B4-B sealed test** | pooled AUPRC **0.0935334** at prevalence 0.0460529 | subject-macro AUPRC 0.354901 over **8 of 12**, 95% **[0.033058, 0.239284]** | artifacts only — `phase3b2-architecture-v1/B4B_cnn_transformer_v1/TEST_*`; no `_V1` report exists |
 
 ### 3.1 Denominator caveats
 
 Each of these headlines carries a caveat about what its denominator actually is.
 The pattern is recorded as a **finding** in handbook §49.8 and is not restated
-here.
+here. **The sealed test is its fourth instance** — subject-macro discrimination
+over 8 of 12, because four test subjects are single-class and `METRICS_PROTOCOL`
+excludes them rather than scoring them 0 or 1. It was pre-registered as a
+reporting requirement precisely because the same thing had already happened in
+T2.
+
+**The sealed-test row is the only one in the table above with no `_V1` report
+behind it.** The number is registered in `TEST_METRICS.json` and its provenance
+in `TEST_AUDIT.json`; §7 of `PAPER_OUTLINE_V2.md` carries it with its boundary.
+Cite the artifacts, and quote no subject-macro figure without its denominator.
 
 ---
 
@@ -97,12 +111,19 @@ spent tokens** — the re-run guard is the persistence claim, not the flag.
 |---|---|---|
 | **T2-score ablation** (does S4D contribute?) | protocol → pre-registration → authorization | **a re-scoring run.** `s4d_temporal_evidence_s_t` is baked into persisted rows, so this cannot reuse the W1 trick |
 | **RQ1 no-memory arm** | protocol → pre-registration → authorization | **a re-scoring run** — a memory ablation changes `m2g_detector_score` itself |
-| **EDB `overlap_clean`** | pre-registration, cold-start stratified | data acquisition; secondary cohort only, never "external" |
-| **B4 sealed test** | human decision | **irreversible; the last firewall** |
+| ~~**EDB `overlap_clean`**~~ | — | **DECLINED 2026-08-24**, in writing, with reasons (`EXTERNAL_VALIDATION_ROUTE_A_DECISION_V1.md`). No EDB data was accessed. Not a candidate; retained struck through because a route that was considered and refused is evidence and a deleted one is not |
+| ~~**B4 sealed test**~~ | — | **CONSUMED 2026-08-25.** Attempt 1 of 1, `repeat_attempt_permitted: false`. Not a candidate; retained struck through because a spent budget is part of the ledger |
 
-**There is no remaining cheap move.** Every derived analysis that needed no new
-authorization has been run. Anything further requires a new authorization, a
-re-scoring run, or data the project does not have.
+**Two rows above have left this table rather than been done.** EDB
+`overlap_clean` was **declined in writing** on 2026-08-24
+(`EXTERNAL_VALIDATION_ROUTE_A_DECISION_V1.md`) — no EDB data was accessed, and
+its §2.4 records that no second cohort will corroborate any result in this
+paper, permanently. The B4 sealed test was **consumed** on 2026-08-25.
+
+**There is no remaining cheap move, and now no remaining budget either.** Every
+derived analysis that needed no new authorization has been run. Anything further
+requires a new authorization, a re-scoring run, or data the project does not
+have.
 
 ---
 
