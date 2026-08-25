@@ -244,6 +244,26 @@ SHA-256 of the audit payload with that field removed, `sort_keys=True`,
 `TEST_AUDIT.json` **file bytes**. Both were recomputed and both match. Quote the
 one you mean and say which it is.
 
+**The registered comparison, which is what the budget was spent to buy.**
+`B4_PROTOCOL_V1` asks whether the neural representation improves subject-disjoint
+discrimination **relative to the frozen B0–B3 classical baselines**. Those were
+scored on the identical partition — 453,804 windows, prevalence matching to
+sixteen places, the same 8-of-12 macro denominators:
+
+| Model | Pooled AUPRC | AUROC | Subject-macro AUPRC |
+|---|---|---|---|
+| B0 constant prior | 0.0460529 | 0.5000 | 0.042561 |
+| B1 signal logreg | 0.1172989 | 0.7900 | 0.334247 |
+| B2 morphology logreg | 0.1640117 | 0.8227 | 0.405035 |
+| **B3 morphology HGB** | **0.1682901** | **0.8360** | **0.436410** |
+| B4-B neural | 0.0935334 | 0.7332 | 0.354901 |
+
+**The answer is no.** B4-B is below B1, B2 and B3, and above only the constant
+prior. **It was below B3 on validation too** (0.3805 against 0.6801), so the
+sealed test confirmed the development ordering rather than reversing it. That is
+a clean pre-registered negative finding, of the same class as RQ3's rejected
+router.
+
 **What this row does not establish.** One dataset, twelve subjects, one attempt,
 and no cohort exists to corroborate it. It supports no claim of generalisation,
 superiority or clinical utility. Handbook Appendix A claim 12 states the
@@ -598,12 +618,14 @@ rather than lifted — there is nothing left to open.
    the manuscript must contain** — `"on the sealed test set"` and `"test
    result"` are both refused. Those two documents now disagree. **This blocks
    next-step 1.**
-5. **Correct §7's description of what was scored.** The sealed test evaluated
-   the **B4-B encoder alone** — `input_contract [B, 1, 2500]`, raw mV,
-   uncalibrated sigmoid — not the assembled stack. `TEST_AUDIT.json` contains no
-   reference to S4D, M1L, M2-G, P1-B or U1. Any sentence implying the reported
-   number characterises the full pipeline is wrong on the record.
-   `B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md` §1.
+5. **Report the registered comparison in §7, and name the scored artifact.**
+   The sealed test evaluated the **B4-B encoder alone**, which is exactly what
+   `B4_PROTOCOL_V1` §Scope pre-registered — *"a global, single-channel comparator
+   to the frozen B0–B3 classical baselines… not the CardioSentinel
+   contribution"*. §7 must not imply the number characterises the assembled IPS,
+   **and it must report the B0–B3 comparison**, because that comparison is the
+   registered research question and its answer is **no**.
+   `B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md` §1.1.
 6. **Re-verify the mirror when the session next expires** (defect 1, closed
    twice now). §8.1 lists what a real check is: contents, not a headcount.
 

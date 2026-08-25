@@ -40,10 +40,10 @@ and a reader who wants a single figure should continue to use the registered one
 
 ---
 
-## 1. What was actually scored — read this before any other section
+## 1. What was scored — and why that is correct, not a near-miss
 
 **The sealed test evaluated the B4-B encoder alone, as a raw-waveform window
-classifier.** It did not evaluate the assembled Intelligent Physical System.
+classifier. That is exactly what it was pre-registered to evaluate.**
 
 From `TEST_ATTEMPT.json`:
 
@@ -55,32 +55,78 @@ model             B4BTransformerCNN  <-  model_selected.pt
 score_semantics   uncalibrated sigmoid model score; not calibrated probability
 ```
 
-The full `TEST_AUDIT.json` payload contains **no** occurrence of `s4d`, `t2`,
-`m1l`, `m2`, `u1`, `platt`, `calibrat`, `memory`, `physiolog`, `p1`, `episode`
-or `t1`. The scored path is 2,500 samples in, one sigmoid out, thresholded at a
-frozen constant.
+`B4BTransformerCNN` has 309,809 parameters, and its submodule classes are
+`Conv1d`, `DepthwiseSeparableBlock`, `MultiheadAttention`, `LayerNorm`,
+`GroupNorm`, `Linear` and pooling. No state-space block, no memory, no
+calibrator.
 
-**Three consequences, all binding on the manuscript.**
+**`B4_PROTOCOL_V1.md` §Scope, frozen prospectively in Phase 3B-2, says so in its
+own words:**
 
-1. **S4D, M1L, M2-G, P1-B and U1 cannot be implicated or exonerated by this
-   result.** None was in the scored path. Any failure analysis attributing the
-   number to them is unsupported.
-2. **The result is a floor on the encoder, not a ceiling on the system.** It
-   does not bound the assembled pipeline — and because the budget is spent, the
-   assembled pipeline's held-out performance is now **permanently
-   unmeasurable** on this dataset.
-3. **§7 must name the scored artifact**, not the architecture list: *B4-B
-   window-level encoder, uncalibrated, at the frozen validation threshold.* A
-   sentence implying otherwise would be wrong on the record.
+> B4 is a global, single-channel comparator to the frozen B0–B3 classical
+> baselines. **It is not the CardioSentinel contribution and contains no
+> personalization, temporal episode reasoning, foundation-model knowledge, or
+> cloud inference.**
 
-**This is the §43.2 pattern recurring at the reporting layer.** There, two files
-were each correct about themselves — the evaluator and the authorization — and
-nothing compared them. Here, the architecture inventory in §48 and the sealed
-evaluator's `input_contract` are each correct about themselves, and nothing
-compared them either. **It was found by reading the input contract, not by any
-check.**
+And the registered research question:
 
----
+> Does a compact end-to-end neural representation learned directly from the same
+> causal single-channel ECG windows **improve subject-disjoint discrimination
+> relative to the frozen global classical baselines**, without personalization,
+> temporal episode reasoning, foundation-model knowledge, or cloud inference?
+
+**An earlier revision of this section presented the encoder-only scope as a
+discovery and a near-miss. That was wrong and is corrected here.** The scope was
+declared before the experiment ran, the input contract matches it exactly, and
+nothing was lost. What was wrong was a later description that listed the
+sealed-test subject as `B4BTransformerCNN + T2 S4D + M1L + M2-G + U1`; the
+protocol never did.
+
+**Two things that remain true and matter for the manuscript.**
+
+1. **§7 must name the scored artifact** — *B4-B window-level encoder,
+   uncalibrated, at the frozen validation threshold* — and must not imply the
+   number characterises the assembled IPS. The IPS has no sealed-test result and
+   never did, because the phases that built it came after this budget was
+   defined.
+2. **The registered comparison is to B0–B3, and §1.1 makes it.**
+
+### 1.1 The pre-registered comparison
+
+All five models were scored on the **identical** test population — 453,804
+windows, 20,899 positive, 432,905 negative, prevalence
+`0.0460529215255925` to sixteen places — and all five report subject-macro
+discrimination over the same **8 of 12** subjects.
+
+| Model | Pooled AUPRC | AUROC | Sensitivity | Specificity | Subject-macro AUPRC |
+|---|---|---|---|---|---|
+| B0 constant prior | 0.0460529 | 0.5000 | 1.0000 | 0.0000 | 0.042561 |
+| B1 signal logreg | 0.1172989 | 0.7900 | 0.1320 | 0.9606 | 0.334247 |
+| B2 morphology logreg | 0.1640117 | 0.8227 | 0.1575 | 0.9685 | 0.405035 |
+| **B3 morphology HGB** | **0.1682901** | **0.8360** | 0.1639 | 0.9674 | **0.436410** |
+| **B4-B neural** | **0.0935334** | **0.7332** | 0.0706 | 0.9526 | 0.354901 |
+
+**The answer to the registered research question is no.** B4-B does not improve
+subject-disjoint discrimination relative to the frozen classical baselines. It
+is below B1, B2 and B3 on pooled AUPRC and on AUROC, and above only B0, the
+constant prior.
+
+**This was already visible on validation, and the sealed test agreed with it.**
+
+| Model | Validation pooled AUPRC | Test pooled AUPRC | Retained |
+|---|---|---|---|
+| B1 signal logreg | 0.4211965 | 0.1172989 | 27.8% |
+| B2 morphology logreg | 0.4771071 | 0.1640117 | 34.4% |
+| B3 morphology HGB | 0.6800929 | 0.1682901 | 24.7% |
+| B4-B neural | 0.3805350 | 0.0935334 | **24.6%** |
+
+B3 led B4-B on validation (0.680 against 0.381) and leads it on test. **The
+sealed test confirmed the development ordering rather than reversing it**, which
+is the outcome a well-run firewall is supposed to produce. There was no
+surprise, no anomaly, and no reason to doubt the measurement.
+
+**This is a clean pre-registered negative finding**, of the same class as RQ3's
+rejected router, and the programme already treats those as results.
 
 ## 2. Validation and test, side by side
 
@@ -115,101 +161,84 @@ prevalence shift.
 
 ---
 
-## 3. The diagnosis — ordering generalized, scale did not
+## 3. The diagnosis — corrected against the classical baselines
 
-### 3.1 The pooling penalty
+**An earlier revision of this section diagnosed a cross-subject score-scale
+failure specific to B4-B. That diagnosis does not survive comparison with the
+classical baselines, and is withdrawn.** What follows is what the evidence
+supports.
 
-**Post-hoc descriptive**, computed as `1 − pooled / subject-macro` on the
-published AUPRC values:
+### 3.1 The pooling penalty is a property of the partition, not of B4-B
 
-| | Subject-macro AUPRC | Pooled AUPRC | Pooling penalty |
-|---|---|---|---|
-| Validation | 0.400636 | 0.380535 | **5.0%** |
-| Test | 0.354901 | 0.093533 | **73.6%** |
+Pooling penalty, `1 − pooled / subject-macro` on AUPRC. **Post-hoc
+descriptive**, computed from published values.
 
-On validation, pooling cost almost nothing: subject scores were comparable
-enough that ranking them together barely hurt. On test, pooling destroys three
-quarters of the AUPRC.
+| Model | Validation penalty | Test penalty |
+|---|---|---|
+| B1 signal logreg | −72.7% | **+64.9%** |
+| B2 morphology logreg | −58.7% | **+59.5%** |
+| B3 morphology HGB | −52.8% | **+61.4%** |
+| B4-B neural | +5.0% | **+73.6%** |
 
-**The denominators are not identical and the comparison is descriptive, not
-inferential.** Macro is over 9 of 12 subjects on validation and 8 of 12 on test,
-while pooled includes every subject's windows in both. Part of the divergence is
-mechanical: test carries **four** all-negative subjects against validation's
-three, and those subjects contribute only negatives to the pooled ranking while
-being excluded from macro discrimination. Elevated-but-non-ischemic scores from
-them enter the top of the pooled list without any positive to justify them.
+**Every model reverses.** On validation the classical baselines score *higher*
+pooled than subject-macro; on test all four sit far below it. A handcrafted-
+feature logistic regression has no learned per-subject representation to
+mis-scale, and it shows a 65-point swing.
 
-That mechanism *is* the finding rather than a confound to it: it is one of the
-ways a subject-relative score fails when pooled.
+**The dominant effect is the test partition** — twelve subjects, four of them
+single-class, contributing only negatives to the pooled ranking while excluded
+from macro discrimination. B4-B carries roughly ten points more penalty than the
+classical models, which is real but is a second-order term.
 
-### 3.2 What was retained, and what was not
+### 3.2 Degradation is the same for the neural model and the best classical one
 
-**Post-hoc descriptive**, ratios of published values. AUROC is expressed as
-skill above chance, `(AUROC − 0.5)`, because a raw ratio of AUROCs understates
-loss.
+Validation → test pooled AUPRC retention: **B3 24.7%, B4-B 24.6%.** They are
+indistinguishable. B4-B did not generalize worse than the classical baselines;
+**it generalized the same amount from a lower starting point.**
 
-| Quantity | Retained on test |
-|---|---|
-| Subject-macro PPV | **98.7%** |
-| Subject-macro AUPRC | **88.6%** |
-| Subject-macro AUROC skill | **82.4%** |
-| Pooled AUROC skill | 59.4% |
-| Subject-macro sensitivity | 59.1% |
-| **Pooled AUPRC** | **24.6%** |
-| Pooled sensitivity | 17.2% |
+That is the correction that matters. The earlier account said the encoder
+"generalized its ordering and failed to generalize its scale". The scale
+behaviour it described is shared by models with no learned scale at all, so it
+cannot be a property of the encoder.
 
-Read down that column. **Within-subject discrimination and precision-when-firing
-are largely intact. Only the pooled, cross-subject view collapses.**
+### 3.3 What is left that is genuinely about B4-B
 
-### 3.3 The mechanism
+Two things, both modest and both visible without the sealed test:
 
-Three registered facts, taken together, admit one reading:
+- **B4-B is weaker than B2 and B3 in absolute terms, on both partitions.**
+  Validation pooled 0.3805 against B3's 0.6801; test pooled 0.0935 against
+  0.1683. The raw-waveform representation did not match handcrafted ST
+  morphology on this dataset at this scale.
+- **Subject-macro discrimination fell more for B4-B than for B3** — 0.400636 →
+  0.354901 (−11.4%) against B3's 0.445052 → 0.436410 (−2.0%). This is the one
+  place a model-specific transfer weakness shows, and it is a 9-point gap, not
+  the 75-point collapse the headline suggested.
 
-- Subject-macro PPV moved **0.337366 → 0.332849**, a 1.3% change. When the model
-  fires on a test subject, it is right about as often as on validation.
-- Pooled sensitivity fell **0.410533 → 0.070578** at a **fixed** threshold.
-- Pooled specificity barely moved, **0.967155 → 0.952572**.
+### 3.4 What the fixed threshold did, which is still true
 
-Precision preserved, firing rate collapsed, cut unchanged. That is the signature
-of the **score distribution shifting relative to a fixed absolute cut** — not of
-degraded features. A model that had failed to represent ischemia would have lost
-within-subject ranking too, and it largely did not.
-
-**The model learned a subject-relative decision function and was evaluated with
-a subject-absolute threshold.** Twelve subjects, four of them all-negative, is
-too few for per-subject offsets to average out.
-
-### 3.4 The sharpest single number
-
-On positives carrying no axis and no conduction context — the *clean* positives,
-at near-identical window counts. Both rows are registered counts from the
-`positive_context` block; the sensitivities are **post-hoc descriptive** division.
-
-| | TP | Windows | Sensitivity | Subjects |
-|---|---|---|---|---|
-| Validation | 8,879 | 21,626 | 0.410571 | 9 |
-| Test | 1,471 | 20,856 | 0.070531 | 8 |
-
-**83% of detection lost on the easy positives.** Whatever failed, it is not
-confounder handling.
-
----
+Subject-macro PPV moved **0.337366 → 0.332849**, a 1.3% change: when B4-B fires
+on a test subject it is right about as often as on validation. Pooled
+sensitivity fell **0.410533 → 0.070578** at a fixed cut, with specificity nearly
+unchanged. The score distribution moved relative to a subject-absolute
+threshold. **That observation stands** — it is simply not unique to B4-B, and it
+does not explain the ranking against B0–B3, which is threshold-free.
 
 ## 4. The six hypotheses, assessed
 
 | | Hypothesis | Verdict |
 |---|---|---|
-| A | Representation encoder weakness (B4-B) | **Partial, modest.** Real: macro AUROC skill lost 17.6%, macro AUPRC lost 11.4%. Not sufficient to explain a 75.4% pooled AUPRC loss |
+| A | Representation encoder weakness (B4-B) | **Supported, and the primary finding.** B4-B is below B1, B2 and B3 on pooled AUPRC and AUROC on the same partition, and was below B3 on validation too. The registered research question is answered **no** (§1.1) |
 | B | Temporal modelling weakness (S4D) | **Not assessable.** Not in the scored path (§1). Separately, the T2 selection contrast **[−0.015229, 0.148951]** spans zero, so no temporal gain was ever established to have been lost |
 | C | Personalization failure (M1/M2) | **Not assessable.** Not in the scored path (§1) |
-| D | Calibration / threshold / score scale | **Primary.** §3.3 |
+| D | Calibration / threshold / score scale | **Real but not the explanation.** §3.4 holds, but the B0–B3 ranking is threshold-free and B4-B loses it anyway. **Downgraded from *primary* in an earlier revision** |
 | E | Dataset / domain shift | **Weak, and partly falsified.** Prevalence matched to 0.9%; confounder strata *improved* (§5) |
-| F | Insufficient cohort size | **Strong contributor, compounding D.** §3.1, and the bootstrap interval **[0.033058, 0.239284]** is more than twice the width of its own point estimate |
+| F | Insufficient cohort size | **Dominant for the validation→test drop, and shared by every model.** §3.1. The bootstrap interval **[0.033058, 0.239284]** is more than twice the width of its own point estimate |
 
-**On D and F together.** These are not competing explanations. A per-subject
-score offset is a nuisance parameter; with enough subjects it averages out of a
-pooled estimate, and with twelve it does not. D is the mechanism, F is why it
-was not absorbed.
+**On A, D and F together.** F explains why *every* model lost ~75% of its
+pooled AUPRC between the two partitions. D describes a threshold-transfer effect
+that is real and shared. **A is what distinguishes B4-B**, and it is the answer
+to the registered question: the neural representation did not beat the classical
+one, on either partition.
 
 **A descriptive note on F, not a hypothesis test.** The validation pooled AUPRC
 point estimate, 0.380535, lies **above** the upper bound of the test bootstrap
@@ -285,6 +314,7 @@ that respect. Neither carries a per-subject transform.
 | Boundary | Result |
 |---|---|
 | Test predictions read | **None.** `TEST_PREDICTIONS.npz` was not opened |
+| Classical test results read | **Yes, and permitted.** `RESULTS_SUMMARY.json` under `phase3b-classical-v3/`. That chain was consumed in Phase 3B-1 and `B4_PROTOCOL_V1` records that its results are *"historically observed"*; comparing to them is the registered research question, not a new access |
 | New test metrics generated | **None.** Only registered values from `TEST_METRICS.json` are quoted; all ratios are labelled post-hoc descriptive |
 | New experiments executed | **None.** No run was started; none is authorized |
 | Threshold changes | **None.** `0.8329097628593445` remains frozen, `test_informed: false` |
@@ -331,6 +361,23 @@ are correct about themselves; say which one you mean.**
 Nothing in this document authorizes an experiment. The forward plan is
 `docs/IMPROVEMENT_ROADMAP_V1.md`, which grants no permission either.
 
-The one-line summary, for anyone who reads no further: **the encoder generalized
-its ordering and failed to generalize its scale, and the component that would
-bridge the two — a per-subject calibrator — does not exist in this programme.**
+The one-line summary, for anyone who reads no further: **the B4 neural baseline
+did not beat the classical baselines it was pre-registered against, on either
+partition, and the sealed test confirmed the ordering development had already
+shown.**
+
+### 8.1 Revision note
+
+An earlier revision of this document, merged in #118, made two claims that do
+not survive the comparison in §1.1 and are withdrawn here:
+
+| Withdrawn | Replaced by |
+|---|---|
+| The encoder-only scope was a **discovery** and a reporting-layer near-miss | It was **pre-registered** in `B4_PROTOCOL_V1` §Scope, and the mismatch was in a later description, not in the experiment (§1) |
+| B4-B suffered a **cross-subject score-scale generalization failure** | Every model reverses the same way; B4-B and B3 retain 24.6% and 24.7% of validation pooled AUPRC. The effect is the partition's, not the encoder's (§3.1, §3.2) |
+
+**Both were written from B4-B's numbers alone.** The classical baselines were
+scored on the identical partition, are already consumed, and were sitting in
+`cardiosentinel-runs/phase3b-classical-v3/` the whole time. **A comparison
+against a comparator that already exists is not optional**, and the failure to
+make it is the more useful methodological lesson of the two.

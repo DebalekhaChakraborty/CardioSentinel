@@ -17,6 +17,17 @@ pre-registered claim, a reported number, or any thesis in §9.
 | Supersedes | nothing |
 | Depends on | `B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md` |
 
+> **Revised after the classical comparison.** The first version of this document
+> ranked a per-subject calibrator first, on a diagnosis that B4-B had suffered a
+> cross-subject scale failure. **That diagnosis was withdrawn** — see §8.1 of the
+> analysis — because B1, B2 and B3 show the same reversal on the same partition,
+> and B3 and B4-B retain 24.7% and 24.6% of validation pooled AUPRC
+> respectively. The ranking in §3 is revised accordingly. **The Phase 0
+> instrument and the phase gates are unchanged**, because they were never
+> premised on the diagnosis: they exist because a single 12-subject draw cannot
+> estimate transfer variance, which the classical baselines now demonstrate
+> independently.
+
 ---
 
 ## 0. The constraint that shapes every option
@@ -92,8 +103,16 @@ it gates item 3 in §3.
 
 ## 2. The fix, in three tiers
 
-The diagnosed defect: **the model learned a subject-relative decision function
-and was evaluated with a subject-absolute threshold.**
+**What the evidence now supports.** B4-B is weaker than B2 and B3 in absolute
+terms on *both* partitions, and the validation→test collapse is a partition
+effect shared by every model. So the target is no longer "bridge a B4-B-specific
+scale gap"; it is **close an absolute representation gap against handcrafted ST
+morphology, and stop being surprised by subject transfer.**
+
+The tiers below are unchanged in content and re-ranked in §3. Tier 1 is still
+worth doing — the pooled/macro reversal is real and costly for *every* model,
+which makes a subject-relative decision rule broadly useful rather than a
+B4-B repair — but it is no longer the item most likely to change the headline.
 
 ### Tier 1 — inference-time, no retraining
 
@@ -160,23 +179,30 @@ construction**, not by omission. **Select on the endpoint you report.**
 |---|---|:--:|:--:|:--:|:--:|
 | 1 | Cross-fitted transfer instrument (§1.2) | ★★★★★ | enables everything | Low–Med | ★★★★★ |
 | 2 | M2-G admission-rate measurement (§1.3) | ★★★★☆ | gates #3 | **Very low** | ★★★☆☆ |
-| 3 | **Per-subject calibrator + subject-relative threshold** (Tier 1) | ★★★★★ | ★★★★★ | Medium | ★★★★★ |
-| 4 | Within-subject contrastive / ranking objective (Tier 2) | ★★★★★ | ★★★★☆ | High | ★★★★☆ |
-| 5 | Episode-endpoint selection for M1L / M2-G | ★★★★☆ | ★★★☆☆ | Medium | ★★★★☆ |
-| 6 | Baseline-referenced encoding (Tier 3) | ★★★★★ | ★★★★★ | Very high | ★★★★☆ |
-| 7 | Characterise the diffuse false positives, then mine them | ★★★☆☆ | ★★★☆☆ | Medium | ★★★☆☆ |
-| 8 | Multi-cohort acquisition | ★★★★★ | ★★★★★ | **Blocked** | ★★★★☆ |
-| 9 | Focal loss / class weighting | ★★☆☆☆ | ★☆☆☆☆ | Low | ★★☆☆☆ |
-| 10 | Temporal context length | ★★☆☆☆ | ★☆☆☆☆ | Medium | ★★☆☆☆ |
-| 11 | Alternative encoder / SSM improvements | ★☆☆☆☆ | ★☆☆☆☆ | High | ★☆☆☆☆ |
+| 3 | **Why handcrafted ST morphology beats the learned representation** — B3's features against B4-B's embedding on the same windows. **New, and now the first modelling question**, because it is the one the registered comparison actually raised | ★★★★★ | ★★★★★ | Medium | ★★★★★ |
+| 4 | **Baseline-referenced encoding** (Tier 3) — the physiologically-motivated way to give the encoder what B3's ST features already encode | ★★★★★ | ★★★★★ | Very high | ★★★★★ |
+| 5 | Per-subject calibrator + subject-relative threshold (Tier 1) — **broadly useful, not a B4-B repair** | ★★★★☆ | ★★★☆☆ | Medium | ★★★★☆ |
+| 6 | Within-subject contrastive / ranking objective (Tier 2) | ★★★★☆ | ★★★☆☆ | High | ★★★☆☆ |
+| 7 | Episode-endpoint selection for M1L / M2-G | ★★★★☆ | ★★★☆☆ | Medium | ★★★★☆ |
+| 8 | Characterise the diffuse false positives, then mine them | ★★★☆☆ | ★★★☆☆ | Medium | ★★★☆☆ |
+| 9 | Multi-cohort acquisition | ★★★★★ | ★★★★★ | **Blocked** | ★★★★☆ |
+| 10 | Focal loss / class weighting | ★★☆☆☆ | ★☆☆☆☆ | Low | ★★☆☆☆ |
+| 11 | Temporal context length | ★★☆☆☆ | ★☆☆☆☆ | Medium | ★★☆☆☆ |
+| 12 | Alternative encoder architecture search | ★★☆☆☆ | ★★☆☆☆ | High | ★★☆☆☆ |
 
-**Why 9–11 rank low against intuition, stated so nobody re-proposes them.**
+**Item 12 rose slightly and items 10–11 did not.** With the registered answer
+being *"the learned representation lost to handcrafted features"*, encoder work
+is no longer obviously optimising the wrong term — but item 3 must come first,
+because searching architectures before knowing *what* B3's features carry that
+the embedding does not is guessing.
+
+**Why 10–11 still rank low, stated so nobody re-proposes them.**
 
 - **Focal loss and class weighting attack imbalance.** Validation AUPRC showed
   **8.34× lift** over prevalence (0.380535 against 0.045639, post-hoc
   descriptive), so imbalance is not the binding constraint — transfer is.
-- **Encoder and SSM work attacks within-subject ranking**, which is the part
-  that mostly survived. It optimises the wrong term.
+- **Blind encoder search** attacks the representation without first establishing
+  what it is missing. Item 3 is the cheaper question and comes first.
 - **There is no established temporal gain to improve on.** T2's selection
   contrast interval **[−0.015229, 0.148951]** spans zero.
 
@@ -211,11 +237,15 @@ and should be written as one.
 
 ### Phase 2 — mechanism, not performance. *New authorizations required.*
 
-Order: **§1.2 instrument → #2 → #3 → #5 → #4.** Each pre-registered separately.
-Each reported as *"mechanism understood"*.
+Order: **§1.2 instrument → #2 → #3 → #4/#5.** Each pre-registered separately.
+Each reported as *"mechanism understood"*. **#3 first among the modelling items**
+— the registered comparison asked why the learned representation lost to
+handcrafted ST morphology, and that question is answerable entirely on
+development data.
 
-> **Exit gate: the pooling divergence is reduced under cross-fitting and you can
-> say why.** Not *"AUPRC improved"* — no partition licenses that sentence.
+> **Exit gate: you can say what B3's features carry that the embedding does not,
+> and demonstrate it under cross-fitting.** Not *"AUPRC improved"* — no partition
+> licenses that sentence.
 
 ### Phase 3 — a defensible performance claim becomes possible again
 
