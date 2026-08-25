@@ -41,6 +41,15 @@ signal = [
   "scipy>=1.13,<2",
   "wfdb>=4.1,<5",
 ]
+# The local open-weight explanation provider. These are ALREADY present in the
+# frozen scientific environment; declaring them here documents the dependency
+# rather than adding one. Installing anything into that environment would void
+# its recorded digest, so this group must never grow a package the frozen set
+# does not already contain. See docs/LOCAL_LLM_EXPLANATION_PROTOCOL_V1.md 2.
+llm = [
+  "torch>=2.4,<3",
+  "transformers>=5,<6",
+]
 
 [project.scripts]
 cardiosentinel = "cardiosentinel.cli:main"
