@@ -113,6 +113,10 @@ def harness(monkeypatch, run_dir, tmp_path):
         "git_provenance",
         lambda root: {"git_sha": "a" * 40, "git_dirty": False},
     )
+    # These tests deliberately exercise the legacy B4-A path, which production
+    # now refuses because B4-A was rejected during architecture selection. The
+    # refusal itself is covered in test_rejected_candidate_is_refused below.
+    monkeypatch.setattr(sealed_test, "refuse_rejected_candidate", lambda _id: None)
     monkeypatch.setattr(sealed_test, "resolve_run_dir", lambda root: run_dir)
     monkeypatch.setattr(
         sealed_test, "load_sealed_test_references", lambda access, root: references
@@ -1256,3 +1260,31 @@ def test_audit_binds_both_integrity_digests(harness, run_dir) -> None:
     receipt = json.loads((run_dir / TEST_ATTEMPT_NAME).read_text())
     assert receipt["sealed_test_feature_integrity_sha256"] == "f" * 64
     assert receipt["sealed_test_source_integrity_sha256"] == "e" * 64
+
+
+def test_rejected_candidate_is_refused_without_claiming_an_attempt(tmp_path):
+    """The unmonkeypatched guard refuses B4-A before any receipt can exist."""
+    with pytest.raises(sealed_test.SealedTestAttemptError, match="rejected candidate"):
+        sealed_test.refuse_rejected_candidate("B4_raw_compact_cnn_v1")
+    assert not list(tmp_path.rglob("TEST_ATTEMPT*"))
+
+
+def test_selected_candidate_is_not_refused():
+    sealed_test.refuse_rejected_candidate("B4B_cnn_transformer_v1")
+
+
+def test_guard_fails_closed_when_the_selection_record_is_unreadable(monkeypatch):
+    monkeypatch.setattr(
+        sealed_test, "SELECTION_RECORD_PATH", Path("/nonexistent/selection.json")
+    )
+    with pytest.raises(sealed_test.SealedTestAttemptError, match="could not be read"):
+        sealed_test.refuse_rejected_candidate("B4B_cnn_transformer_v1")
+
+
+def test_guard_runs_before_the_attempt_claim_in_source_order():
+    import inspect
+
+    body = inspect.getsource(sealed_test.open_sealed_test_attempt)
+    assert body.index("refuse_rejected_candidate(") < body.index(
+        "claim_attempt_exclusively("
+    )

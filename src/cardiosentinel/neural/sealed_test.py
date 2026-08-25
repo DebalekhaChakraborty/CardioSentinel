@@ -303,6 +303,38 @@ def _execution_payload(
     }
 
 
+SELECTION_RECORD_PATH = REPOSITORY_ROOT / "docs" / "B4_GLOBAL_ENCODER_SELECTION_V1.json"
+
+
+def refuse_rejected_candidate(experiment_id: str) -> None:
+    """Refuse to open the sealed test for an architecture selection rejected.
+
+    This module predates architecture selection and binds to B4-A through
+    module constants. B4-A was subsequently rejected, and nothing here consults
+    the selection record, so the module remained able to spend the one-shot
+    budget on a candidate no authorization names.
+
+    Fails closed on a missing or unreadable record: an evaluator that cannot
+    prove its target was selected must not open a budget that can be spent once.
+    """
+    try:
+        selection = json.loads(SELECTION_RECORD_PATH.read_text())
+    except (OSError, ValueError) as error:
+        raise SealedTestAttemptError(
+            "The architecture-selection record could not be read, so this "
+            "evaluator cannot prove its target was the selected model."
+        ) from error
+    for label, entry in (selection.get("rejected_candidates") or {}).items():
+        if entry.get("experiment_id") == experiment_id:
+            raise SealedTestAttemptError(
+                f"{experiment_id} is recorded as rejected candidate {label} in "
+                f"{SELECTION_RECORD_PATH.name}. Its sealed test cannot be "
+                "opened. The selected model is "
+                f"{selection.get('experiment_id')!r}; evaluate it through "
+                "cardiosentinel.neural.b4b_sealed_test."
+            )
+
+
 def open_sealed_test_attempt(
     source: Path,
     feature_root: Path,
@@ -317,6 +349,10 @@ def open_sealed_test_attempt(
     Every check here reads development artifacts only. If any check fails, no
     receipt is written and the sealed test remains unopened.
     """
+    # Before anything else: this module must not open a budget for a candidate
+    # the selection record rejected. Reads a development document only.
+    refuse_rejected_candidate(EXPERIMENT_ID)
+
     protocol_sha256 = validate_frozen_protocol()
     provenance = git_provenance(REPOSITORY_ROOT)
     if provenance["git_dirty"]:
