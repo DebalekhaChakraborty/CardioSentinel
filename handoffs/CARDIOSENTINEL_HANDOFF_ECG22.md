@@ -204,10 +204,18 @@ survives the session ending, the terminal closing, and any tool-call timeout.
 
 ```bash
 S=/tmp/claude-1000/-home-AI-POC/<session>/scratchpad
-pgrep -f e11_runner.py >/dev/null && echo ALIVE || echo "NOT RUNNING"
+# NOTE the bracket: "[e]11" stops the pattern matching this very command line.
+ps -eo pid,etime,args --no-headers | grep "[e]11_runner.py" | grep -v "bash -c" \
+  || echo "NOT RUNNING"
 grep -vE "UserWarning|w = torch|^\s*$" "$S/e11_attempt1.log" | tail -5
 ls -la "$S"/e11_fold*.npz "$S"/e11_receipt.json 2>/dev/null
 ```
+
+> **`pgrep -f e11_runner.py` DOES NOT WORK HERE and will lie to you.** The shell
+> wrapper that runs the check has the pattern in its own command line, so pgrep
+> matches itself and reports the job alive **forever, including after it has
+> died**. This was hit for real while writing this handoff. Use the bracketed
+> `ps | grep` above, or confirm with `ps -o pid,stat -p <PID>`.
 
 Anyone can run this, in any chat, at any time. **`NOT RUNNING` plus a receipt
 without `finished_utc` means it died — go read the traceback before anything
