@@ -365,13 +365,23 @@ b4-e11-morphology-aware-v1/
 `PAPER_S9_DISCUSSION_SKELETON.md`), and **§4 / §4.6**
 (`PAPER_S4_EVIDENCE_FRAMEWORK_DRAFT.md`, 2026-08-28).
 
-**§2 Related Work is now drafted** (`PAPER_S2_RELATED_WORK_DRAFT.md`,
-2026-08-28) from a **targeted five-query search, not a systematic review** — a
-qualification the draft carries into its own gap statement. One citation is
-**VERIFIED** (the LTSTDB reference, fetched from PhysioNet); the rest are
-**SEARCH-RETURNED and must be fetched and confirmed before submission**.
-It carries the §6.3 condition of `B4_TEST_AUTHORIZATION_V1.md`: **§2 must not be
-shaped by the sealed-test result**, and §2.0 records how that is honoured.
+**§2 Related Work is drafted, and it was NOT drafted by this workstream.**
+`PAPER_S2_RELATED_WORK_DRAFT.md` (2026-08-25, PR #127) rests on
+`LITERATURE_SEARCH_V1.md` / `.json` — **65 queries, 393 hits, 372 unique
+records** across Crossref, arXiv and PubMed, with
+`scripts/literature_search.py verify` failing the draft on any unresolved
+citation key. **61 citations, 0 unresolved.**
+
+> **The search REFUTED the gap statement `PAPER_OUTLINE_V2.md` §2 specified.**
+> `arxiv:2605.08586` names the same problem — *experiment nonrepudiation* —
+> argues the same negative about checklists and code sharing, and ships a
+> reference implementation. **The paper's claim is now narrower and better
+> defended than the outline planned.**
+
+A competing five-query §2 draft was written on 2026-08-28 by a session unaware
+of PR #127 and **was discarded at merge**, because the systematic search
+supersedes it on every axis and its gap statement was refuted by exactly the
+evidence above.
 
 | Claim | Supportable? | Required qualifier |
 |---|---|---|

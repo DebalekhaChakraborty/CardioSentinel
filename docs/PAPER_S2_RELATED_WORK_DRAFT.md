@@ -1,237 +1,252 @@
 # §2 — Related work
 
 > **Draft prose for the manuscript.** Not a frozen record: no `_V1`, no digest.
-> Written to `PAPER_OUTLINE_V2.md` §2, which specifies five bodies of work and
-> the positioning claim the paper must make against each.
+> Written **after** the search it depends on, which is
+> `LITERATURE_SEARCH_V1.md` and `LITERATURE_SEARCH_V1.json`, executed
+> 2026-08-25.
 >
-> **This file did not exist before 2026-08-28.** Three control-plane documents
-> asserted that it did; the paper-readiness audit found the assertion false and
-> corrected them. It is the last of the outline's "no source material in the
-> repository at all" sections.
+> **This draft supersedes `PAPER_OUTLINE_V2.md` §2 on one point and the point
+> matters.** The outline instructs the author to close the section with the gap
+> statement *"none of them, as far as we are aware, ships the machinery that
+> makes the outcome checkable by a third party who does not trust the
+> authors."* **The search refutes it.** `arxiv:2605.08586` names the same
+> problem, argues the same negative about checklists and code sharing, and
+> ships a reference implementation. §2.6 below is what remains true, and it is
+> narrower.
 >
-> ## Citation confidence — read before using any reference below
->
-> | Tier | Meaning |
-> |---|---|
-> | **VERIFIED** | fetched from the publisher/archive and the full citation string confirmed |
-> | **SEARCH-RETURNED** | title, venue and year returned by a literature search; **not** individually fetched |
->
-> **Every SEARCH-RETURNED entry must be fetched and confirmed before
-> submission.** None may be cited from this draft as-is. No reference in this
-> file was written from memory, and none was invented.
->
-> **Search scope, stated so it is not overclaimed:** five targeted queries
-> across the five sub-sections, August 2026. **This is not a systematic
-> review**, and §2.6's gap statement is qualified accordingly.
+> **Every citation key here resolves to a record the recorded search returned.**
+> `python scripts/literature_search.py verify docs/PAPER_S2_RELATED_WORK_DRAFT.md`
+> fails on any key that does not. That check proves provenance, not
+> comprehension: it cannot tell whether a work says what this section says it
+> says. `LITERATURE_SEARCH_V1.md` §6 states the rest of the limits, and a
+> reader should apply them here.
 
 ---
 
-## 2.0 The ordering constraint this section is bound by
+## Draft
 
-`B4_TEST_AUTHORIZATION_V1.md` §6.3 waived §2's completion until manuscript
-drafting, on one condition recorded at the time: **§2, when written, must not be
-shaped by the sealed-test result.**
+Four literatures neighbour this work, and a fifth became a neighbour only when
+the system acquired a generated-language surface. This section positions the
+contribution against each. **In no case is the claim that we detect ischemia
+better**, and §2.1 says so first because it is the comparison a reader of an ECG
+paper will reach for.
 
-That condition is honoured here in a specific way worth stating. **The gap this
-section identifies is independent of our number.** It concerns what the
-surrounding literatures *report* and *ship*, and it would read identically had
-the sealed evaluation returned a strong result instead of a modest one. Where
-the section discloses that our headline figure is modest, that is honest
-disclosure of a result, not the gap depending on it — the distinction §6.3
-draws.
+### 2.1 ST-episode detection in ambulatory ECG
 
----
+The immediate technical neighbours are small in number and unusually coherent.
+Transient ischemic ST episodes in long ambulatory recordings have been studied
+against two annotated resources: the European ST-T Database
+[pmid:1396824], and the Long-Term ST Database [pmid:12691437], which is this
+system's training cohort and which was built expressly as a reference for
+developing and evaluating automated ischemia detectors. Both are distributed
+through PhysioNet [doi:10.1161/01.cir.101.23.e215].
 
-## 2.1 ST-episode detection on LTSTDB and EDB
+The detector lineage runs from early episode-detection systems
+[doi:10.1109/cic.1995.482762] and the characterisation of episode temporal
+patterns [doi:10.1109/cic.1996.542628], through reference-level tracking
+[doi:10.1109/cic.2002.1166774] and its journal treatment [pmid:15191074], to
+record-level classification of ischemic heart disease type
+[doi:10.1186/1475-925x-10-107]. A second thread addresses the discrimination
+this task actually turns on — separating ischemic ST change from heart-rate
+related ST change [doi:10.1109/cic.2008.4749058, pmid:20130344], including via
+ST/HR diagrams [pmid:22874369]. Adjacent work covers real-time detection
+[pmid:19696464], morphology delineation [pmid:26863140], and the annotation
+tooling the reference databases themselves required [pmid:15265622].
 
-The immediate technical neighbours are automated detectors of transient
-ischaemic ST change, developed and evaluated on the Long-Term ST Database and
-the European ST-T Database.
+**Positioning.** We are not claiming a better detector, and our headline figure
+is modest. The comparison we invite is on **what is reported and how it can be
+checked**, not on the metric value: every number in §7 is traceable to the
+access that produced it, and the boundaries around it are machine-enforced
+rather than described. We also note, because §9.1 depends on it, that this
+literature's small size is not an artifact of our reading — a search across
+Crossref and PubMed returned essentially one ambulatory ST-episode resource
+beyond our own training cohort, which is independent corroboration of the
+negative finding in our external-validation audit.
 
-**LTSTDB is the reference corpus for exactly this task, and it is ours.**
-It contains 86 recordings from 80 subjects, each 21–24 hours, two or three ECG
-signals at 250 samples per second [**VERIFIED**: Jager, Taddei, Moody, Emdin,
-Antolič, Dorn, Smrdel, Marchesi and Mark, *Long-term ST database: a reference
-for the development and evaluation of automated ischaemia detectors and for the
-study of the dynamics of myocardial ischaemia*, Medical & Biological Engineering
-& Computing 41(2):172–183, 2003].
+### 2.2 Deep learning for ambulatory ECG
 
-The literature also supplies the single most useful calibration for a reader
-approaching our numbers. A detector reported at **85% / 86% sensitivity and
-positive predictivity on EDB fell to 70% / 68% when carried to LTSTDB**, in part
-because LTSTDB contains ST episodes generated by postural change that a detector
-can misread as ischaemic [**SEARCH-RETURNED**; to be traced to its primary
-source before submission]. **LTSTDB is harder than EDB by construction**, and
-that is why it was chosen.
+Deep learning on ECG is a large and fast-moving literature, surveyed
+systematically in [arxiv:2001.01550] and, for the personalised setting, in
+[arxiv:2409.07975]. **Its centre of mass is not our task.** The dominant setting
+is 12-lead resting or short-strip diagnosis — recent examples include occlusion
+myocardial infarction identification [pmid:42129209], large-scale acute coronary
+syndrome corpora [pmid:42082497], and transfer learning from ECG imagery
+[pmid:41358268] — rather than continuous multi-hour ambulatory streams with
+episode-level endpoints. Work directly on ambulatory signal quality and noise
+[arxiv:2201.10061] is closer to our operating conditions than most of the
+diagnostic literature is.
 
-**Positioning.** *We are not claiming a better detector.* We claim a detector
-whose reported number can be traced to the access that produced it. The
-comparison we invite is on **what is reported**, not on the metric value — and
-we state plainly that our headline figure is modest. A reader who wants a
-stronger ST detector should look at this literature, not at us.
+Self-supervised and contrastive representation learning for ECG is well
+populated: lead-agnostic local and global representations [arxiv:2203.06889],
+physiologically-inspired augmentations for 12-lead records [arxiv:2106.04452],
+subject-aware contrastive learning for biosignals [arxiv:2007.04871], and masked
+transformer pretraining [arxiv:2309.07136]. Our encoder's architectural lineage
+is the structured state-space family — [arxiv:2111.00396], its diagonal
+simplification [arxiv:2203.14343], and the parameterisation and initialisation
+that make diagonal variants work [arxiv:2206.11893].
 
----
+**Positioning.** Every architectural choice reported here was made by a rule
+frozen before the deciding evidence existed, and the record of that freezing is
+an artifact rather than a claim in a methods section. The consequence is
+reported rather than smoothed: our one architectural contrast is stated with a
+paired subject-bootstrap interval that **includes zero**, and it stays that way
+in §7. **The contribution is not the encoder.** Any architecture in the
+paragraph above could be substituted without touching the evidence framework,
+and the framework is what §4 is about.
 
-## 2.2 Deep learning for ambulatory ECG
+### 2.3 Reproducibility, pre-registration, and result-blind analysis
 
-Our encoder, physiology fusion, memory and longitudinal arm each sit in an
-active architectural lineage: convolutional encoders for local morphology,
-attention for longer dependence, hybrid CNN-transformer models that avoid
-explicit R-peak detection [**SEARCH-RETURNED**], and — most relevant to our
-temporal arm — **structured state-space models**, which handle long
-physiological sequences at lower cost than attention and degrade less than CNNs
-as sequence length grows [**SEARCH-RETURNED**].
+Three traditions live here and the paper's positioning depends on keeping them
+apart.
 
-That last point is the honest reason our longitudinal arm is an S4D variant, and
-it is also where we must be careful. **The literature's general case for
-state-space models over recurrent and convolutional baselines is not evidence
-for our particular selection.** We selected S4D over GRU under a rule frozen
-before the deciding evidence existed, and we report the contrast with its
-interval: **the paired subject-bootstrap interval includes zero**. We therefore
-describe S4D as *selected*, never as *superior*.
+**Documentation.** Model cards [arxiv:1810.03993] and datasheets
+[arxiv:1803.09010] standardise what is disclosed about a model and a dataset.
+In the clinical prediction setting, TRIPOD+AI [doi:10.1136/bmj.q824] does the
+same for reporting. These are authored artifacts describing a process that has
+already happened, and their value does not depend on the description being
+verifiable.
 
-**Positioning.** Every architectural choice here was made by a rule frozen
-before the deciding evidence existed. That is the claim — not that the
-architecture is new, and not that our comparison settled anything the field is
-arguing about.
+**Empirical study of whether documentation works.** The NeurIPS reproducibility
+programme [arxiv:2003.12206] and the first large analysis of the NLP
+Reproducibility Checklist [arxiv:2306.09562] measure what checklists changed;
+the latter, over 10,405 responses, finds increases in reported information and
+that fewer than half of submissions claim to open-source code. Leakage has been
+shown to be widespread and consequential across 17 fields
+[doi:10.1016/j.patter.2023.100804, arxiv:2207.07048], with concrete instances in
+applied domains [arxiv:1909.06539] and sustained attention in the scientific
+press [doi:10.1038/d41586-022-02035-w]. Reproducibility in ML for health
+specifically has been characterised as structurally worse than in neighbouring
+fields [arxiv:1907.01463], and domain-specific assessment frameworks have
+followed [arxiv:2401.08847]. Pre-registration itself has been adapted to
+predictive modelling as a lightweight template with a qualitative evaluation
+[arxiv:2311.18807], and registered reports are an established response to
+publication bias in other fields [doi:10.1038/s41593-024-01762-9].
 
----
+**Result-blind analysis** is mature outside machine learning. Nuclear and
+particle physics has practised deliberate blinding of the analyst to the result
+for decades [doi:10.1146/annurev.nucl.55.090704.151521,
+doi:10.1088/0954-3899/28/10/312, doi:10.2172/826602], and the argument there is
+the one this paper makes: the discipline must be structural, because the
+individual analyst's care is not the failure mode.
 
-## 2.3 Reproducibility, pre-registration and result-blind analysis
+**Positioning.** A checklist records intent at submission time; the
+`arxiv:2306.09562` analysis is evidence of how far that gets you. This work
+enforces the same properties **at execution time, from code, and produces
+artifacts that testify to what did not happen** — a checklist cannot demonstrate
+that no model was loaded, and a zero-capability counter written by the run can.
+**That positioning is real but it is no longer sufficient on its own**, because
+§2.6's neighbours enforce at execution time too.
 
-This is the section against which the paper's sharpest claim is made.
+### 2.4 Selective prediction, calibration, and deferral
 
-The field's response to the reproducibility problem is largely **declarative and
-submission-time**: reproducibility checklists covering algorithm description,
-data, splits and code availability [**SEARCH-RETURNED**: the Machine Learning
-Reproducibility Checklist; the NeurIPS 2019 Reproducibility Program report];
-consensus recommendations for ML-based science [**SEARCH-RETURNED**: REFORMS,
-*Science Advances*, 2024]; and an active debate about whether pre-registration
-transfers to computational research at all, given the exploratory nature of
-model development [**SEARCH-RETURNED**]. Work on health ML notes that
-prospective checks of the kind biomedical observational studies now require are
-**"utterly absent"** in that setting [**SEARCH-RETURNED**: *Reproducibility in
-Machine Learning for Health*].
+The reject option is old and the theory is settled: the error–reject tradeoff
+was characterised in [doi:10.1109/tit.1970.1054406], and the modern selective
+classification line — pointwise-competitive selective classification
+[doi:10.1613/jair.4439], selective classification for deep networks
+[arxiv:1705.08500], and an integrated reject option trained end to end
+[arxiv:1901.09192] — extends it to the setting we work in. Recent work sharpens
+the objective [arxiv:2206.09034], couples it to calibration
+[arxiv:2208.12084], derives it from training dynamics [arxiv:2205.13532], and
+examines its behaviour under distribution shift [arxiv:2405.05160]. Calibration
+itself has an equally clear line [arxiv:1706.04599, arxiv:2106.07998], and
+learning-to-defer treats the human as a second decision-maker rather than a
+fallback [arxiv:2006.01862, arxiv:2202.03673, arxiv:2310.14774].
 
-**Positioning.** A checklist records **intent, at submission time**, and is
-verified by a human reading a form. This work enforces the same properties **at
-execution time, from code**, and produces artifacts that assert what *did not
-happen*.
+**Positioning, and it is a negative result.** We implemented selective routing,
+evaluated it against a prespecified exit gate fixed before the evaluation, and
+**rejected it**. The paper reports the rejection as a result, with the gate that
+produced it.
 
-The distinction is not rhetorical. **A checklist cannot demonstrate that no
-model was loaded during a measurement; a zero-capability counter written by the
-run can.** Our primary episode result consumed a persisted trace and ran no
-model, and four such counters attest to it. Likewise, a one-shot budget is
-enforced by a re-run guard rather than by a flag, and pre-registration is
-enforced by commit ordering rather than by assertion.
+**One observation about this literature, stated with its bound.** Across the 77
+records this subsection's queries returned, the abstracts describe methods that
+improve a risk–coverage curve or a deferral rule; **none reports a selective
+mechanism that was built, evaluated against a prespecified gate, and abandoned.**
+That is a statement about what a recorded search returned, not a claim about the
+field, and §9.3 develops the publication-incentive argument on exactly that
+footing and no further.
 
-**What we do not claim.** We do not claim this is stronger than pre-registration
-in general, nor that it removes the need for checklists. It is a different
-mechanism addressing a property checklists cannot reach.
+### 2.5 Grounded generation, provenance-constrained NLG, and guardrails
 
----
+This literature became a neighbour when the system acquired a generated-language
+surface (§4.6), and it has three parts.
 
-## 2.4 Selective prediction, calibration, and deferral
+**Grounding output in retrieved evidence.** Retrieval-augmented generation
+[arxiv:2005.11401] established the arrangement — a parametric generator over a
+non-parametric retrieved memory — and subsequent work makes retrieval active
+[arxiv:2305.06983] or corrective [arxiv:2401.15884].
 
-Classification with a reject option is a mature framework, and its clinical
-appeal is obvious: couple prediction with an actionable safeguard, defer the
-uncertain case [**SEARCH-RETURNED**: surveys of machine learning with a reject
-option; selective prediction and deferral under distribution shift]. The
-literature also records the practical weakness we ran into: calibration methods
-such as temperature scaling improve agreement between confidence and frequency
-**without specifying when to defer**, and deployments **"often rely on ad hoc
-thresholds and lack performance guarantees under shift"** [**SEARCH-RETURNED**].
+**Measuring whether output is actually supported.** Faithfulness and factuality
+in abstractive summarisation [arxiv:2005.00661] and the Attributable to
+Identified Sources framework [arxiv:2112.12870] give the vocabulary; the
+hallucination survey [arxiv:2202.03629] gives the taxonomy. Evaluation has since
+moved to maintained leaderboards with private splits [arxiv:2501.03200] and to
+runtime monitoring of faithfulness during generation [arxiv:2406.13692].
 
-**Positioning.** We implemented selective routing, **fixed its exit gate in
-advance**, evaluated it, and **rejected it**. The paper reports the rejection as
-a result.
+**Guardrails.** Programmable output rails, independent of the underlying model
+and interpretable by the developer, are the industrial pattern
+[arxiv:2310.10501]. Their limits are documented: a comparative evaluation across
+industrial guardrails finds an unavoidable security/usability tradeoff
+[arxiv:2504.00441], and guardrail robustness degrades under RAG-style contexts
+[arxiv:2510.05310]. In clinical deployment the pattern appears both as a safety
+classifier [pmid:41933065] and as an error-prevention layer over generated
+instructions [pmid:38664535].
 
-The detail that makes it a result rather than an anecdote is *which* guard
-failed. The calibration-agreement guard **passed**. The **asymmetric-abstention**
-guard failed, against a limit fixed before the evaluation. A summary that said
-only "the utility gain was insufficient" would be wrong about our own finding,
-and that specificity is the point.
+**Positioning.** The usual arrangement grounds a model in retrieved
+**documents**. This system grounds it in a **closed evidence graph with closed
+vocabularies**, gives it four sealed context sections and no free-text channel,
+and places a lexical claim guard, a numeric claim guard and a categorical
+alignment check between generator and user, with a deterministic renderer behind
+them as the fallback. The distinguishing property is not that the model is
+constrained — [arxiv:2310.10501] constrains a model. **It is that the constraint
+is the same publication claim boundary the manuscript is bound by, so an
+overclaim in generated prose and an overclaim in this paper fail against one
+artifact.** We take [arxiv:2504.00441]'s finding as the honest frame for what
+that costs: our fallback rate is the usability side of exactly that tradeoff,
+and §7.6 reports it rather than defending it.
 
----
+### 2.6 Where this work sits
 
-## 2.5 Grounded generation, provenance-constrained NLG, and guardrails
+**The problem this paper addresses has been independently named, and we do not
+claim to have noticed it first.** [arxiv:2605.08586] calls it *experiment
+nonrepudiation*: binding the numbers in a paper to an actually executed
+computation in a way the author cannot later alter or deny. It argues — with the
+threat model spelled out — that self-reported checklists, optional code sharing
+and author-controlled logging do not answer the question a reviewer cannot
+check, and it ships a reference implementation to show the problem is solvable.
+Nearby, sample-level pipeline traceability anchored to tamper-evident
+cryptographic commitments [arxiv:2601.14971] and machine-verifiable provenance
+for model lineage and environment [arxiv:2605.19755] attack the same class of
+problem from the supply-chain side. The re-executable-publication tradition is
+older than all of it [doi:10.1016/j.procs.2011.04.061,
+doi:10.1016/j.procs.2012.04.047] and now has platforms
+[doi:10.3233/apc200107, doi:10.1186/s13059-021-02299-x], and code review has
+been proposed as the human complement [doi:10.1038/s41562-021-01190-w].
 
-The paper contains §4.6 and §5.6, so it must position against three adjacent
-literatures: retrieval-grounded generation, knowledge-graph-grounded generation,
-and output guardrails.
+**What that machinery binds is the computation. What it does not bind is the
+claim.** A signed attestation establishes that a number came from a run. A
+provenance chain establishes which data and which environment produced it. A
+private leaderboard split establishes that a score was not tuned against its own
+test set. **None of them reads the sentence a human will actually take away and
+refuses it because the evidence does not support that sentence.** That object —
+the natural-language claim, checked against a closed evidence graph and refused
+when the check fails — is where this work sits, and it is the honest form of the
+gap.
 
-The usual arrangement grounds a model in retrieved **documents** or in a
-knowledge graph, and places a filtering layer around the model — an input
-pre-filter, a safety model, and optional post-filtering [**SEARCH-RETURNED**:
-NeMo Guardrails; Llama Guard; surveys of knowledge graphs for hallucination
-reduction; constrained-decoding tooling]. Clinical variants add
-safety-constrained generation against guideline breaches [**SEARCH-RETURNED**].
+Three properties follow, and they are the section's exit:
 
-**Our arrangement differs in three ways, and the third is the one that matters.**
-The model is grounded in a **closed evidence graph with closed vocabularies**,
-not retrieved documents — adding an unlisted edge relation raises. It receives
-**four sealed context sections and no free-text channel**. And a lexical claim
-guard sits between generator and user with a deterministic fallback behind it.
+1. **The claim, not the computation, is the enforced object.** The guards in
+   §4.6 operate on generated prose and on the manuscript's own text.
+2. **One artifact governs two surfaces.** The claim boundary that binds this
+   paper is the code that binds the runtime's explanation. The neighbouring
+   systems have one surface, so the question does not arise for them.
+3. **The apparatus produces evidence of absence.** Attestation records what
+   happened; a zero-capability counter written by a run records what did not,
+   and §5 turns on artifacts of that kind.
 
-**The distinguishing property is not that the model is constrained.** Constrained
-generation is well covered by the work above. It is that **the constraint is the
-same publication claim boundary the manuscript is bound by** — so an overclaim in
-generated prose and an overclaim in the paper fail against **one artifact**.
-
-**What the search did not settle.** We did not find work in which the same
-executable artifact governs both a system's generated output and the authors'
-own manuscript claims. **We also did not run a systematic review**, and §2.6
-qualifies that accordingly.
-
----
-
-## 2.6 The gap
-
-Each literature above reports **outcomes**. Detectors report sensitivity and
-positive predictivity; architecture papers report accuracy; reproducibility work
-reports checklists and recommendations; selective prediction reports risk–coverage
-trade-offs; guardrail work reports filtered outputs.
-
-**What we did not find, in a targeted search across all five, is machinery that
-makes an outcome checkable by a third party who does not trust the authors** —
-artifacts produced *by the run* that assert what did not happen, a budget that
-cannot be spent twice because the code refuses, and a claim boundary that binds
-the paper and the system to the same file.
-
-**That is the gap, and it does not depend on our result.** It would be the same
-gap had the sealed evaluation returned a strong number.
-
-**The honest qualification, which must survive editing.** This claim rests on
-**five targeted queries, not a systematic review**. *"As far as we are aware"* is
-therefore doing real work in that sentence and must not be quietly deleted. If a
-fuller search finds prior work with this property, the contribution narrows to
-the specific composition — evidence graph, one-shot budgets, execution-time
-pre-registration, and a shared claim boundary — and **the paper should say so
-rather than defend the broader claim.**
-
----
-
-## Draft notes — not manuscript prose
-
-**The claim guard fires once on this file, and it is a quotation.**
-`claims.find_violations` reports one Appendix A claim-12 hit, on the phrase in
-§2.0 that quotes `B4_TEST_AUTHORIZATION_V1.md` §6.3 verbatim. The condition
-cannot be stated without naming what it forbids — the same recursion §4.6
-describes — and the phrase is retained rather than paraphrased, because a
-governing condition quoted loosely is a governing condition weakened.
-
-**Before submission, in order:**
-
-1. **Fetch and confirm every SEARCH-RETURNED citation.** None is verified beyond
-   a search result. The 85/86 → 70/68 EDB-to-LTSTDB figures in §2.1 are the most
-   load-bearing and must be traced to their primary source, with the detector and
-   protocol named.
-2. **Widen the search** for §2.5 and §2.6 specifically. The gap statement is the
-   paper's most exposed claim and currently rests on the thinnest evidence.
-3. **Re-read §2.0 against the final §7.** If any sentence in §2 comes to depend
-   on the sealed-test value, the §6.3 ordering has been inverted and the waiver's
-   stated reason has become false in retrospect.
-4. Confirm the LTSTDB subject arithmetic as presented: the database holds **80
-   subjects / 86 recordings**; this programme's partitions are drawn from a
-   subset, and §3 must state the relationship rather than leaving a reader to
-   infer that 56 + 12 exhausts the corpus.
+**These are complements, not competitors.** [arxiv:2605.08586] proposes a
+protocol for conferences and calls for a standard; this is one project's
+machinery, applied at authoring time, reported in §9.6 with the cost it imposed.
+A field that adopted both would have numbers bound to runs and claims bound to
+evidence. **It currently has neither as a default, and this paper is an
+existence proof for the second half at the scale of a single research
+programme.**

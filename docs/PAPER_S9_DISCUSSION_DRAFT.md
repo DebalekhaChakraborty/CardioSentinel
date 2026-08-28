@@ -2,8 +2,10 @@
 
 > **Draft for the manuscript.** Not a frozen record: no `_V1`, no digest.
 > Written from `PAPER_S9_DISCUSSION_SKELETON.md` against `origin/master`
-> `1018001`. **§9.3 is stubbed and not written** — it is gated on the §2
-> literature search, which has not started.
+> `1018001`. **§9.3 was stubbed pending the §2 literature search. That search
+> ran on 2026-08-25** — `LITERATURE_SEARCH_V1.md`, 65 queries, 393 hits — **and
+> §9.3 is now written**, on the footing that record supports and no wider.
+> §9.5.5 is new and argues from `PAPER_S5_6_CLAIM_BOUNDARY_DRAFT.md` Part B.
 >
 > **Written with no sealed-test result in existence.** §9.8 of the skeleton
 > bound what could change here if B4 were ever opened: the number goes in §7, a
@@ -107,23 +109,58 @@ things, which suggests the failure is cheap to make and hard to see.
 
 ---
 
-## 9.3 What a rejection is worth — **NOT WRITTEN**
+## 9.3 What a rejection is worth
 
-**Blocked on the §2 literature search, which has not started.**
+We built a selective router, fixed its exit gate before the evaluation, ran the
+evaluation, and **rejected it**. The gate, the result and the retention decision
+are recorded in `U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md`, and the
+rejection is reported in §7 as a result rather than omitted as a dead end.
 
-The argument is available in outline: the selective router was built, evaluated
-against a gate fixed in advance, and rejected; `U1_CALIBRATION_ROUTING_
-RETENTION_DECISION_V1.md` records the split retention. The section's claim is
-that literature in this area overwhelmingly reports adoption, and that the
-asymmetry reflects a publication incentive rather than a fact about routers.
+**The literature we compared it against does not appear to contain that move,
+and the sentence needs its bound stated before its content.** A recorded search
+(`LITERATURE_SEARCH_V1.md`, 2026-08-25) returned 77 records across the selective
+prediction, calibration and deferral queries. Read at the level of title and
+abstract, they describe methods that improve a risk–coverage curve, sharpen a
+deferral rule, or extend the setting. **None of the 77 reports a selective
+mechanism that was built, evaluated against a prespecified bar, and abandoned.**
 
-**That claim is quantitative in shape and cannot honestly be asserted before the
-literature search is done.** It is the one subsection of §9 that is not writable
-today. Writing it from impression would be the precise failure this paper spends
-§9.4 and §9.5 describing.
+That is a statement about what a search of three indices returned, at eight hits
+per query, from metadata rather than full text. **It is not a claim about the
+field**, and there are at least three ways it could be an artifact of the
+instrument rather than of the literature:
 
-When it is written, it must not imply bad faith by other authors. The claim is
-about what gets published, not about who is honest.
+- **Abstracts do not advertise abandonment even when papers contain it.** A
+  negative ablation lives in §5 of a paper whose abstract describes what worked,
+  and title/abstract matching cannot see it.
+- **Relevance ranking rewards the affirmative.** The queries name techniques, and
+  the eight best-ranked hits for a technique's name are papers that advance it.
+- **A rejection is most likely to be reported inside an applied paper**, as one
+  component that did not earn its place, rather than as the subject of a method
+  paper. The search was aimed at method literatures.
+
+**With that bound in place, the argument is still worth making, and it is
+strongest when it is not about other authors.** The asymmetry is not evidence
+that anyone concealed anything. It is a property of what gets written up: a
+component that clears its bar becomes a contribution and a section; a component
+that does not becomes a deleted branch, and no venue exists that would have
+published it alone.
+
+**We are not outside that incentive; we were merely constrained against it.**
+Had the exit gate not been fixed in writing before the evaluation, and had the
+decision not been required to land as a retention document, this project's most
+likely account of the selective router is silence — not a false claim, just an
+absent one, in a paper about something else. **The apparatus did not make us
+more honest than other authors. It removed the option of quietly not
+mentioning it**, which is the only difference we are entitled to claim.
+
+**What the asymmetry costs the field is a denominator, and §9.2 is about
+denominators.** A reader deciding whether to add selective routing to a clinical
+pipeline can find many reports of routers that helped. They cannot find how many
+were built and dropped, because that number is not written down anywhere — so
+the published record answers *"can this work?"* while the question being asked is
+*"how often does this work?"*. **Reporting a rejection is cheap, and it
+contributes the one quantity the literature structurally cannot accumulate on
+its own.**
 
 ---
 
@@ -227,6 +264,91 @@ unbounded claim its own Appendix A forbids.
 > catches a lexical class of it, in code the authors wrote, and §9.5.4 is the
 > proof of the limit. Five catches is the number of boundary statements the
 > authors happened to write, not a detection rate.*
+
+### 9.5.5 The most repeatable finding: checks that pass for the wrong reason
+
+*Argues from `PAPER_S5_6_CLAIM_BOUNDARY_DRAFT.md` Part B and from the incident
+record. This is the subsection we expect to generalise furthest and it should be
+written for a reader with no interest in ECG.*
+
+Across this programme the same defect has now appeared **ten times, in ten
+unrelated components, over the full life of the project**: a check that passed or
+failed **for a reason unrelated to what it claimed to verify**, while reporting
+exactly the result it was designed to report.
+
+| # | The check | What it claimed | What it actually measured |
+|---|---|---|---|
+| 1 | a recorded digest beside an archived generator | that the generator is the one that produced the document | nothing — **no test asserted it**, and it was stale on `master` from the moment it first appeared |
+| 2 | `git cat-file -t` on a commit pin | that the pin resolves | that a *local* `refs/original` backup keeps the object alive. **The count was wrong by two orders of magnitude** |
+| 3 | a provenance pin scan | that ~50 files were affected | that ~50 **markdown** files were affected; a full scan of all tracked files found **71**, including the load-bearing source, test and lock files |
+| 4 | `assert package_count == 335` | that the new provider adds no dependency | **which host the test ran on.** CI builds its own environment — 71 packages — so it could only ever hold on the development machine |
+| 5 | the provider's contract tests | that the provider works against `transformers` | that it works against a fake shadowing `transformers` in `sys.modules`. Real API drift — `apply_chat_template` in 5.x — would pass unnoticed |
+| 6 | the lifecycle validator's regression test | that no fabricated state is asserted | that the *fixture's* state matched the code's bug. **It certified the defect as correct** |
+| 7 | a literature harvest reporting `22 queries, 161 hits, 0 failed` | coverage of a literature | reachability of an HTTP endpoint. The re-run with corrected query syntax shares **zero records** with it |
+| 8 | the citation checker built for that search | that no citation was invented | that no citation carried an arXiv version suffix. It reported **38 of 61 unresolved**, and all 38 were correct |
+| 9 | `test_real_model_execution_is_a_separate_unexecuted_manual_record` | that real-model execution stays separate from CI | that the string `"Status: NOT EXECUTED"` appeared in a file. **It passed for a day after the run happened**, while the document it guarded was false |
+| 10 | `grep` for one registered disclaimer's literal text | whether that disclaimer was dead code | whether the *string* appeared in a second file. **An alias carried the value where the literal did not**, and the entry was in fact printed on every alert and stored as a graph node |
+
+**The shape is always the same, and naming it is the contribution.** A check has
+a *claimed* predicate — the sentence in the test name, the commit message, the
+docstring — and an *operative* predicate, which is whatever the code actually
+evaluates. The two are written at different moments by the same person, and
+**nothing in any tooling we know of compares them.** Tests are asserted against
+the operative predicate by construction, so a test cannot detect the gap; that is
+what #6 demonstrates, where the test was the thing certifying the bug.
+
+**Green is the dangerous state, not red.** Every instance above reported success
+or an unremarkable number. #2 and #3 reported *smaller* problems than existed,
+which is worse than reporting none: a plausible figure ends an investigation.
+#7 reported `0 failed`, which is true of the network and says nothing about the
+corpus. **A failing check invites inspection; a passing one closes the question**,
+and these were all passing.
+
+**Three of the ten were found by a human reading the output and finding it
+absurd** — eight nonsense search hits, a package count that was obviously the
+wrong machine's, a fifty-file estimate that felt low. **None was found by
+another check**, and #9 is the sharpest case: it surfaced only because someone
+corrected the *document*, at which point the test failed for the first time —
+**the test detected the fix, not the defect.**
+
+**#10 deserves its own sentence, because it nearly produced a worse outcome than
+the defect it was investigating.** The grep was run to decide whether a stale
+registered disclaimer was dead code and could simply be deleted. It reported one
+occurrence, in the file that defines it. The entry was in fact aliased by
+another module, printed to the user on every alert, and emitted as a constraint
+node in the evidence graph — so *deleting* it would have removed a stated
+boundary from user-facing output, which is the §9.5.3 failure exactly. **A check
+that answers a narrower question than the one you asked is most dangerous when
+its answer licenses an action**, and "is this dead?" is that kind of question. We take that seriously as a limit on the position this paper
+argues: the apparatus makes claims checkable, and it does not make its own
+checks correct.
+
+**What we would recommend, stated as narrowly as we can defend it.** Where a
+check exists to establish a property that matters, it should be **negatively
+controlled at the moment it is written** — broken deliberately, and observed to
+fail. Finding #4's replacement was: adding `accelerate` to the extra makes the
+new assertion fail, and it was restored afterwards. That costs one minute and
+would have caught #1, #4, #5 and #6 outright. It would not have caught #2, #3 or
+#7, where the check worked exactly as written and the *concept* was wrong, and we
+do not claim otherwise.
+
+**The honest summary is uncomfortable and belongs in the paper.** This is a
+project whose entire subject is making claims checkable, staffed by people
+thinking about that problem full-time, and it produced ten of these — the last
+four while writing the section you are reading, in the tooling built to keep
+this section honest, and one of them found only by fixing something else.
+
+**One counterweight is owed, because the section would otherwise read as though
+no check ever works.** The reworded disclaimer that replaced #10's stale entry
+was itself wrong on the first attempt: it spelled out the sealed test's
+denominators and its interval, and those words are research prose, which must
+never enter the closed context handed to the generator.
+`test_the_context_carries_no_research_prose` failed, three files away from the
+edit, for exactly the right reason. **That check's claimed and operative
+predicates were the same, and it caught an author who had just spent a day
+writing about authors who are caught.** **We do not think that is a statement about this project's
+competence. We think it is the base rate**, and that most such checks in most
+codebases have never been examined closely enough for anyone to notice.
 
 ---
 

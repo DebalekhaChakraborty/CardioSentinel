@@ -378,7 +378,7 @@ confounder-aware supervision (RQ7 never begun).
 | Gap | Class | Detail | Mandatory? |
 |---|---|---|---|
 | §4 and §4.6 have **no draft** | **A — documentation** | Every source is on disk; this is writing, not research | **Mandatory** (it is the contribution) |
-| §2 literature search not started | **A — documentation** | Explicitly out of scope for this task; carries the §6.3 no-contamination condition | **Mandatory**, and must precede submission |
+| ~~§2 literature search not started~~ | **CLOSED** | **Superseded 2026-08-25 by PR #127**, discovered after this audit was written: 65 queries / 372 unique records, verification tool, 61 citations 0 unresolved — **and the search refuted the gap statement this audit assumed** | **Closed, not by this workstream** |
 | Control-plane says generative arm unexercised | **A — documentation** | **Corrected by this audit (§0.1)** | **Closed by this audit** |
 | F1–F6 do not exist as figures | **B — figure/table** | All underlying data exists; drawing only | **Mandatory** |
 | T1–T4 not assembled | **B — figure/table** | Numbers verified in §4; assembly only | **Mandatory** |
@@ -445,6 +445,12 @@ permanent property of the corpus and must be disclosed, not repaired.**
 >
 > **No new experiment is required.** All mandatory gaps are class **A**
 > (documentation) and class **B** (figures/tables).
+
+**Note added 2026-08-28 after a merge conflict:** this audit was written without
+knowledge of PR #127, which had already searched and drafted §2 and **refuted the
+gap statement §1 of this audit leans on**. The positioning verdict survives, but
+**§2.6's gap is narrower than this audit assumed** and the manuscript must use
+PR #127's version.
 
 **Exact next task:** draft **§4 Experimental Governance and Evaluation
 Protocol** and **§4.6**, using handbook v1.5 §3–§5, T3 and F2 as sources — the

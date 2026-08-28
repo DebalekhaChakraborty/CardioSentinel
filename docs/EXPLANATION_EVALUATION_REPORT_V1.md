@@ -13,6 +13,18 @@ latency is not comparable across hosts.**
 touched.** This consumes an `EvidenceRecord` that already exists and needs no
 authorization.
 
+> **Correction, 2026-08-25 — this report contradicted itself for one day.**
+> The change that added the 4B result (`13ba0e4`) updated §1 and §4.4 and left
+> **§6 asserting that `Qwen3-4B-Instruct-2507` "has not been run"**, and left the
+> closing line naming only the 1.7B model. §6 and the footer are corrected above;
+> the finding is unchanged, and both models were run as §1 and §4.4 always said.
+>
+> **This is recorded rather than silently fixed, for the same reason §4.3 is.**
+> It is also the third time a count or a scope in this programme's documentation
+> drifted inside the very change that was correcting that document — handbook
+> §0.5.2 is the second — and `PAPER_S9_DISCUSSION_DRAFT.md` §9.5.5 is where the
+> pattern is argued.
+
 ---
 
 ## 1. What was executed
@@ -167,8 +179,11 @@ reported as written**, in the same way W1's two refuted predictions were.
 - **Not that the gates are sufficient.** All four are lexical or numeric.
   Handbook §53.1's limit applies: they reduce a failure rate; they do not make
   misstatement impossible.
-- **Not that larger models behave the same.** `Qwen3-4B-Instruct-2507`, the
-  configuration §1 names as the reported one, has not been run.
+- **Not that larger models behave the same.** Both models ran on **one** context
+  each. `Qwen3-4B-Instruct-2507` stated the fact correctly and
+  `Qwen3-1.7B` did not, and §4.4 says why that is **not** a scaling law: two
+  models on one context cannot separate model size from anything else that
+  differs between them.
 - **Nothing about the ECG pipeline.** This layer explains results; it does not
   produce them. No figure in §49 or Appendix A is affected.
 
@@ -186,5 +201,7 @@ three prior gates and four registered metrics passed.
 
 ---
 
-_Executed 2026-08-25 against `origin/master` `2fc39af`. Arm B: `Qwen/Qwen3-1.7B`
-at revision `70d244cc86ccca08cf5af4e1e306ecf908b1ad5e`, greedy decoding, CPU._
+_Executed 2026-08-25 against `origin/master` `2fc39af`. Arm B:
+`Qwen/Qwen3-1.7B` at revision `70d244cc86ccca08cf5af4e1e306ecf908b1ad5e` and
+`Qwen/Qwen3-4B-Instruct-2507` at revision
+`cdbee75f17c01a7cc42f958dc650907174af0554`, greedy decoding, CPU._

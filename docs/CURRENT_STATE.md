@@ -23,11 +23,14 @@ from it. **Neither authorizes an experiment.**
 
 ---
 
-**As of:** working tree at `1037ea1`, 2026-08-28 · tags
+**As of:** `master` `e0e3a79` (merge of PR #127) plus **PR #128 open**
+(E11–E13a, instrumentation, paper readiness), 2026-08-28 · tags
 `research-freeze-v1.0` · `ips-agentic-runtime-v1.0`
-*(E11 ATTEMPT 2, E12a, E12b/c, E12d ATTEMPT 2, E13a, handbook v1.5, the
-paper-readiness audit and the §4 draft are **uncommitted working-tree
-additions** at the time of writing.)*
+**Refresh status:** **this is a targeted correction, not a wholesale
+regeneration.** Two sessions edited this file on 2026-08-25 and 2026-08-28; the
+§2 / §9.3 / literature-search claims were corrected by the first, the E11–E13a
+sections added by the second. **The run, artifact and ledger sections were not
+re-derived** and carry whatever date their last full refresh gave them.
 **Working tree:** shared by three workers; run `git status` before assuming
 anything about it
 **Open PRs:** none at the time of writing. *(Snapshot only — `gh pr list`
@@ -66,13 +69,21 @@ authorization, a re-scoring run, or data the project does not have. That was
 true before the sealed test opened; the one remaining exception has now been
 taken.
 
-**The remaining gap is the manuscript, not model capability.** §2 Related Work
-is now drafted (2026-08-28) from a targeted, non-systematic search — and it now
-carries the §6.3 condition of `B4_TEST_AUTHORIZATION_V1.md`: **§2 must not be
-shaped by the sealed-test result.** §9 Discussion exists as a merged skeleton and
-draft (#105), both written *before* the test opened, which is the point: a
-discussion revised in light of the result would be post-hoc reasoning whatever
-it concluded.
+**The remaining gap is the manuscript, not model capability.** ~~§2 Related Work
+still does not exist and its literature search has not been started~~ — **§2 was
+searched and drafted on 2026-08-25** (`LITERATURE_SEARCH_V1.md`,
+`PAPER_S2_RELATED_WORK_DRAFT.md`), honouring the §6.3 condition of
+`B4_TEST_AUTHORIZATION_V1.md`: **no sealed-test value appears in the section.**
+The search **refuted the gap statement** the outline specified. §9 Discussion
+exists as a merged skeleton and draft (#105), both written *before* the test
+opened, which is the point: a discussion revised in light of the result would be
+post-hoc reasoning whatever it concluded. **§9.3 and §9.5.5 were added after the
+search and neither touches a sealed-test number.**
+
+**§4 and §4.6 are now drafted** (`PAPER_S4_EVIDENCE_FRAMEWORK_DRAFT.md`,
+2026-08-28, PR #128), together with tables T1–T4 and figures F1–F5.
+**What is still missing is §3.5**, and the assembly sections — §1, §3, §5–§8,
+§10–§12 — which compose existing material rather than create it.
 
 ---
 
@@ -80,7 +91,7 @@ it concluded.
 
 | | |
 |---|---|
-| `origin/master` | `84991e147d94c74481a1458645e8796781ebe14e` — merge of PR #121 |
+| `master` | `652da3d72dbedd5c5994803ba9c9a41c1b111fd2` — handoff ECG 20. **Ahead of the last full refresh of this file, which was pinned to `84991e147d94c74481a1458645e8796781ebe14e` (merge of PR #121)** |
 | Tags | `research-freeze-v1.0` · `ips-agentic-runtime-v1.0` · `legacy/v0` · three `archive/*` tags |
 | Releases | none |
 | Working tree | **shared.** Two Claude sessions and the user work in this checkout; `HEAD` moves under you |
@@ -808,22 +819,39 @@ rather than lifted — there is nothing left to open.
    outline**, with its boundary inline, and §9.1 gets one sentence. Per
    `PAPER_S9_DISCUSSION_SKELETON.md` §9.8: the number goes in §7, the sentence
    goes in §9.1, and **no thesis in §9 moves.**
-2. **The literature search for §2.** Still the only unstarted item in the paper
-   plan, still blocking §9.3, and now bound by §6.3 of the authorization: it must
-   not be shaped by the sealed-test result. The gap statement must be written
-   *after* the search rather than to fit the contribution.
-3. **Review the drafts already merged** — `PAPER_S5_6_CLAIM_BOUNDARY_DRAFT.md`,
-   `PAPER_S9_DISCUSSION_SKELETON.md`, `PAPER_S9_DISCUSSION_DRAFT.md` (#105). §9.3
-   is deliberately stubbed; §9.7, the provenance-incident subsection, is accepted
-   and unwritten.
-4. **Decide what phrasing the claim guard approves for reporting the sealed
+2. ~~**The literature search for §2.**~~ **Done 2026-08-25** — 65 queries across
+   Crossref, arXiv and PubMed, 393 hits, recorded in `LITERATURE_SEARCH_V1.json`
+   with the request URL and timestamp per record. §2 is drafted with 61
+   citations, 0 unresolved. **The gap statement did not survive the search**;
+   the draft's §2.6 is the narrower claim. **The replacement next step is §4 and
+   §4.6**, which are the contribution and have no draft.
+3. **Review the drafts already merged** — `PAPER_S2_RELATED_WORK_DRAFT.md`,
+   `PAPER_S5_6_CLAIM_BOUNDARY_DRAFT.md`, `PAPER_S9_DISCUSSION_SKELETON.md`,
+   `PAPER_S9_DISCUSSION_DRAFT.md` (#105). ~~§9.3 is deliberately stubbed~~ —
+   **§9.3 is written**, and §5.6 is now nine findings rather than five. §9.7, the
+   provenance-incident subsection, is accepted and unwritten.
+4. ~~**Remove or re-word one dead entry in `APPROVED_DISCLAIMERS`.**~~
+   **Done 2026-08-25, and it was not dead.** `agents/claims.py` registered *"any
+   claim about the sealed test, which is unopened"* from before the B4-B test was
+   authorized until after it was consumed. It was first assessed as dead code on
+   a `grep` for its literal text, which found one occurrence — **but
+   `evidence.py` aliases the whole tuple as `CANNOT_SUPPORT`, attaches it to
+   every `EvidenceRecord`, prints it under "This alert does not establish:", and
+   `graph.py` emits each entry as a `constraint` node.** It was a false boundary
+   shown to users on every alert, not an unused constant. **Reworded rather than
+   deleted**, because deleting removes a stated boundary from user output. Two
+   tests were added: one binding the disclaimer to claim 12's `reason`, one
+   asserting no registered disclaimer carries research prose — the first
+   rewording spelled out the denominators and the interval and was caught by
+   `test_the_context_carries_no_research_prose`.
+5. **Decide what phrasing the claim guard approves for reporting the sealed
    test.** Appendix A claim 12 in the handbook now reads *"test
    performance, stated unqualified"* with a reporting requirement, while
    `agents/claims.py` still encodes the absolute form and **blocks the §7 text
    the manuscript must contain** — `"on the sealed test set"` and `"test
    result"` are both refused. Those two documents now disagree. **This blocks
    next-step 1.**
-5. **Report the registered comparison in §7, and name the scored artifact.**
+6. **Report the registered comparison in §7, and name the scored artifact.**
    The sealed test evaluated the **B4-B encoder alone**, which is exactly what
    `B4_PROTOCOL_V1` §Scope pre-registered — *"a global, single-channel comparator
    to the frozen B0–B3 classical baselines… not the CardioSentinel
@@ -831,7 +859,7 @@ rather than lifted — there is nothing left to open.
    **and it must report the B0–B3 comparison**, because that comparison is the
    registered research question and its answer is **no**.
    `B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md` §1.1.
-6. **Re-verify the mirror when the session next expires** (defect 1, closed
+7. **Re-verify the mirror when the session next expires** (defect 1, closed
    twice now). §8.1 lists what a real check is: contents, not a headcount.
 
 Leaving the freeze requires a named experiment with a pre-registered protocol,
@@ -843,6 +871,11 @@ human authorization.
 
 ---
 
-_Last refreshed: 2026-08-25, against `origin/master` `84991e1` (merge of PR
-#121), after reconciling the research assistant and living state documents to
+_Last fully refreshed: 2026-08-25, against `origin/master` `84991e1` (merge of
+PR #121), after reconciling the research assistant and living state documents to
 the single consumed B4-B attempt._
+
+_Targeted correction: 2026-08-25, against `master` `652da3d`, after the §2
+literature search. Only the §2 / §9.3 / literature-search claims, the repository
+pin, and the next-step list were touched; **the run, artifact and ledger
+sections were not re-derived and are as of the full refresh above.**_

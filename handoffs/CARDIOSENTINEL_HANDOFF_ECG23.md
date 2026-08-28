@@ -48,8 +48,10 @@ compute.
 ## 2. GITHUB — and the evidence that is NOT on it
 
 **PR #128 is open**, branch `feat/e11-e13a-instrumentation-and-paper-readiness`
-→ `master`, **+10,120 / −8 across 42 files**, working tree clean, HEAD ==
-origin.
+→ `master`. **It conflicted with `master` on 2026-08-28** because PR #127 landed
+§2 and a staleness sweep while this branch was in flight; the conflict was
+resolved by **taking PR #127's §2 wholesale** and merging `CURRENT_STATE` on the
+merits.
 <https://github.com/DebalekhaChakraborty/CardioSentinel/pull/128>
 
 > ### ⚠ The scientific evidence is NOT in git and exists on ONE machine
@@ -156,17 +158,22 @@ controlled.
 0 of 1079 windows admitted) and may not earn the space over a sentence. Decide
 it against the final §9.
 
-> ### The one real blocker in the manuscript
-> **§2's citations are not verified.** The search was **five targeted queries,
-> not a systematic review.** Exactly one citation is VERIFIED (LTSTDB, fetched
-> from PhysioNet). **Every other reference is SEARCH-RETURNED and must be
-> fetched and confirmed before submission** — the draft says so in its own
-> header. The **85/86 → 70/68 EDB-to-LTSTDB** figures in §2.1 are the most
-> load-bearing and must be traced to a primary source.
+> ### §2 was done by another session, and done better
+> **`PAPER_S2_RELATED_WORK_DRAFT.md` came from PR #127 (2026-08-25), not from
+> this workstream.** It rests on `LITERATURE_SEARCH_V1.md` / `.json` —
+> **65 queries, 393 hits, 372 unique records** across Crossref, arXiv and
+> PubMed — and `scripts/literature_search.py verify` fails the draft on any
+> unresolved citation key. **61 citations, 0 unresolved.**
 >
-> §2 also carries the §6.3 condition of `B4_TEST_AUTHORIZATION_V1.md`:
-> **it must not be shaped by the sealed-test result.** §2.0 records how that is
-> honoured — the gap statement is independent of our number.
+> **That search REFUTED the gap statement `PAPER_OUTLINE_V2.md` §2 specified.**
+> `arxiv:2605.08586` names the same problem — *experiment nonrepudiation* —
+> argues the same negative about checklists and code sharing, and ships a
+> reference implementation. The paper's claim is now **narrower and better
+> defended** than the outline planned.
+>
+> **ECG 23 wrote a competing five-query §2 in ignorance of PR #127 and it was
+> discarded at merge.** Nothing was lost; the point is that **this checkout is
+> shared and `git fetch` before starting work is not optional.**
 
 **Audit verdict:** `CARDIOSENTINEL_PAPER_READINESS_AUDIT_V1.md` returned
 **B — READY TO DRAFT, WITH NON-EXPERIMENTAL GAPS**, and
@@ -211,7 +218,8 @@ External validity is **RED** and cannot be fixed by writing.
 ## 9. What ECG 24 should do
 
 1. **Mirror the run evidence off this machine** (§2). Highest-value operational task; everything else survives in git.
-2. **Verify §2's citations.** The only real blocker to submission.
+2. ~~Verify §2's citations~~ — **done by PR #127**; `scripts/literature_search.py
+   verify` reports 61 citations, 0 unresolved.
 3. **Assemble the remaining manuscript sections** — §1, §3, §5–§8, §10–§12. All are assembly, not research; §4 of the audit and the T1–T4 tables are the sources.
 4. **Decide F6** against the final §9.
 5. **Land PR #128.**

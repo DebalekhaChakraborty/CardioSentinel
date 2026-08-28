@@ -84,9 +84,10 @@ IPS layer ran no experiment, opened no budget and touched no artifact. It was
 built *on* the frozen science.
 
 **The governance claim is the differentiated one.** Appendix A's forbidden
-claims are executable (§53). Three separate components in this repository
-independently tried to state a boundary and the guard caught all three — better
-evidence that it is load-bearing than any test written for it (§53.2).
+claims are executable (§53). **Five** separate components in this repository
+independently tried to state a boundary and the guard caught all five — better
+evidence that it is load-bearing than any test written for it (§53.2) — and the
+explanation layer added **four more** of a different kind (§53.2.1).
 
 **What the programme actually owns** is an evidence apparatus: pre-registration
 that recorded refuted predictions as refuted, one-shot gates that were honoured
@@ -181,6 +182,41 @@ that grows one row per change will drift, and it drifted fastest in the one
 section whose subject is a guard that catches exactly this kind of unstated
 inconsistency. **Nothing about the findings changed** — all five were already
 recorded somewhere in the document. Only the count was wrong.
+
+### 0.5.3 Third correction — the same undercount, one level up
+
+**§0.5.2 corrected §53.2's count from three to five in five places and missed a
+sixth.** The executive summary still read *"Three separate components … and the
+guard caught all three"* until 2026-08-25 — in a correction whose entire subject
+was that this document undercounts its own table.
+
+Corrected here, together with the additions the explanation layer made: §53.2.1
+is new and records four further findings of a different kind, and §50.3's
+manuscript skeleton now says **nine** where it said five.
+
+**Two further instances were found the same day, in the same class:**
+`EXPLANATION_EVALUATION_REPORT_V1.md` §6 asserted that `Qwen3-4B-Instruct-2507`
+*"has not been run"* while §4.4 of the same document reported its result — drift
+introduced by the change that was correcting that report; and
+`QWEN_EVALUATION_RUN.md` read `NOT EXECUTED` for a day after the run it was
+written to record, with three of its fourteen fields now unrecoverable. Both are
+corrected in place and both say so.
+
+**A third instance was in code, not prose, and it was user-facing.**
+`agents/claims.py` registered the approved disclaimer *"any claim about the
+sealed test, which is unopened"* from before B4-B was authorized until after it
+was consumed. `APPROVED_DISCLAIMERS` is **not** an exemption list only:
+`evidence.py` aliases it as `CANNOT_SUPPORT`, attaches it to every
+`EvidenceRecord`, prints it under *"This alert does not establish:"*, and
+`graph.py` emits each entry as a `constraint` node bound to the alert. **The
+false statement was therefore shown to a user on every alert and stored as
+structure.** Reworded on 2026-08-25 to name claim 12's boundary instead;
+deletion was rejected because it would have removed a stated boundary from user
+output, which §53.2's own argument forbids.
+
+**This is no longer a lesson about counts.** It is the pattern
+`PAPER_S9_DISCUSSION_DRAFT.md` §9.5.5 argues from, and the honest summary is
+that **the corrections are drifting at roughly the rate the documents are.**
 
 ### 0.5 What v1.4 changes
 
@@ -1378,7 +1414,7 @@ overridden rather than withdrawn.
 | Section | Source documents | Readiness |
 |---|---|---|
 | 1. Introduction | `RESEARCH_SCOPE.md`, §1 | needs writing |
-| 2. Related work | — | **missing entirely**, and the literature search has not started. It blocks §9.3, and it now carries the §6.3 condition of `B4_TEST_AUTHORIZATION_V1.md`: **it must not be shaped by the sealed-test result** |
+| 2. Related work | `LITERATURE_SEARCH_V1.md` + `.json`, `scripts/literature_search.py` | **drafted 2026-08-25** as `PAPER_S2_RELATED_WORK_DRAFT.md`, after a recorded search — 65 queries, 393 hits, 61 citations, 0 unresolved. **It no longer blocks §9.3, which is written.** The §6.3 condition of `B4_TEST_AUTHORIZATION_V1.md` was honoured: no sealed-test value appears in the section. **The gap statement this outline specified was refuted by the search** — see the draft's §2.6 |
 | 3.1 Problem and data | `DATASET_CONTRACT`, `DATA_SPLIT_POLICY`, `ANNOTATION_SEMANTICS`, `CROSS_DATASET_PROVENANCE`, §42 | near-complete |
 | 3.2 Signal pipeline | `SIGNAL_PROCESSING_CONTRACT` | complete |
 | 3.3 Architecture | `B4_*`, `P1_*`, `M1_*`, `M2_*`, `U1_*`, `T2_*`, §48 | complete |
@@ -1388,7 +1424,7 @@ overridden rather than withdrawn.
 | 6. Experimental setup | retention decisions, `METRICS_PROTOCOL`, §25 | complete |
 | 7. Results | `T1_DESCRIPTIVE_REPORT_V1`, `T2_ARM_COMPARISON_REPORT_V1`, `W1_WINDOW_COMPARATOR_REPORT_V1`, `U1_CALIBRATION_RELIABILITY_REPORT_V1`, §49, **and now the B4-B sealed-test artifacts** | **needs one addition.** The four reports are merged, but §7 is no longer closed: the sealed test produced a fifth reported number on 2026-08-25 and it is not yet in the outline. It is added with its boundary **inline**, under §6.4 of `B4_TEST_AUTHORIZATION_V1.md`, and **no thesis in §9 moves because of it** |
 | 8. Limitations | `T1_POST_HOC_ANALYSIS_V1` §3, `EXTERNAL_VALIDATION_STRATEGY_V1`, §24, §51, Appendix A | quotable verbatim; §49.7 makes the external-validation limitation a *finding* rather than an apology |
-| 9. Discussion | `PAPER_S9_DISCUSSION_SKELETON.md`, `PAPER_S9_DISCUSSION_DRAFT.md` (#105) | **skeleton and draft merged, unreviewed.** §9.3 deliberately stubbed pending §2; a subsection on the provenance incident is accepted but unwritten. **Both were written before the sealed test opened, and that is the point** — a discussion revised in light of the result would be post-hoc reasoning whatever it said |
+| 9. Discussion | `PAPER_S9_DISCUSSION_SKELETON.md`, `PAPER_S9_DISCUSSION_DRAFT.md` (#105) | **skeleton and draft merged, unreviewed.** ~~§9.3 deliberately stubbed pending §2~~ — **§9.3 written 2026-08-25** once the search existed, on that search's footing and no wider; **§9.5.5 added**, the **ten**-instance checks-that-pass-for-the-wrong-reason pattern. **§9.1–§9.2 and §9.4–§9.7 were written before the sealed test opened, and that is the point** — a discussion revised in light of the result would be post-hoc reasoning whatever it said |
 | 10. Reproducibility | §47, `reproducibility/` | **the package exists** (#90, #91) — a committed 1.63 MiB demo bundle plus one PhysioNet record, tested for usability as well as integrity |
 
 **v1.4 adds two sections to this skeleton**, both marked ★, both sourced and
@@ -1398,12 +1434,18 @@ neither yet written:
 |---|---|---|
 | **3.5 Intelligent physical system** ★ | §52, §55, `edge/` | **complete — write from code** |
 | **4.6 Claim governance in code** ★ | §53, `agents/claims.py` | **the strongest new material** |
-| **5.6 Five boundaries the guard caught** ★ | §53.2 | short, and the best evidence the guard is load-bearing |
+| **5.6 Nine boundaries the guards caught** ★ | §53.2, §53.2.1, `LOCAL_LLM_EXPLANATION_PROTOCOL_V1.md`, `EXPLANATION_EVALUATION_REPORT_V1.md` | short, and the best evidence the guards are load-bearing. **Drafted** as `PAPER_S5_6_CLAIM_BOUNDARY_DRAFT.md` |
 
 **§53.2 is the paragraph to write first.** Five components, built weeks apart,
 each independently tried to state a boundary and each tripped the guard. That is
 stronger evidence than a passing test, because none of the five was written to
 demonstrate it.
+
+**§53.2.1 is the second half and it is a different finding.** The explanation
+layer added four more, and they are not the guard catching authors — they are
+four gates in a chain, **each of which exists because a real generation got past
+everything already in place.** The draft keeps the two parts separate for that
+reason and the manuscript must not merge them.
 
 ★ marks the novel contribution. Sections 4 and 5 are where the writing effort
 belongs — and section 5 should now carry **W1's two refuted predictions**
@@ -1633,6 +1675,39 @@ forbidden claim in order to deny it is **declared** — registered once in
 The alternative — rewording around the guard each time — would have taught
 authors to avoid stating boundaries plainly, which is the exact opposite of the
 intent. A test proves a declared quotation cannot smuggle a real claim through.
+
+### 53.2.1 The four gates the explanation layer added, and why each exists
+
+**Added 2026-08-25, after Arm B was exercised.** §53.2's five are the claim
+guard catching this repository's authors. These four are a different finding:
+**four gates in a chain, each of which exists because a real generation got past
+everything already in place.** The sequence was not designed; it is the order in
+which the failures were found.
+
+| # | What got through | What it got past | What was added |
+|---|---|---|---|
+| 6 | a **truncated reasoning trace** returned as if it were the explanation | fidelity 1.000, 0 claim violations, completeness 1.000 | `enable_thinking=False`, and `_strip_reasoning` returns **empty** on an unclosed `<think>` so truncation falls back |
+| 7 | *"an estimated peak probability of **54.6%**"*, from `peak_probability = 0.545613` | the claim guard, and **the registered fidelity metric, which extracts `\d+\.\d{2,}` and cannot see one decimal place** | the **numeric claim guard** — number plus optional unit, checked against all four context sections |
+| 8 | *"passed several safety checks, including **G1 through G6**"*, when **G4 and G5 were blocked** | the claim guard, the numeric guard, fidelity 1.000, completeness | **categorical state alignment** against the structured fields |
+| 9 | the categorical validator flagging the English word *normal*, **rejecting the deterministic fallback** | **its own regression test**, whose fixture set the state to `NORMAL` and licensed the bug | case-**sensitive** matching |
+
+**Finding 7 is the one that constrains this programme's own reporting.** The
+guard is stricter than the metric registered in
+`EXPLANATION_EVALUATION_PROTOCOL.md` §3.1, and the two are deliberately kept
+apart. **Widening the registered metric so the gate and the statistic agreed
+would have redefined a registered statistic to make a gate work** — §41's
+prohibition, arriving disguised as tidying up. The metric is unchanged.
+
+**Finding 9 is the worst of the nine.** A gate that rejects its own fallback
+turns every generative failure into a second failure and leaves the user with
+nothing — and the regression test written for exactly that property **passed,
+because its fixture agreed with the code and only the real data disagreed.**
+
+**The scope limit, stated here so §5.6 inherits it.** Four is the number of
+failures found by running two models on **one** context. Finding 8's inversion
+was model-dependent — `Qwen3-1.7B` produced it reproducibly, `Qwen3-4B-Instruct-2507`
+stated the same fact correctly. **Two models on one context is not a scaling
+law**, and nothing here says the sequence is complete.
 
 ### 53.3 One canonical disclaimer
 

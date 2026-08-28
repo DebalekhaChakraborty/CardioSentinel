@@ -75,9 +75,10 @@ Section numbers refer to [`docs/PAPER_OUTLINE_V2.md`](docs/PAPER_OUTLINE_V2.md).
 | §3.2–3.4 Pipeline | causal signal path, encoder, memory, calibration, episode layer | [`SIGNAL_PROCESSING_CONTRACT`](docs/SIGNAL_PROCESSING_CONTRACT.md) · `B4_*` · `P1_*` · `M1_*` · `M2_*` · `U1_*` · `T2_*` · [`T1_CAUSAL_EPISODE_STATE_PROTOCOL_V1`](docs/T1_CAUSAL_EPISODE_STATE_PROTOCOL_V1.md) |
 | §3.5 The runtime | 146-d bridge verified to **6 ULP**; ~61× real time | `src/cardiosentinel/edge/` · Handbook §52, §55 |
 | §4 Evidence framework | one-shot budgets, negative capability, digest-bound provenance | [`EXPERIMENT_CONTRACT`](docs/EXPERIMENT_CONTRACT.md) · [`RUNTIME_INTEGRITY_SENTINEL_V1`](docs/RUNTIME_INTEGRITY_SENTINEL_V1.md) · Handbook §40–§47 |
+| §2 Related work | the gap this work sits in, after a recorded search | [`LITERATURE_SEARCH_V1`](docs/LITERATURE_SEARCH_V1.md) · [`PAPER_S2_RELATED_WORK_DRAFT`](docs/PAPER_S2_RELATED_WORK_DRAFT.md) · [`scripts/literature_search.py`](scripts/literature_search.py) |
 | §4.6 Claim governance | the publication boundary as executable code | [`src/cardiosentinel/agents/claims.py`](src/cardiosentinel/agents/claims.py) · Handbook §53 |
 | §5 Failure and recovery | a consumed attempt, and an authorized single-use recovery | [`T1_EXECUTION_RECOVERY_AMENDMENT_V1_1`](docs/T1_EXECUTION_RECOVERY_AMENDMENT_V1_1.md) · `recovery/` |
-| §5.6 Five boundaries | the guard catching this repository's own authors | Handbook §53.2 |
+| §5.6 Nine boundaries | the guard catching this repository's own authors, and four gates each added because the previous ones passed a real failure | Handbook §53.2, §53.2.1 · [`PAPER_S5_6_CLAIM_BOUNDARY_DRAFT`](docs/PAPER_S5_6_CLAIM_BOUNDARY_DRAFT.md) |
 | §7 Results | the four reported numbers | the four `_V1` reports in the table below |
 | §8 Limitations | 25 forbidden claims | Handbook **Appendix A** |
 | §10 Reproducibility | committed bundle, restore procedure | [`reproducibility/`](reproducibility/) |
