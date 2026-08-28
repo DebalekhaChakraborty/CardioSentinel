@@ -10,11 +10,15 @@ its own frame — which is exactly how the first two passes of these diagrams
 failed.
 """
 from __future__ import annotations
-import pathlib, textwrap
+
+import pathlib
+import textwrap
+
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 OUT = pathlib.Path(__file__).resolve().parent
 BLUE, ORANGE = "#2a78d6", "#eb6834"
@@ -34,7 +38,9 @@ def line_u(pt):         return pt * LINE_H / UNIT_PT      # one line, in y-units
 
 def blank(w, h):
     fig, ax = plt.subplots(figsize=(w, h))
-    ax.set_xlim(0, 100); ax.set_ylim(0, 100); ax.axis("off")
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 100)
+    ax.axis("off")
     ax.set_facecolor(SURFACE)
     return fig, ax
 
@@ -44,7 +50,10 @@ def rect(ax, x, y, w, h, fc=FAINT, ec=BLUE, lw=1.0, ls="-", z=2):
 
 def panel(ax, x, y, w, h, lines, fc=FAINT, ec=BLUE, lw=1.0, ls="-",
           pad=2.2, centre=False, gap=1.1):
-    """Draw a box and stack `lines` from its top. lines: (text, pt, colour, bold, italic)."""
+    """Draw a box and stack `lines` from its top.
+
+    lines: (text, pt, colour, bold, italic).
+    """
     rect(ax, x, y, w, h, fc, ec, lw, ls)
     inner = w - 2 * pad
     cur = y + h - pad
@@ -81,13 +90,15 @@ LAY = [
      "claim boundary on every output — 18 of 25 Appendix A claims machine-checked"),
     (53, "Layer 3   EVIDENCE", "AlertEvent → EvidenceRecord → EvidenceGraph",
      "35 nodes / 39 edges per alert · closed node kinds and edge relations"),
-    (34, "Layer 2   EDGE RUNTIME", "StreamingInferenceSession, five pieces of causal state",
+    (34, "Layer 2   EDGE RUNTIME",
+     "StreamingInferenceSession, five pieces of causal state",
      "~61× real time on a laptop CPU · encoder 4.161 ms/window median"),
     (15, "Layer 1   SIGNAL", "StreamingPreprocessor → CausalWindowGenerator",
      "→ 146-d representation → M1L / M2-G → U1 → T2 → T1"),
 ]
 for y, name, body, note in LAY:
-    panel(ax, 4, y, 88, 15, [T(name, 8.3, BLUE, True), T(body, 7.9), T(note, 6.8, MUTED)])
+    panel(ax, 4, y, 88, 15,
+          [T(name, 8.3, BLUE, True), T(body, 7.9), T(note, 6.8, MUTED)])
 for y in (29, 48, 67):
     arrow(ax, 48, y, 48, y + 5, c=BLUE, lw=1.4)
 ax.text(50.5, 31.5, "evidence flows up; nothing flows back down", fontsize=6.8,
@@ -100,7 +111,8 @@ panel(ax, 4, 0, 88, 13,
       fc=WARM, ec=ORANGE)
 fig.savefig(OUT/"F1_ips_architecture.pdf", bbox_inches="tight")
 fig.savefig(OUT/"F1_ips_architecture.png", dpi=200, bbox_inches="tight")
-plt.close(fig); print("F1 written")
+plt.close(fig)
+print("F1 written")
 
 # ============================================================ F2
 fig, ax = blank(FIG_W, 5.0)
@@ -130,14 +142,16 @@ panel(ax, 4, 17, 84, 16,
 panel(ax, 4, 0, 84, 15,
       [T("All fifteen one-shot budgets are spent.", 8.0, INK, True),
        T("A spent AUTHORIZED flag is a receipt for an access already taken, not a live "
-         "permission. Every future run needs a fresh human authorization.", 6.8, MUTED)],
+         "permission. Every future run needs a fresh human authorization.",
+         6.8, MUTED)],
       fc=FAINT, ec=MUTED, ls=(0, (4, 3)))
 arrow(ax, 92, 86, 92, 3, c=CRIT, lw=1.3)
 ax.text(96, 45, "one-way", fontsize=6.9, color=CRIT, style="italic",
         ha="center", va="center", rotation=90)
 fig.savefig(OUT/"F2_partition_authority.pdf", bbox_inches="tight")
 fig.savefig(OUT/"F2_partition_authority.png", dpi=200, bbox_inches="tight")
-plt.close(fig); print("F2 written")
+plt.close(fig)
+print("F2 written")
 
 # ============================================================ F5
 fig, ax = blank(FIG_W, 4.6)
@@ -148,7 +162,8 @@ panel(ax, 3, 62, 19, 20,
       [T("generation", 8.0, BLUE, True), T("local Qwen", 6.9, MUTED),
        T("latency", 6.9, MUTED), T("63.4014 s", 6.9, MUTED)],
       centre=True, pad=1.6, gap=0.2)
-for x, name, val in ((26, "evidence fidelity", "1.000"), (43.5, "claim violations", "0"),
+for x, name, val in ((26, "evidence fidelity", "1.000"),
+                     (43.5, "claim violations", "0"),
                      (61, "completeness", "1.000")):
     panel(ax, x, 62, 15.5, 20,
           [T(name, 6.6), T(val, 9.0, INK, True), T("PASS", 7.0, GOOD, True)],
@@ -162,18 +177,22 @@ panel(ax, 78, 62, 19, 20,
 panel(ax, 3, 31, 94, 25,
       [T("What the fourth gate caught", 8.1, CRIT, True)], fc=SURFACE, ec=CRIT, lw=1.1)
 ax.text(6, 45, "the generation asserted", fontsize=6.9, color=MUTED, va="center")
-ax.text(6, 40.5, "“the G1–G6 range passed”", fontsize=8.1, color=INK, style="italic", va="center")
+ax.text(6, 40.5, "“the G1–G6 range passed”", fontsize=8.1, color=INK,
+        style="italic", va="center")
 ax.text(55, 45, "the evidence records", fontsize=6.9, color=MUTED, va="center")
-ax.text(55, 40.5, "G4 and G5  BLOCKED", fontsize=8.1, color=CRIT, fontweight="bold", va="center")
+ax.text(55, 40.5, "G4 and G5  BLOCKED", fontsize=8.1, color=CRIT,
+        fontweight="bold", va="center")
 arrow(ax, 46, 41, 53, 41, c=CRIT, lw=1.2, style="<|-|>")
 for k, ln in enumerate(textwrap.wrap(
-        "It rounded correctly, ended with the canonical disclaimer and invented no number "
+        "It rounded correctly, ended with the canonical disclaimer and "
+        "invented no number "
         "— and inverted the fact the contamination control exists to communicate.",
         chars(82, 6.8))):
     ax.text(6, 36 - k * line_u(6.8), ln, fontsize=6.8, color=MUTED, va="center")
 panel(ax, 3, 2, 94, 25,
       [T("Two properties that must be stated together", 8.0, INK, True),
-       T("•  The harness calls provider.generate() directly, so no runtime gate runs during "
+       T("•  The harness calls provider.generate() directly, so no runtime "
+         "gate runs during "
          "evaluation: the three PASS scores describe raw model output, not what a user "
          "receives.", 6.8, MUTED),
        T("•  The inversion reproduced on two independent runs, before and after the "
@@ -181,4 +200,5 @@ panel(ax, 3, 2, 94, 25,
       fc=FAINT, ec=MUTED, ls=(0, (4, 3)))
 fig.savefig(OUT/"F5_guarded_generation.pdf", bbox_inches="tight")
 fig.savefig(OUT/"F5_guarded_generation.png", dpi=200, bbox_inches="tight")
-plt.close(fig); print("F5 written")
+plt.close(fig)
+print("F5 written")

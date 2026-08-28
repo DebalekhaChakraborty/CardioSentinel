@@ -4,12 +4,17 @@ F3 source: W1_WINDOW_COMPARATOR_REPORT_V1.md per-subject table (verbatim).
 F4 source: E11 ATTEMPT 2 B0 held-out artifacts + the frozen fold consensus,
            the same estimand E11's outer geometry already reported in summary.
 Palette: #2a78d6 / #eb6834 — validated colourblind-safe (dataviz validator,
-light surface: CVD dE 24.7 protan, 32.7 tritan, normal 33.6; all checks PASS).
+light surface: CVD dE 24.7 protan, 32.7 tritan, normal 33.6
+all checks PASS).
 """
 from __future__ import annotations
-import pathlib, sys
-import numpy as np
+
+import pathlib
+import sys
+
 import matplotlib
+import numpy as np
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
@@ -17,6 +22,14 @@ from matplotlib.lines import Line2D
 REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "src"))
 OUT = REPO / "paper" / "figures"
+
+from cardiosentinel.neural.e11_data_binding import (  # noqa: E402
+    E11Sources,
+    bind_e11_data,
+)
+from cardiosentinel.neural.e11_instrumentation import (  # noqa: E402
+    class_direction_consensus,
+)
 
 BLUE, ORANGE = "#2a78d6", "#eb6834"
 INK, MUTED, GRID, SURFACE = "#1a1a1a", "#5a5a5a", "#d9d9d6", "#fcfcfb"
@@ -63,7 +76,8 @@ for k, i in enumerate(order):
     ax.plot(T1[i], k, "o", ms=5.0, color=BLUE,   mec=SURFACE, mew=0.8, zorder=4)
 
 labels = [f"{SUBJ[i]}  ({REF[i]} ep.)" for i in order]
-ax.set_yticks(y); ax.set_yticklabels(labels)
+ax.set_yticks(y)
+ax.set_yticklabels(labels)
 for k, i in enumerate(order):                # episode-free subjects marked, not hidden
     if REF[i] == 0:
         ax.get_yticklabels()[k].set_color(MUTED)
@@ -73,12 +87,17 @@ ax.text(T1_MACRO, len(SUBJ) - 0.25, f" macro {T1_MACRO:.4f}",
         color=BLUE, fontsize=7, va="center")
 ax.text(W1_MACRO, -0.78, f"macro {W1_MACRO:.4f} ", color=ORANGE, fontsize=7,
         va="center", ha="right")
-ax.set_xlim(-0.05, 0.92); ax.set_ylim(-1.1, len(SUBJ) - 0.05)
-ax.set_xlabel("episode $F_1$"); recede(ax)
-ax.set_title("(a)  Per-subject episode $F_1$, paired  ·  12 held-out subjects", loc="left")
+ax.set_xlim(-0.05, 0.92)
+ax.set_ylim(-1.1, len(SUBJ) - 0.05)
+ax.set_xlabel("episode $F_1$")
+recede(ax)
+ax.set_title("(a)  Per-subject episode $F_1$, paired  ·  12 held-out subjects",
+             loc="left")
 ax.legend(handles=[
-    Line2D([], [], marker="o", ls="", ms=5.0, color=BLUE,   label="T1 episode state machine"),
-    Line2D([], [], marker="s", ls="", ms=8.5, color=ORANGE, label="W1 memoryless window rule")],
+    Line2D([], [], marker="o", ls="", ms=5.0, color=BLUE,
+           label="T1 episode state machine"),
+    Line2D([], [], marker="s", ls="", ms=8.5, color=ORANGE,
+           label="W1 memoryless window rule")],
     loc="lower right", frameon=False, handletextpad=0.6)
 ax.text(0.30, 5.4, "seven subjects score zero —\n"
         "three have no reference episodes,\nfour are missed",
@@ -91,11 +110,13 @@ axr.plot(DIFF, 0, "o", ms=8, color=BLUE, mec=SURFACE, mew=1.2, zorder=4)
 axr.annotate(f"{DIFF:.4f}   [{LO:.4f}, {HI:.4f}]", (DIFF, 0),
              textcoords="offset points", xytext=(0, 13), ha="center",
              fontsize=8, color=INK, fontweight="bold")
-axr.set_ylim(-0.55, 1.15); axr.set_yticks([])
+axr.set_ylim(-0.55, 1.15)
+axr.set_yticks([])
 axr.set_xlim(-0.06, 0.42)
 axr.set_xlabel("subject-macro episode $F_1$ difference, T1 − W1"
                "   (95% paired subject bootstrap)")
-axr.spines["left"].set_visible(False); recede(axr)
+axr.spines["left"].set_visible(False)
+recede(axr)
 axr.set_title("(b)  Paired difference  ·  excludes zero  ·  one operating point",
               loc="left")
 
@@ -106,13 +127,13 @@ plt.close(fig)
 print("F3 written")
 
 # ---------------------------------------------------------------- F4
-from cardiosentinel.neural.e11_data_binding import E11Sources, bind_e11_data
-from cardiosentinel.neural.e11_instrumentation import class_direction_consensus
 
 b = bind_e11_data(sources=E11Sources(
     waveform_cache=REPO/"cardiosentinel-features/b4-waveform-v1",
-    protocol_dir=REPO/"cardiosentinel-runs/b4-e11-morphology-aware-v1/E11_ATTEMPT_2/protocol"),
-    expected_split_digest="ce037309cc2d67944acbee76e82700e5a54c9d2ff69bf54a121ab1b8940206c3",
+    protocol_dir=REPO / "cardiosentinel-runs/b4-e11-morphology-aware-v1"
+                        "/E11_ATTEMPT_2/protocol"),
+    expected_split_digest=(
+        "ce037309cc2d67944acbee76e82700e5a54c9d2ff69bf54a121ab1b8940206c3"),
     experiment_id="FIGURE_F4")
 E11D = REPO/"cardiosentinel-runs/b4-e11-morphology-aware-v1/E11_ATTEMPT_2/artifacts"
 
@@ -121,7 +142,8 @@ def stream_deltas(emb, lab, strm):
     for s in np.unique(strm):
         m = strm == s
         p, n = lab[m] == 1, lab[m] == 0
-        if p.sum() == 0 or n.sum() == 0: continue
+        if p.sum() == 0 or n.sum() == 0:
+            continue
         out[str(s)] = emb[m][p].mean(0) - emb[m][n].mean(0)
     return out
 
@@ -135,8 +157,12 @@ for k in (0, 1, 2):
     for s, d in stream_deltas(z["emb_ho"].astype(np.float64),
                               b.labels[ho], b.streams[ho]).items():
         nrm = float(np.linalg.norm(d))
-        ho_cos.append(float(d @ c/nrm)); ho_norm.append(nrm); ho_name.append(s)
-train_cos = np.array(train_cos); ho_cos = np.array(ho_cos); ho_norm = np.array(ho_norm)
+        ho_cos.append(float(d @ c/nrm))
+        ho_norm.append(nrm)
+        ho_name.append(s)
+train_cos = np.array(train_cos)
+ho_cos = np.array(ho_cos)
+ho_norm = np.array(ho_norm)
 neg = ho_cos < 0
 print(f"  train streams {train_cos.size}, {int((train_cos<0).sum())} negative | "
       f"held-out {ho_cos.size}, {int(neg.sum())} negative")
@@ -147,10 +173,13 @@ rng = np.random.default_rng(2026)
 for row, vals, col, lab in ((1, train_cos, BLUE, f"outer-train  (n={train_cos.size})"),
                             (0, ho_cos, ORANGE, f"outer-held-out  (n={ho_cos.size})")):
     j = row + rng.uniform(-0.13, 0.13, vals.size)
-    ax.plot(vals, j, "o", ms=4.0, color=col, alpha=0.55, mec="none", zorder=2, label=lab)
+    ax.plot(vals, j, "o", ms=4.0, color=col, alpha=0.55, mec="none",
+            zorder=2, label=lab)
 ax.axvline(0, color=MUTED, lw=0.8, ls=(0, (3, 3)), zorder=1)
-ax.set_yticks([1, 0]); ax.set_yticklabels(["outer-train", "held-out"])
-ax.set_xlim(-1.05, 1.05); ax.set_ylim(-0.5, 1.5)
+ax.set_yticks([1, 0])
+ax.set_yticklabels(["outer-train", "held-out"])
+ax.set_xlim(-1.05, 1.05)
+ax.set_ylim(-0.5, 1.5)
 ax.set_xlabel("cosine to the fold's frozen class-direction consensus")
 recede(ax)
 ax.set_title("(a)  Class-direction coherence, B0", loc="left")
@@ -170,8 +199,10 @@ for nm, x, yv in zip(np.array(ho_name)[neg], ho_cos[neg], ho_norm[neg]):
     dx, dy, ha = LBL.get(str(nm), (9, 4, "left"))
     axr.annotate(str(nm), (x, yv), textcoords="offset points", xytext=(dx, dy),
                  fontsize=6.8, color=INK, ha=ha)
-axr.set_xlabel("cosine to consensus"); axr.set_ylabel(r"$\|\delta\|$")
-axr.set_xlim(-1.05, 1.05); recede(axr, xgrid=False)
+axr.set_xlabel("cosine to consensus")
+axr.set_ylabel(r"$\|\delta\|$")
+axr.set_xlim(-1.05, 1.05)
+recede(axr, xgrid=False)
 axr.grid(color=GRID, lw=0.5, zorder=0)
 axr.set_title("(b)  Held-out streams: direction vs magnitude", loc="left")
 axr.legend(loc="upper left", frameon=False)
