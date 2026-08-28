@@ -60,7 +60,7 @@ mandatory or optional.
 | Title | **KNOWN** | *CardioSentinel: One Authority, Two Surfaces — Governing Experimental Evidence and Runtime Claims in an Intelligent Physical Monitoring System* (provisional only in the sense that no venue title rule is verified) |
 | Abstract | **KNOWN** | 279 words, frozen |
 | Keywords | **KNOWN** | Intelligent Physical Systems; physiological monitoring; evidence governance; provenance; causal streaming; temporal reasoning; agentic AI; trustworthy AI |
-| Manuscript content | **KNOWN** | Frozen, `sha256:7833f6f0…39cd4c7` |
+| Manuscript content | **KNOWN** | Frozen, `sha256:78863bcc…0029fe2` |
 | Figures | **KNOWN** | F1–F5; F6 deliberately not drawn |
 | Tables | **KNOWN** | T1–T4 |
 | Bibliography | **KNOWN** | 87 unique works, 0 unresolved |

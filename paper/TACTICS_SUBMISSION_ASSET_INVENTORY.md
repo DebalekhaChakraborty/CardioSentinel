@@ -14,7 +14,7 @@ under `docs/`.
 
 | Path | Purpose | Status | In package? |
 |---|---|---|:--:|
-| `paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md` | **content-frozen submission source**, `sha256:72a8d738…50f3b1b2` | AUTHORITATIVE | **YES** — after template mapping |
+| `paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md` | **content-frozen submission source**, `sha256:78863bcc…60029fe2` | AUTHORITATIVE | **YES** — after template mapping |
 | `paper/CARDIOSENTIN_TACTICS_MANUSCRIPT_V3_FINAL_CANDIDATE.md` | same body, without the format banner and metadata block | superseded | no |
 | `paper/CARDIOSENTIN_TACTICS_MANUSCRIPT_V2_BODY_FROZEN.md` | body freeze, pre-abstract | history | no |
 | `paper/CARDIOSENTIN_TACTICS_MANUSCRIPT_V1.md` | first assembly | history | no |

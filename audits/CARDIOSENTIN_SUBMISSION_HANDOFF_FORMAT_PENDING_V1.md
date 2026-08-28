@@ -26,7 +26,7 @@ BLOCKER:              OFFICIAL TACTiCS 2026 AUTHOR INSTRUCTIONS / TEMPLATE
 
 | | |
 |---|---|
-| `sha256` | `72a8d738ec41436d0335f4921ec8371fa2a53f90bf52acfbd59d09a350f3b1b2` |
+| `sha256` | `78863bcc659f9ee54b1c6566c12fe815098f2d2852598a3bd0a708fe60029fe2` |
 | Total words | 14,415 |
 | Body words (from §1) | 13,854 |
 | Abstract | **279 words** |
@@ -36,8 +36,11 @@ BLOCKER:              OFFICIAL TACTiCS 2026 AUTHOR INSTRUCTIONS / TEMPLATE
 | Claim guard | **18 patterns · 17 occurrences · 0 genuine overclaims** |
 | Citation verifier | **108 keys · 87 unique · 87 works · 0 unresolved** |
 
-**One edit was made after the first freeze**, which is why the hash differs from
-the `7833f6f0…` recorded earlier the same day. The Figures section named a
+**Two edits were made after the first freeze**, which is why the hash differs
+from the `7833f6f0…` recorded earlier the same day and from the `72a8d738…`
+that replaced it. The second was made when the 2026-08-28 repository
+reorganisation repointed this document's own banner at
+`audits/TACTICS_2026_SUBMISSION_REQUIREMENTS_V1.md`. The Figures section named a
 repository path (`paper/figures/`) that the 2026-08-28 reorganisation made
 wrong, and that had no business in a submitted manuscript in any case. The
 sentence now says the figures are supplied as vector PDF with PNG previews and
