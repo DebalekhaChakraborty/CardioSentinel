@@ -434,15 +434,25 @@ def test_the_default_model_is_apache_licensed_and_ungated():
     assert DEFAULT_LOCAL_MODEL.startswith("Qwen/")
 
 
-def test_real_model_execution_is_a_separate_unexecuted_manual_record():
+def test_real_model_execution_is_a_separate_manual_record():
+    """The manual record is separate from CI, and CI never runs the real model.
+
+    **This test asserted `"Status: NOT EXECUTED"` until 2026-08-25**, which
+    stopped being true the moment Arm B was exercised. It kept passing anyway,
+    because the document was not updated either -- so a test named for the
+    separation of CI from manual execution was operatively asserting a status
+    string, and the two predicates diverged silently. The status is now the
+    record's to state; what this test binds is the separation itself.
+    """
     root = pathlib.Path(__file__).resolve().parents[2]
     contract = (root / "docs" / "QWEN_EVALUATION_RUN.md").read_text(
         encoding="utf-8"
     )
-    assert "Status: NOT EXECUTED" in contract
     assert "CI must never download or execute the real model" in contract
     assert '"revision": "<full 40-character Hugging Face commit SHA>"' in contract
     assert "latency_scope: total generation latency" in contract
+    # The run record must exist as a table with a status row, whatever it says.
+    assert "| Execution status |" in contract
 
 
 # -- the deterministic path is untouched ------------------------------------

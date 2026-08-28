@@ -216,7 +216,20 @@ APPROVED_DISCLAIMERS: tuple[str, ...] = (
     "a diagnosis -- this is detection, and the programme's scope is detection",
     "anticipation of an episode -- matching is overlap-only, with no tolerance "
     "window and no stored run durations",
-    "any claim about the sealed test, which is unopened",
+    # Reworded 2026-08-25. It read "any claim about the sealed test, which is
+    # unopened" from before the B4-B test was authorized until after it was
+    # consumed. **These strings are not an exemption list.** `evidence.py`
+    # aliases this tuple as `CANNOT_SUPPORT`, attaches it to every
+    # `EvidenceRecord`, prints it under "This alert does not establish:", and
+    # `graph.py` emits each entry as a `constraint` node -- so a stale entry is
+    # a false boundary shown to a user, not dead weight. The boundary named
+    # here is claim 12's, and claim 12's `reason` carries its specifics.
+    #
+    # **The specifics must not be repeated here.** These strings reach the
+    # patient explanation context, which is closed and carries no research
+    # prose; a first rewording spelled out the denominators and the interval
+    # and was caught by `test_the_context_carries_no_research_prose`.
+    "any claim about the sealed test beyond its pre-registered boundary",
     "generalisation beyond LTSTDB's twelve validation subjects",
     "a calibrated confidence -- the component that would have supplied one was "
     "evaluated and not retained",

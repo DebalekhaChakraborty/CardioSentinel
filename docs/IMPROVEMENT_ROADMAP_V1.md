@@ -289,12 +289,21 @@ development data.
 
 ## 7. Next action
 
-**Write §2 Related Work.**
+> **Amendment, 2026-08-25 — this action is complete.** §2 was searched and
+> drafted: `LITERATURE_SEARCH_V1.md` (65 queries, 393 hits, recorded per
+> record), `PAPER_S2_RELATED_WORK_DRAFT.md` (61 citations, 0 unresolved). §6.3
+> of the authorization was honoured — no sealed-test value appears in the
+> section. **§9.3 is no longer blocked and is written.** The search **refuted
+> the gap statement** the paper outline specified; the draft's §2.6 replaces it.
+>
+> **The next action is now §4 and §4.6** — the contribution, undrafted, with
+> every source already on disk. §3.5 likewise.
 
-It is the only unstarted item in the paper plan, it blocks §9.3, and it carries
-a condition that gets harder to honour the longer anyone holds this analysis in
-mind. Everything in Phase 2 can wait; §2 is the single task whose integrity
-degrades with delay.
+~~**Write §2 Related Work.**~~
+
+~~It is the only unstarted item in the paper plan, it blocks §9.3~~, and it
+carried a condition that got harder to honour the longer anyone held this
+analysis in mind. Everything in Phase 2 can wait.
 
 **After submission**, Phase 2 opens with the two cheapest items in this
 document: build the cross-fitted transfer instrument, and measure M2-G's

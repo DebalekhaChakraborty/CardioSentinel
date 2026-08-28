@@ -58,7 +58,18 @@ for it.
 - **"Causal" means temporal non-anticipation**, defined here and never used in
   the inferential sense.
 
-## 2. Related work — **to be written**
+## 2. Related work — **searched 2026-08-25; drafted; gap statement refuted**
+
+> **Amendment, 2026-08-25.** The search this section waited four sessions for
+> has been run and recorded: `LITERATURE_SEARCH_V1.md` and its JSON, 65 queries
+> across Crossref, arXiv and PubMed, 393 hits. **The gap statement at the foot
+> of this section did not survive it** — `arxiv:2605.08586` (May 2026) names the
+> same problem, makes the same negative argument about checklists and code
+> sharing, and ships a reference implementation. **Do not write the gap
+> statement as this section specifies it.** The drafted section is
+> `PAPER_S2_RELATED_WORK_DRAFT.md` and its §2.6 is the narrower claim that
+> survives. The rest of this section's positioning is unaffected and was used
+> as written.
 
 Unchanged from V1 in substance. Four bodies of work, each with the positioning
 claim the paper needs to make against it. **Citations to be gathered; none are
@@ -277,7 +288,14 @@ claim about process. **They license nothing in section 7.**
   mechanism claim, one aggregate expectation — and both were reported as
   written.
 
-### 5.6 ★ Five boundaries the guard caught in our own code — **new in V2**
+### 5.6 ★ Nine boundaries the guards caught in our own code — **new in V2**
+
+> **Amendment, 2026-08-25.** This section was written at five and is now
+> **nine**: the explanation layer added four, each found by a failure the gates
+> already in place had passed. They are a different finding from the five below
+> and the draft keeps them in a separate part. Drafted as
+> `PAPER_S5_6_CLAIM_BOUNDARY_DRAFT.md`; sources are handbook §53.2 **and
+> §53.2.1**.
 
 Source: handbook §53.2. **Short, and the best evidence in the paper that the
 guard is load-bearing rather than decorative** — better evidence than any test
@@ -398,7 +416,12 @@ is the authoritative list and should be cited rather than paraphrased** — and
 the paper should note that it is now also executable, which makes §8 the one
 limitations section in the literature that a reader can run.
 
-## 9. Discussion — **to be written**
+## 9. Discussion — **drafted**
+
+> **Amendment, 2026-08-25.** §9 is drafted in `PAPER_S9_DISCUSSION_DRAFT.md`.
+> §9.3, stubbed here pending the literature search, is written. **§9.5.5 is new
+> and is not in the plan below** — the checks-that-pass-for-the-wrong-reason
+> pattern, now at ten instances.
 
 **9.1 Why this is a methodology paper.** The honest version: the results are
 modest, the one architectural contrast spans zero, and the affirmative answer is
@@ -580,7 +603,7 @@ itself. **That cost is inherent to the guarantee, not a defect in it.**
    if written late.
 3. **§9 third**, while §§4–5 are fresh — the section most likely to overclaim if
    written last against a deadline.
-4. **§2 last**, and only after an actual literature search. Its gap statement is
+4. ~~**§2 last**, and only after an actual literature search.~~ **Done.** Its gap statement is
    the paper's sharpest claim and it must survive contact with the literature
    rather than be written to fit the contribution. **§2.5 is new and has no
    source material in the repository at all.**
@@ -589,10 +612,11 @@ itself. **That cost is inherent to the guarantee, not a defect in it.**
 **V1's blocker is closed.** The reproducibility package exists, is committed, and
 is tested for usability rather than only for integrity.
 
-**The remaining blocker is the literature search**, and it is not a resource
+~~**The remaining blocker is the literature search**, and it is not a resource
 problem — it is that the gap statement in §2 cannot honestly be written until it
-has been attempted. **Everything else in this outline is writing, and none of it
-is building.**
+has been attempted.~~ **Closed 2026-08-25.** The search ran, §2 is drafted, and
+§9.3 — which was stubbed pending it — is written. **Everything else in this
+outline is writing, and none of it is building.**
 
 ---
 
