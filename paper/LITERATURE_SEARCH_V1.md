@@ -19,7 +19,7 @@ more defensible than what the outline planned to claim.
 |---|---|
 | Executed | 2026-08-25, 18:33:16–18:34:34 UTC |
 | Machinery | `scripts/literature_search.py`, stdlib only, no new dependency |
-| Record | `docs/LITERATURE_SEARCH_V1.json`, `payload_sha256 dd479319d4139875428d069b823f5ed39dc8489935dac0c1d941c0fd604a441f` |
+| Record | `docs/literature/LITERATURE_SEARCH_V1.json`, `payload_sha256 dd479319d4139875428d069b823f5ed39dc8489935dac0c1d941c0fd604a441f` |
 | Sources | Crossref REST, arXiv API, NCBI E-utilities (PubMed) |
 | Volume | **65 queries, 393 hits, 372 unique records, 0 request failures** |
 | Data reaching disk | bibliographic metadata only; **no article text, no dataset** |

@@ -23,7 +23,9 @@ from typing import Any, Final, NamedTuple, Sequence
 REPOSITORY_ROOT: Final = Path(__file__).resolve().parents[3]
 
 U1_PROTOCOL_NAME: Final = "U1_CALIBRATION_SELECTIVE_ROUTING_PROTOCOL_V1"
-U1_PROTOCOL_PATH: Final = REPOSITORY_ROOT / "docs" / f"{U1_PROTOCOL_NAME}.md"
+U1_PROTOCOL_PATH: Final = (
+    REPOSITORY_ROOT / "docs" / "experiments" / "u1" / f"{U1_PROTOCOL_NAME}.md"
+)
 U1_PROTOCOL_SHA256: Final = (
     "d6235b477af278fe051822bdcccb54f985e4eceb0c6e92c1424f5e9d7d79b33b"
 )

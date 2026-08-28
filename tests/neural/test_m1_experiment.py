@@ -830,9 +830,9 @@ def test_superseded_protocol_digest_is_named_as_such():
 
     # v1 keeps its own two before-use entries; v2 records v1 as superseded
     # prospectively and must never rewrite v1.
-    v1 = Path("docs/M1_DUAL_MEMORY_PROTOCOL_V1.md").read_text()
+    v1 = Path("docs/experiments/m1/M1_DUAL_MEMORY_PROTOCOL_V1.md").read_text()
     assert v1.count("SUPERSEDED BEFORE USE") >= 2
-    v2 = Path("docs/M1_DUAL_MEMORY_PROTOCOL_V2.md").read_text()
+    v2 = Path("docs/experiments/m1/M1_DUAL_MEMORY_PROTOCOL_V2.md").read_text()
     assert (
         "08f71c5b54ebd0fcc9c1f26f05d7df2c5a1b0ca5253b8821435a65673ad65253" in v2
     )

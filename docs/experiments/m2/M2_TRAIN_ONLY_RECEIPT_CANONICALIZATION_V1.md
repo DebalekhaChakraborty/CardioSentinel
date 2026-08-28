@@ -1,20 +1,20 @@
 # M2 TRAIN-only receipt canonicalization — provenance record
 
 > **STATUS: PROVENANCE RECORD OF A COMPLETED CANONICALIZATION.**
-> This document explains why `docs/M2_GATE_DERIVATION_RECEIPT_V1.json` was
+> This document explains why `docs/experiments/m2/M2_GATE_DERIVATION_RECEIPT_V1.json` was
 > revised, and proves that no M2 scientific choice changed. It is history,
 > not a design proposal — contrast with `RUNTIME_INTEGRITY_SENTINEL_V1.md`
 > (design only, not implemented).
 
 ## 1. Background
 
-`docs/M2_GATE_DERIVATION_RECEIPT_V1.json` was originally generated
+`docs/experiments/m2/M2_GATE_DERIVATION_RECEIPT_V1.json` was originally generated
 (git commit `510eea0`) while the shared scientific interpreter transiently
 carried five distributions (`jmespath`, `botocore`, `s3transfer`, `boto3`,
 `awscrt`) installed by a concurrent, unrelated application-side agent
 session. That interpreter has since been separated from application work
 (`/home/AI_POC/venvs/tactics/bin/python`, isolated); see
-`docs/RUNTIME_INTEGRITY_SENTINEL_V1.md` for the full incident record and the
+`docs/provenance/RUNTIME_INTEGRITY_SENTINEL_V1.md` for the full incident record and the
 (not-yet-authorized) prospective control it proposes.
 
 The original receipt's `environment.dependency_digest` recorded that mutated

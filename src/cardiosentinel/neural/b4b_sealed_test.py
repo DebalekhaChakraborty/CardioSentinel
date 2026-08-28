@@ -3,7 +3,7 @@
 `sealed_test` targets `B4_raw_compact_cnn_v1` (B4-A) through module constants.
 B4-A was **rejected** during Phase 3B-2 architecture selection; the selected
 global short-window encoder is **B4-B**, `B4B_cnn_transformer_v1` /
-`B4BTransformerCNN`, frozen by `docs/B4_GLOBAL_ENCODER_SELECTION_V1.md`.
+`B4BTransformerCNN`, frozen by `docs/experiments/b4/B4_GLOBAL_ENCODER_SELECTION_V1.md`.
 
 Nothing in the repository previously connected the experiment named in a
 sealed-test authorization to the experiment the evaluator would actually load.
@@ -46,7 +46,7 @@ from cardiosentinel.neural.sealed_test import (
     _require_access,
 )
 
-SELECTION_DOCUMENT = "docs/B4_GLOBAL_ENCODER_SELECTION_V1.json"
+SELECTION_DOCUMENT = "docs/experiments/b4/B4_GLOBAL_ENCODER_SELECTION_V1.json"
 VALIDATION_THRESHOLD_NAME = "VALIDATION_THRESHOLD.json"
 LOCKED_FOR_TEST = "locked_for_one_shot_test"
 

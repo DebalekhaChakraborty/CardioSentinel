@@ -88,7 +88,7 @@ RESEARCH_REGISTRY: tuple[ResearchEvidence, ...] = (
             "the router would fail at any other operating point",
             "selective routing is implemented or deployed",
         ),
-        source_document="docs/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md",
+        source_document="docs/experiments/u1/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md",
         source_lock={
             "experiment_id": "u1-v1-development",
             "test_accessed": False,
@@ -125,7 +125,7 @@ RESEARCH_REGISTRY: tuple[ResearchEvidence, ...] = (
             "the ECE improvement alone justifies retention",
             "the baseline comparison is matched",
         ),
-        source_document="docs/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md",
+        source_document="docs/experiments/u1/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md",
         source_lock={"experiment_id": "u1-v1-development", "test_accessed": False},
         keywords=("calibration", "platt", "retained", "calibrated", "nll", "brier"),
     ),
@@ -160,7 +160,7 @@ RESEARCH_REGISTRY: tuple[ResearchEvidence, ...] = (
             "the difference is statistically significant",
             "the selected arm's absolute AUPRC is an unbiased performance estimate",
         ),
-        source_document="docs/T2_ARM_COMPARISON_REPORT_V1.md",
+        source_document="docs/experiments/t2/T2_ARM_COMPARISON_REPORT_V1.md",
         source_lock={
             "experiment_id": "t2-v1-outer-validation",
             "test_accessed": False,
@@ -197,7 +197,7 @@ RESEARCH_REGISTRY: tuple[ResearchEvidence, ...] = (
             "the state machine beats any memoryless alerting rule",
             "W1 says anything about the S4D architecture's contribution",
         ),
-        source_document="docs/W1_WINDOW_COMPARATOR_REPORT_V1.md",
+        source_document="docs/experiments/w1/W1_WINDOW_COMPARATOR_REPORT_V1.md",
         source_lock={"experiment_id": "t1-v1-measurement-continuation"},
         keywords=("w1", "episode", "rq4", "comparator", "memoryless", "state machine"),
     ),
@@ -224,7 +224,7 @@ RESEARCH_REGISTRY: tuple[ResearchEvidence, ...] = (
             "B4-C provides longitudinal modelling",
             "the encoder contributes measurably to detection performance",
         ),
-        source_document="docs/B4_GLOBAL_ENCODER_SELECTION_V1.md",
+        source_document="docs/experiments/b4/B4_GLOBAL_ENCODER_SELECTION_V1.md",
         source_lock={"experiment_id": "B4B_cnn_transformer_v1", "test_accessed": False},
         keywords=("b4", "b4-b", "b4b", "encoder", "transformer", "cnn", "ssm"),
     ),
@@ -251,7 +251,7 @@ RESEARCH_REGISTRY: tuple[ResearchEvidence, ...] = (
                 "prior; this confirmed the development ordering"
             ),
             "result_available_through": (
-                "docs/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md"
+                "docs/experiments/b4/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md"
             ),
             "boundary": (
                 "one attempt, twelve subjects, one dataset, uncalibrated "
@@ -272,7 +272,7 @@ RESEARCH_REGISTRY: tuple[ResearchEvidence, ...] = (
             "the assembled IPS has a sealed evaluation result",
             "a second attempt is permitted",
         ),
-        source_document="docs/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md",
+        source_document="docs/experiments/b4/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md",
         source_lock={
             "experiment_id": "B4B_cnn_transformer_v1",
             "sealed_test_state": "consumed",

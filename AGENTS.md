@@ -1,8 +1,8 @@
 # CardioSentinel Agent Instructions
 
 This repository is research software, not a medical device. Before making ML,
-data, evaluation, or clinical-language changes, read `docs/RESEARCH_SCOPE.md`
-and `docs/EXPERIMENT_CONTRACT.md`.
+data, evaluation, or clinical-language changes, read `docs/control-plane/RESEARCH_SCOPE.md`
+and `docs/contracts/EXPERIMENT_CONTRACT.md`.
 
 1. Never fabricate measurements, labels, experiment results, or clinical claims.
 2. Never place a patient or subject in more than one data partition.

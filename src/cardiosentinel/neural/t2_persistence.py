@@ -13,7 +13,8 @@ there is no alternate suite name to fall back on.
 **Outer VALIDATION is activated, and it has run.** This paragraph used to say
 the activation constant "is `False`" and that outer VALIDATION was refused. The
 activation change set recorded in
-`docs/T2_TRAIN_ARTIFACT_REVIEW_AND_OUTER_ACTIVATION_V1.md` flipped it after the
+`docs/experiments/t2/T2_TRAIN_ARTIFACT_REVIEW_AND_OUTER_ACTIVATION_V1.md` flipped it
+after the
 TRAIN-only artifacts were reviewed, and the one-shot run has since executed and
 locked. `T2_OUTER_VALIDATION_EXECUTION_AUTHORIZED` is **`True`**; the comment
 above it explains what that does and does not license. There is still no
@@ -66,7 +67,7 @@ from cardiosentinel.neural.t2_protocol import (
 # ---------------------------------------------------------------------------
 T2_EXECUTION_SPEC_NAME: Final = "T2_CANONICAL_TRAINING_EXECUTION_SPEC_V1"
 T2_EXECUTION_SPEC_PATH: Final = (
-    REPOSITORY_ROOT / "docs" / f"{T2_EXECUTION_SPEC_NAME}.md"
+    REPOSITORY_ROOT / "docs" / "experiments" / "t2" / f"{T2_EXECUTION_SPEC_NAME}.md"
 )
 T2_EXECUTION_SPEC_SHA256: Final = (
     "af6ebf1a6314edb86cce7aa88a6260dd1bd155fd0aebe472d3745b6c823b8054"
@@ -162,7 +163,8 @@ ARM_SELECTION_PENDING: Final = "pending_one_shot_outer_validation"
 # variable and no CLI flag: flipping it is a reviewed change set.
 #
 # Flipped to True by the activation change set recorded in
-# `docs/T2_TRAIN_ARTIFACT_REVIEW_AND_OUTER_ACTIVATION_V1.md`, after the canonical
+# `docs/experiments/t2/T2_TRAIN_ARTIFACT_REVIEW_AND_OUTER_ACTIVATION_V1.md`, after the
+# canonical
 # TRAIN attempt completed, verified and was reviewed. Activation authorizes the
 # one-shot route to *run when a human invokes it*; it executes nothing by
 # itself, and it does not weaken any gate the route already applies. The
@@ -184,7 +186,8 @@ T2_TRAIN_ARTIFACT_REVIEW_NAME: Final = (
     "T2_TRAIN_ARTIFACT_REVIEW_AND_OUTER_ACTIVATION_V1"
 )
 T2_TRAIN_ARTIFACT_REVIEW_PATH: Final = (
-    REPOSITORY_ROOT / "docs" / f"{T2_TRAIN_ARTIFACT_REVIEW_NAME}.md"
+    REPOSITORY_ROOT / "docs" / "experiments" / "t2"
+    / f"{T2_TRAIN_ARTIFACT_REVIEW_NAME}.md"
 )
 T2_TRAIN_ARTIFACT_REVIEW_SHA256: Final = (
     "d2065deaef173fd76681c5babcd1a6f16b51e2edd29b0436a24d4853fb7a479c"

@@ -6,7 +6,7 @@ authorization before anything runs, exactly as T1, T2, U1 and W1 each did. It
 is a plan, not a licence.
 
 **It is downstream of a post-hoc analysis and inherits that status.** The
-diagnosis it acts on is `docs/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md`, written
+diagnosis it acts on is `docs/experiments/b4/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md`, written
 after the sealed-test values were read. Nothing here may be used to revise a
 pre-registered claim, a reported number, or any thesis in §9.
 

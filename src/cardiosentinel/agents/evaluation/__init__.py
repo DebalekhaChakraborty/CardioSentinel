@@ -1,6 +1,6 @@
 """Evidence-constrained explanation evaluation.
 
-Implements `docs/EXPLANATION_EVALUATION_PROTOCOL.md`. Lives under `agents/`
+Implements `docs/explanation/EXPLANATION_EVALUATION_PROTOCOL.md`. Lives under `agents/`
 rather than the top-level `evaluation/` package, which is the research
 evaluation code and already owns `protocol.py` and `metrics.py`.
 """

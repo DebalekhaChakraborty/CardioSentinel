@@ -170,7 +170,7 @@ Not done, and not to be added as a follow-up without a separate decision:
 
 1. This plan is merged. *(Nothing has been read at this point.)*
 2. The generator, merged with this plan, is run against the promoted artifacts.
-3. `docs/U1_CALIBRATION_RELIABILITY_REPORT_V1.md` is produced and opened as a
+3. `docs/experiments/u1/U1_CALIBRATION_RELIABILITY_REPORT_V1.md` is produced and opened as a
    separate pull request, in the same shape T1 used — plan first, report second.
 4. The plan is not modified after step 2. If the shape fixed here turns out to be
    wrong, that is recorded in the report as a limitation, not repaired by editing

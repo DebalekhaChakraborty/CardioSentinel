@@ -1,6 +1,6 @@
 # B4 · E1 Representation Gap Probe — Report, V1
 
-Executed under `docs/B4_E1_REPRESENTATION_PROBE_ANALYSIS_PLAN_V1.md`, whose §5
+Executed under `docs/experiments/b4/B4_E1_REPRESENTATION_PROBE_ANALYSIS_PLAN_V1.md`, whose §5
 reporting rules govern every sentence below. **Development validation evidence
 only. No sealed-test artifact was opened, no model was retrained, no lock was
 modified, and no budget was opened.**

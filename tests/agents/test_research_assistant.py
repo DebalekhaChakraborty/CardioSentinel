@@ -54,11 +54,13 @@ def test_topics_are_unique():
 
 
 @pytest.mark.skipif(
-    not (DOCS / "T2_ARM_COMPARISON_REPORT_V1.md").is_file(),
+    not (DOCS / "experiments" / "t2" / "T2_ARM_COMPARISON_REPORT_V1.md").is_file(),
     reason="merged reports absent",
 )
 def test_the_t2_numbers_match_the_merged_report():
-    report = (DOCS / "T2_ARM_COMPARISON_REPORT_V1.md").read_text(encoding="utf-8")
+    report = (
+        DOCS / "experiments" / "t2" / "T2_ARM_COMPARISON_REPORT_V1.md"
+    ).read_text(encoding="utf-8")
     basis = topic("t2_s4d_selected").basis
     assert str(basis["pooled_auprc_difference"]) in report
     low, high = basis["paired_subject_bootstrap_95"]
@@ -69,11 +71,13 @@ def test_the_t2_numbers_match_the_merged_report():
 
 
 @pytest.mark.skipif(
-    not (DOCS / "W1_WINDOW_COMPARATOR_REPORT_V1.md").is_file(),
+    not (DOCS / "experiments" / "w1" / "W1_WINDOW_COMPARATOR_REPORT_V1.md").is_file(),
     reason="merged reports absent",
 )
 def test_the_w1_numbers_match_the_merged_report():
-    report = (DOCS / "W1_WINDOW_COMPARATOR_REPORT_V1.md").read_text(encoding="utf-8")
+    report = (
+        DOCS / "experiments" / "w1" / "W1_WINDOW_COMPARATOR_REPORT_V1.md"
+    ).read_text(encoding="utf-8")
     basis = topic("w1_rq4_answered").basis
     for key in (
         "arm_t1_subject_macro_episode_f1",
@@ -87,13 +91,15 @@ def test_the_w1_numbers_match_the_merged_report():
 
 
 @pytest.mark.skipif(
-    not (DOCS / "U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md").is_file(),
+    not (
+        DOCS / "experiments" / "u1" / "U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md"
+    ).is_file(),
     reason="merged reports absent",
 )
 def test_the_router_rejection_basis_matches_the_retention_decision():
     """The guard that was raised, and the guard that passed."""
     decision = (
-        DOCS / "U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md"
+        DOCS / "experiments" / "u1" / "U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md"
     ).read_text(encoding="utf-8")
     basis = topic("u1_router_rejected").basis
     for key in (
@@ -112,12 +118,14 @@ def test_the_router_rejection_basis_matches_the_retention_decision():
 
 
 @pytest.mark.skipif(
-    not (DOCS / "U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md").is_file(),
+    not (
+        DOCS / "experiments" / "u1" / "U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md"
+    ).is_file(),
     reason="merged reports absent",
 )
 def test_the_calibration_numbers_match_the_retention_decision():
     decision = (
-        DOCS / "U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md"
+        DOCS / "experiments" / "u1" / "U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md"
     ).read_text(encoding="utf-8")
     basis = topic("u1_calibration_retained").basis
     for key in ("platt_nll", "baseline_nll", "platt_brier", "baseline_brier"):
@@ -145,9 +153,9 @@ def test_the_sealed_test_claim_matches_the_tree():
 
 
 def test_the_sealed_evaluation_numbers_match_the_post_hoc_record():
-    report = (DOCS / "B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md").read_text(
-        encoding="utf-8"
-    )
+    report = (
+        DOCS / "experiments" / "b4" / "B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md"
+    ).read_text(encoding="utf-8")
     basis = topic("sealed_test_consumed").basis
     for key in (
         "pooled_auprc",

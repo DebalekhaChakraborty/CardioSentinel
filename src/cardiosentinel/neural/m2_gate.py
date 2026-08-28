@@ -1,12 +1,13 @@
 """Read-only binding of the FROZEN M2-v1 contamination-safe gate constants.
 
 Every constant here was derived prospectively, from TRAIN data only, and is
-recorded in `docs/M2_GATE_DERIVATION_RECEIPT_V1.json`. That receipt was later
+recorded in `docs/experiments/m2/M2_GATE_DERIVATION_RECEIPT_V1.json`. That receipt was
+later
 independently reproduced bit-exactly under the canonical, isolated `tactics`
 scientific runtime, using the exact historical arithmetic paths of the
 original derivation (recovered read-only from session provenance) rather
 than a cleaner-looking equivalent -- see the receipt's `canonicalization`
-block and `docs/M2_CONTAMINATION_SAFE_MEMORY_PROTOCOL_V1.md` for that
+block and `docs/experiments/m2/M2_CONTAMINATION_SAFE_MEMORY_PROTOCOL_V1.md` for that
 provenance record. No scientific constant below changed as a result. This
 module records those decisions and validates their documents. It contains no
 replay, no training, no scoring and no mutation: M2 scientific implementation
@@ -22,13 +23,16 @@ from cardiosentinel.data.provenance import sha256_file
 from cardiosentinel.neural.patient_memory import REPOSITORY_ROOT
 
 M2_PROTOCOL_NAME: Final = "M2_CONTAMINATION_SAFE_MEMORY_PROTOCOL_V1"
-M2_PROTOCOL_PATH: Final = REPOSITORY_ROOT / "docs" / f"{M2_PROTOCOL_NAME}.md"
+M2_PROTOCOL_PATH: Final = (
+    REPOSITORY_ROOT / "docs" / "experiments" / "m2" / f"{M2_PROTOCOL_NAME}.md"
+)
 M2_PROTOCOL_SHA256: Final = (
     "a8ba6fad038ed0ec01156b6959239f489426d55db8ad73a0c704fd527e7db91c"
 )
 
 M2_GATE_RECEIPT_PATH: Final = (
-    REPOSITORY_ROOT / "docs" / "M2_GATE_DERIVATION_RECEIPT_V1.json"
+    REPOSITORY_ROOT / "docs" / "experiments" / "m2" /
+    "M2_GATE_DERIVATION_RECEIPT_V1.json"
 )
 M2_GATE_RECEIPT_SHA256: Final = (
     "5b14c1a72f34945d59d73f152e8fdeaf929a3be56ad47d94a698bc4bfabd3f24"

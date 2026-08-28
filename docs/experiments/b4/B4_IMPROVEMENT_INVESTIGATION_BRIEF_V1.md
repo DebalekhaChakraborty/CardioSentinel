@@ -1,7 +1,7 @@
 # B4 Improvement Investigation — Read-Only Audit and Experiment Brief, V1
 
 **Paste this file as the first message of a new chat, or say:**
-*"Read `docs/B4_IMPROVEMENT_INVESTIGATION_BRIEF_V1.md` and continue. Remember to
+*"Read `docs/experiments/b4/B4_IMPROVEMENT_INVESTIGATION_BRIEF_V1.md` and continue. Remember to
 use ONLY the tactics venv, not any other venv."*
 
 **This document grants no scientific permission and authorizes no execution.**

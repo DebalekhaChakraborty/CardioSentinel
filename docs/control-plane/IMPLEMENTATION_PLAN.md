@@ -1,7 +1,7 @@
 # Implementation Plan
 
 Future changes must be independently reviewable and must follow the experiment
-contract. See `docs/CURRENT_STATE.md` for the current experiment ladder,
+contract. See `docs/control-plane/CURRENT_STATE.md` for the current experiment ladder,
 selected models, and open work; this file tracks which plan items have been
 addressed, not day-to-day status.
 

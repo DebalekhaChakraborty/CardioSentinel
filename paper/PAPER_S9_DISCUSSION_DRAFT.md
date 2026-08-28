@@ -397,7 +397,18 @@ discipline's own over-caution.
 **The cost of composing rather than rewriting.** The intelligent-physical-system
 layer is 4,731 lines across 22 modules. The expensive part was not writing it; it
 was proving that it changed nothing — a 64-row unit-in-last-place comparison,
-passing at 0.006683691656635168 against a tolerance of 0.02 frozen in advance.
+with the physiology half **bit-exact at `0.000e+00` on 64 of 64 rows** and the
+embedding half within **6 ULP of float32** (max `7.15e-07`, median 2.5 ULP).
+
+> **Correction, 2026-08-28.** This paragraph previously reported the composition
+> audit as *"passing at 0.006683691656635168 against a tolerance of 0.02"*. **That
+> pair of numbers belongs to the U1 calibration-agreement guard**
+> (`U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md`), not to the ULP comparison,
+> and reached this draft by copy-paste from the router material above. The ULP
+> figures are in `paper/figures/README.md` §F1 and `PAPER_OUTLINE_V2.md`
+> §3.5.1. **No frozen report was changed** — the error was local to this draft,
+> and the manuscript never carried it: §3.6 of the submission candidate was
+> written from the figures README and states the ULP values correctly.
 
 > *Note for the writer: the two volume measurements are pinned to commits that
 > the 2026-08-24 identifier migration invalidated. Per

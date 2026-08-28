@@ -1,4 +1,5 @@
-"""The demo is contracted by `docs/DEMO_SCENARIO.md`, and the contract is checked.
+"""The demo is contracted by `docs/explanation/DEMO_SCENARIO.md`, and the contract is
+checked.
 
 A demonstration that quietly stops matching its description is the same failure
 this repository has already had four times -- a lost disclaimer (#84), a stale
@@ -13,7 +14,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-CONTRACT = ROOT / "docs" / "DEMO_SCENARIO.md"
+CONTRACT = ROOT / "docs" / "explanation" / "DEMO_SCENARIO.md"
 BUNDLE = ROOT / "reproducibility" / "demo_bundle"
 SOURCE = ROOT / "cardiosentinel-data" / "ltstdb" / "1.0.0"
 

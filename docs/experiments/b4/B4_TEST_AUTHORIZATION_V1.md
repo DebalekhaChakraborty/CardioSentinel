@@ -25,7 +25,7 @@
 Phase 3B-2 architecture selection completed on validation evidence alone and
 froze the global short-window encoder as **B4-B**
 (`B4B_cnn_transformer_v1` / `B4BTransformerCNN`), recorded in
-`docs/B4_GLOBAL_ENCODER_SELECTION_V1.md`
+`docs/experiments/b4/B4_GLOBAL_ENCODER_SELECTION_V1.md`
 (SHA-256 `1300e7ad641df9137e1722771e5d3932cae0fc4d244047b7c8a5070f151f74bb`).
 
 Under the Handbook choreography in force at that moment, one-shot sealed-test
@@ -76,8 +76,8 @@ Beyond the frozen science, the following were completed after the deferral:
 
 - **IPS agentic runtime** — complete, tagged `ips-agentic-runtime-v1.0`. It
   senses, decides, explains, and refuses claims its evidence does not support.
-- **Evidence graph** — `docs/EVIDENCE_MAP.md`.
-- **Explanation layer** — `docs/EXPLANATION_EVALUATION_PROTOCOL.md`, with an
+- **Evidence graph** — `docs/control-plane/EVIDENCE_MAP.md`.
+- **Explanation layer** — `docs/explanation/EXPLANATION_EVALUATION_PROTOCOL.md`, with an
   evidence-constrained evaluation framework.
 - **Architecture reasoning** — `B4_ARCHITECTURE_SELECTION_PROTOCOL_V1.md`,
   `B4_RESOURCE_BENCHMARK_V1.md`, `B4_VALIDATION_CHALLENGE_PROTOCOL_V1.md`,

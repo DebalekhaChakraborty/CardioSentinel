@@ -13,10 +13,10 @@ medical recommendations.
 > go from any section to the artifact behind it.
 >
 > **The manuscript is in preparation.** Its current structure is
-> [`docs/PAPER_OUTLINE_V2.md`](docs/PAPER_OUTLINE_V2.md), and the section
+> [`paper/PAPER_OUTLINE_V2.md`](paper/PAPER_OUTLINE_V2.md), and the section
 > numbers used below refer to that outline. The governing record of the
 > programme is the
-> [Research Execution Handbook v1.4](docs/CardioSentinel_Research_Execution_Handbook_v1.4.md).
+> [Research Execution Handbook v1.4](handbook/CardioSentinel_Research_Execution_Handbook_v1.4.md).
 
 ---
 
@@ -43,7 +43,7 @@ cardiosentinel agent architecture "Why was S4D selected?"
 ```
 
 **The first command's output is contracted in advance** by
-[`docs/DEMO_SCENARIO.md`](docs/DEMO_SCENARIO.md), and a test asserts it. You
+[`docs/explanation/DEMO_SCENARIO.md`](docs/explanation/DEMO_SCENARIO.md), and a test asserts it. You
 should see exactly one alert:
 
 | | |
@@ -67,24 +67,24 @@ nearest.
 
 ## From the manuscript to the evidence
 
-Section numbers refer to [`docs/PAPER_OUTLINE_V2.md`](docs/PAPER_OUTLINE_V2.md).
+Section numbers refer to [`paper/PAPER_OUTLINE_V2.md`](paper/PAPER_OUTLINE_V2.md).
 
 | Section | What it claims | Where the evidence is |
 |---|---|---|
-| §3.1 Data | subject-disjoint 56/12/12, seed 2026, EDB contamination | [`DATASET_CONTRACT`](docs/DATASET_CONTRACT.md) · [`DATA_SPLIT_POLICY`](docs/DATA_SPLIT_POLICY.md) · [`ANNOTATION_SEMANTICS`](docs/ANNOTATION_SEMANTICS.md) · [`CROSS_DATASET_PROVENANCE`](docs/CROSS_DATASET_PROVENANCE.md) |
-| §3.2–3.4 Pipeline | causal signal path, encoder, memory, calibration, episode layer | [`SIGNAL_PROCESSING_CONTRACT`](docs/SIGNAL_PROCESSING_CONTRACT.md) · `B4_*` · `P1_*` · `M1_*` · `M2_*` · `U1_*` · `T2_*` · [`T1_CAUSAL_EPISODE_STATE_PROTOCOL_V1`](docs/T1_CAUSAL_EPISODE_STATE_PROTOCOL_V1.md) |
+| §3.1 Data | subject-disjoint 56/12/12, seed 2026, EDB contamination | [`DATASET_CONTRACT`](docs/contracts/DATASET_CONTRACT.md) · [`DATA_SPLIT_POLICY`](docs/contracts/DATA_SPLIT_POLICY.md) · [`ANNOTATION_SEMANTICS`](docs/contracts/ANNOTATION_SEMANTICS.md) · [`CROSS_DATASET_PROVENANCE`](docs/provenance/CROSS_DATASET_PROVENANCE.md) |
+| §3.2–3.4 Pipeline | causal signal path, encoder, memory, calibration, episode layer | [`SIGNAL_PROCESSING_CONTRACT`](docs/contracts/SIGNAL_PROCESSING_CONTRACT.md) · `B4_*` · `P1_*` · `M1_*` · `M2_*` · `U1_*` · `T2_*` · [`T1_CAUSAL_EPISODE_STATE_PROTOCOL_V1`](docs/T1_CAUSAL_EPISODE_STATE_PROTOCOL_V1.md) |
 | §3.5 The runtime | 146-d bridge verified to **6 ULP**; ~61× real time | `src/cardiosentinel/edge/` · Handbook §52, §55 |
-| §4 Evidence framework | one-shot budgets, negative capability, digest-bound provenance | [`EXPERIMENT_CONTRACT`](docs/EXPERIMENT_CONTRACT.md) · [`RUNTIME_INTEGRITY_SENTINEL_V1`](docs/RUNTIME_INTEGRITY_SENTINEL_V1.md) · Handbook §40–§47 |
-| §2 Related work | the gap this work sits in, after a recorded search | [`LITERATURE_SEARCH_V1`](docs/LITERATURE_SEARCH_V1.md) · [`PAPER_S2_RELATED_WORK_DRAFT`](docs/PAPER_S2_RELATED_WORK_DRAFT.md) · [`scripts/literature_search.py`](scripts/literature_search.py) |
+| §4 Evidence framework | one-shot budgets, negative capability, digest-bound provenance | [`EXPERIMENT_CONTRACT`](docs/contracts/EXPERIMENT_CONTRACT.md) · [`RUNTIME_INTEGRITY_SENTINEL_V1`](docs/provenance/RUNTIME_INTEGRITY_SENTINEL_V1.md) · Handbook §40–§47 |
+| §2 Related work | the gap this work sits in, after a recorded search | [`LITERATURE_SEARCH_V1`](paper/LITERATURE_SEARCH_V1.md) · [`PAPER_S2_RELATED_WORK_DRAFT`](paper/PAPER_S2_RELATED_WORK_DRAFT.md) · [`scripts/literature_search.py`](scripts/literature_search.py) |
 | §4.6 Claim governance | the publication boundary as executable code | [`src/cardiosentinel/agents/claims.py`](src/cardiosentinel/agents/claims.py) · Handbook §53 |
 | §5 Failure and recovery | a consumed attempt, and an authorized single-use recovery | [`T1_EXECUTION_RECOVERY_AMENDMENT_V1_1`](docs/T1_EXECUTION_RECOVERY_AMENDMENT_V1_1.md) · `recovery/` |
-| §5.6 Nine boundaries | the guard catching this repository's own authors, and four gates each added because the previous ones passed a real failure | Handbook §53.2, §53.2.1 · [`PAPER_S5_6_CLAIM_BOUNDARY_DRAFT`](docs/PAPER_S5_6_CLAIM_BOUNDARY_DRAFT.md) |
+| §5.6 Nine boundaries | the guard catching this repository's own authors, and four gates each added because the previous ones passed a real failure | Handbook §53.2, §53.2.1 · [`PAPER_S5_6_CLAIM_BOUNDARY_DRAFT`](paper/PAPER_S5_6_CLAIM_BOUNDARY_DRAFT.md) |
 | §7 Results | the four reported numbers | the four `_V1` reports in the table below |
 | §8 Limitations | 25 forbidden claims | Handbook **Appendix A** |
 | §10 Reproducibility | committed bundle, restore procedure | [`reproducibility/`](reproducibility/) |
 
 The full experiment-to-artifact inventory is
-[`docs/EXPERIMENT_CATALOGUE.md`](docs/EXPERIMENT_CATALOGUE.md); the spent-budget
+[`docs/control-plane/EXPERIMENT_CATALOGUE.md`](docs/control-plane/EXPERIMENT_CATALOGUE.md); the spent-budget
 ledger is Handbook **§51**.
 
 ---
@@ -97,9 +97,9 @@ changed any of them** — Handbook §56 states that explicitly.
 | | Reported | The boundary, which is not optional |
 |---|---|---|
 | **T1** episode reasoning | subject-macro `episode_f1` **0.2524**, 95% [0.0826, 0.4415] | seven of twelve subjects score zero, for two incomparable reasons that push the operating point in opposite directions ([report](docs/T1_DESCRIPTIVE_REPORT_V1.md)) |
-| **T2** S4D vs GRU | difference **0.093215**, 95% paired **[-0.015229, 0.148951]** | **includes zero.** The difference **is** the selection rule; scores are not calibrated probabilities; the subject-macro figure is a mean over **9 of 12** ([report](docs/T2_ARM_COMPARISON_REPORT_V1.md)) |
-| **U1** calibration | Platt retained, NLL **0.143708** / Brier **0.040344** | the selective router was **rejected** — escalation ratio **6.4536** against a limit of **3.0** fixed in advance. No routing policy exists ([decision](docs/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md)) |
-| **W1** vs memoryless | difference **0.1921**, 95% paired **[0.0505, 0.3455]** | **excludes zero**, but bounded: both arms ran at thresholds selected with the state machine in the loop ([report](docs/W1_WINDOW_COMPARATOR_REPORT_V1.md)) |
+| **T2** S4D vs GRU | difference **0.093215**, 95% paired **[-0.015229, 0.148951]** | **includes zero.** The difference **is** the selection rule; scores are not calibrated probabilities; the subject-macro figure is a mean over **9 of 12** ([report](docs/experiments/t2/T2_ARM_COMPARISON_REPORT_V1.md)) |
+| **U1** calibration | Platt retained, NLL **0.143708** / Brier **0.040344** | the selective router was **rejected** — escalation ratio **6.4536** against a limit of **3.0** fixed in advance. No routing policy exists ([decision](docs/experiments/u1/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md)) |
+| **W1** vs memoryless | difference **0.1921**, 95% paired **[0.0505, 0.3455]** | **excludes zero**, but bounded: both arms ran at thresholds selected with the state machine in the loop ([report](docs/experiments/w1/W1_WINDOW_COMPARATOR_REPORT_V1.md)) |
 
 **Research questions:** RQ4 is **Supported (bounded)** — the parenthesis is part
 of the claim. RQ3 is a **negative finding**, reported as a result. RQ1, RQ2
@@ -129,7 +129,7 @@ the handbook's 25 forbidden claims as word-anchored patterns:
 - **No generalisation beyond LTSTDB.** One dataset, twelve validation subjects,
   and no independent ST-episode cohort exists in the public record — a finding,
   not a gap awaiting effort
-  ([audit](docs/EXTERNAL_VALIDATION_STRATEGY_V1.md)).
+  ([audit](docs/external-validation/EXTERNAL_VALIDATION_STRATEGY_V1.md)).
 - **No generalisable test-set performance.** The neural sealed test was
   consumed on 2026-08-25 and a number exists — pooled AUPRC **0.0935** at a
   prevalence of **0.0461**, subject-macro AUPRC **0.3549** over **8 of 12**
@@ -220,7 +220,7 @@ single-use authorized recovery that followed it, are §5 of the manuscript.
 ## Where the code actually is
 
 **The package layout does not describe where the work is**, and
-[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) exists to correct that before you
+[`docs/control-plane/ARCHITECTURE.md`](docs/control-plane/ARCHITECTURE.md) exists to correct that before you
 go looking. In short:
 
 ```
@@ -271,12 +271,12 @@ cardiosentinel --help
 Filtering is **disabled by default**: the frozen corpus was built under
 `processing_profile: raw`, and a band-pass inserted before the representation
 would shift every embedding silently
-([contract](docs/SIGNAL_PROCESSING_CONTRACT.md)). Data acquisition is plan-only
+([contract](docs/contracts/SIGNAL_PROCESSING_CONTRACT.md)). Data acquisition is plan-only
 unless `--execute` is supplied.
 
 Before making research changes, read
-[`docs/RESEARCH_SCOPE.md`](docs/RESEARCH_SCOPE.md) and
-[`docs/EXPERIMENT_CONTRACT.md`](docs/EXPERIMENT_CONTRACT.md). The repository is
+[`docs/control-plane/RESEARCH_SCOPE.md`](docs/control-plane/RESEARCH_SCOPE.md) and
+[`docs/contracts/EXPERIMENT_CONTRACT.md`](docs/contracts/EXPERIMENT_CONTRACT.md). The repository is
 under **Research Baseline v1.0**: frozen for documentation, analysis of existing
 evidence, and manuscript drafting. Leaving that freeze requires a named
 experiment with a pre-registered protocol.
@@ -287,7 +287,7 @@ experiment with a pre-registered protocol.
 
 Tagged **`ips-agentic-runtime-v1.0`**; the science is frozen at
 **`research-freeze-v1.0`**. The pinned checkpoint — commit, counts, open work
-and known defects — is [`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md), which
+and known defects — is [`docs/control-plane/CURRENT_STATE.md`](docs/control-plane/CURRENT_STATE.md), which
 is regenerated wholesale rather than amended.
 
 *(No commit SHA is pinned here on purpose. The previous one went stale in the

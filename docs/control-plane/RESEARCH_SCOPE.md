@@ -36,11 +36,11 @@ isolated-window false alerts. These are hypotheses, not established results.
 
 Current state: EDB and LTSTDB are integrated with validated annotation labels,
 and models exist across every layer above (classical, neural, physiology,
-memory, calibration, and longitudinal temporal); see `docs/CURRENT_STATE.md`
+memory, calibration, and longitudinal temporal); see `docs/control-plane/CURRENT_STATE.md`
 for the experiment-by-experiment ladder. The B4-B neural sealed evaluation was
 consumed once on 2026-08-25: attempt 1 completed, repeat is prohibited, and the
 registered result is available through
-`docs/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md`. All fifteen one-shot budgets are
+`docs/experiments/b4/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md`. All fifteen one-shot budgets are
 now spent. None of this is clinical validation or evidence of generalization:
 the neural result is one uncorroborated evaluation on twelve test subjects from
 one dataset, and no edge-hardware target has been selected.

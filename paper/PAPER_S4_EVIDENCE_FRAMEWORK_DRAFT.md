@@ -3,7 +3,7 @@
 > **Draft prose for the manuscript.** Not a frozen record: no `_V1`, no digest.
 > Sources: `PAPER_OUTLINE_V2.md` §4 and §4.6; handbook §41–§47, §43.2, §53;
 > `src/cardiosentinel/agents/claims.py`; `src/cardiosentinel/neural/t1_protocol.py`;
-> `docs/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md`.
+> `docs/experiments/u1/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md`.
 >
 > Written **from code**, with file and symbol references, per the outline's
 > instruction. Every count below was read from the source at draft time, not

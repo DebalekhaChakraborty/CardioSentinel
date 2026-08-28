@@ -22,7 +22,7 @@ from cardiosentinel.neural.protocol import (
 PROTOCOL_PATH = (
     Path(__file__).resolve().parents[2]
     / "docs"
-    / "B4_ARCHITECTURE_SELECTION_PROTOCOL_V1.md"
+    / "experiments" / "b4" / "B4_ARCHITECTURE_SELECTION_PROTOCOL_V1.md"
 )
 B4_PROTOCOL_V1_SHA256 = (
     "f6f5e9ed728c86a9b2bd75b2327b9199f0e097b91387525a192c212e6771b28b"

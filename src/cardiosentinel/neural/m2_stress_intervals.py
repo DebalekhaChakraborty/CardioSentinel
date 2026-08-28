@@ -1,6 +1,7 @@
 """Source-defined M2 stress-interval selection, per the frozen human decision.
 
-`docs/M2_STRESS_INTERVAL_ELIGIBILITY_DECISION_V1.md` freezes which longitudinal
+`docs/experiments/m2/M2_STRESS_INTERVAL_ELIGIBILITY_DECISION_V1.md` freezes which
+longitudinal
 stress families may enter the frozen §7.2 prototype-drift metric: only those
 whose START AND END are both explicitly source-defined by the LTSTDB annotation
 semantics. Duration is never invented for an instantaneous source marker.
@@ -54,7 +55,9 @@ from cardiosentinel.neural.integrity import canonical_sha256
 from cardiosentinel.neural.m2_evaluation import M2StressInterval
 from cardiosentinel.neural.protocol import DATASET, SAMPLING_FREQUENCY_HZ
 
-DECISION_DOCUMENT: Final = "docs/M2_STRESS_INTERVAL_ELIGIBILITY_DECISION_V1.md"
+DECISION_DOCUMENT: Final = (
+    "docs/experiments/m2/M2_STRESS_INTERVAL_ELIGIBILITY_DECISION_V1.md"
+)
 DECISION_SHA256: Final = (
     "078acb3d72a11513010c88a03b0143a2be43da5da807c72d3d7433f98031f8f6"
 )

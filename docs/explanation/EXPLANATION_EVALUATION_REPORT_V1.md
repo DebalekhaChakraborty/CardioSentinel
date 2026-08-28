@@ -3,8 +3,8 @@
 **Arm B is exercised.** This is the first report of a real generative model in
 this programme.
 
-Executed under `docs/EXPLANATION_EVALUATION_PROTOCOL.md` and
-`docs/LOCAL_LLM_EXPLANATION_PROTOCOL_V1.md`. **Its §5 reporting rules govern
+Executed under `docs/explanation/EXPLANATION_EVALUATION_PROTOCOL.md` and
+`docs/explanation/LOCAL_LLM_EXPLANATION_PROTOCOL_V1.md`. **Its §5 reporting rules govern
 every sentence below: no winner is declared, neither arm is described as better
 than the other, no generative result appears without its violation count, and
 latency is not comparable across hosts.**

@@ -170,7 +170,7 @@ window. Exploratory subsampling can never replace the headline test benchmark.
 
 The primary metric is AUPRC. Secondary metrics, subject-macro aggregation,
 subject bootstrap confidence intervals, challenge false-positive rates, and the
-validation-only threshold rule are frozen in `docs/METRICS_PROTOCOL.md`.
+validation-only threshold rule are frozen in `docs/contracts/METRICS_PROTOCOL.md`.
 Thresholds, model choices, calibration, and personalization cannot use test
 predictions. Raw sigmoid or softmax output is not calibrated confidence.
 
@@ -215,7 +215,7 @@ excludes 15 verified or same-EDB-subject records and has 75 records. A model
 trained on LTSTDB must use the overlap-clean cohort for recommended EDB
 evaluation. Neither cohort is described as fully independent external
 validation. The correspondences, rescaling limitation, and conservative policy
-are recorded in `docs/CROSS_DATASET_PROVENANCE.md`.
+are recorded in `docs/provenance/CROSS_DATASET_PROVENANCE.md`.
 
 ## Provenance and artefacts
 

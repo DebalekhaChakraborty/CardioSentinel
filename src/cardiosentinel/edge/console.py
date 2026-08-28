@@ -11,7 +11,7 @@ invite the one question the whole reproducibility argument exists to close:
 *did the UI dependency change the environment the science ran in?* It did not,
 because there is no UI dependency.
 
-What it renders is contracted by `docs/DEMO_SCENARIO.md` and checked by
+What it renders is contracted by `docs/explanation/DEMO_SCENARIO.md` and checked by
 `tests/edge/test_demo_scenario.py`.
 """
 

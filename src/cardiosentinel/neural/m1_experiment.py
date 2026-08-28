@@ -1,7 +1,7 @@
 """Canonical M1 Stage-1 execution path: M1S / M1L / M1D against frozen P1-B.
 
 This is the official scientific route promised by
-`docs/M1_DUAL_MEMORY_PROTOCOL_V1.md`. It owns full-stream representation
+`docs/experiments/m1/M1_DUAL_MEMORY_PROTOCOL_V1.md`. It owns full-stream representation
 assembly, the train-only distance standardizer, the immutable stream memory
 cache, deterministic head training over precomputed features, validation and
 development challenge evidence, the immutable arm locks, and the Stage-1 suite
@@ -217,13 +217,13 @@ FROZEN_DEVELOPMENT_SOURCE_INTEGRITY_SHA256: Final = (
 # scientific artifact. Every future preflight reports this so no report can
 # imply that no execution has ever occurred. It does NOT authorize a
 # replacement run: human governance stays external.
-ATTEMPT1_FAILURE_DOCUMENT: Final = "docs/M1_STAGE1_ATTEMPT1_FAILURE.md"
-ATTEMPT2_FAILURE_DOCUMENT: Final = "docs/M1_STAGE1_ATTEMPT2_FAILURE.md"
+ATTEMPT1_FAILURE_DOCUMENT: Final = "docs/experiments/m1/M1_STAGE1_ATTEMPT1_FAILURE.md"
+ATTEMPT2_FAILURE_DOCUMENT: Final = "docs/experiments/m1/M1_STAGE1_ATTEMPT2_FAILURE.md"
 ATTEMPT2_CENSUS_DOCUMENT: Final = (
-    "docs/M1_ATTEMPT2_VALIDATION_ADMISSIBILITY_CENSUS.md"
+    "docs/experiments/m1/M1_ATTEMPT2_VALIDATION_ADMISSIBILITY_CENSUS.md"
 )
 PHYSICAL_OBSERVATION_DECISION_DOCUMENT: Final = (
-    "docs/M1_PHYSICAL_OBSERVATION_DECISION_V1.md"
+    "docs/experiments/m1/M1_PHYSICAL_OBSERVATION_DECISION_V1.md"
 )
 M1_V1_RUN_ROOT: Final = "cardiosentinel-runs/phase5-m1-dual-memory-v1"
 M1_V1_STREAM_CACHE_ROOT: Final = "cardiosentinel-features/m1-stream-memory-v1"
@@ -731,7 +731,8 @@ def require_frozen_upstream_identities(
     _require_exact(
         "P1 retention decision",
         sha256_file(
-            REPOSITORY_ROOT / "docs" / "P1_PHYSIOLOGY_RETENTION_DECISION_V1.md"
+            REPOSITORY_ROOT / "docs" / "experiments" / "p1" /
+            "P1_PHYSIOLOGY_RETENTION_DECISION_V1.md"
         ),
         P1_RETENTION_DECISION_SHA256,
     )

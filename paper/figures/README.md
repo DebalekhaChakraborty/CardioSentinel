@@ -31,7 +31,7 @@ survive greyscale printing and colour-vision deficiency.
 
 ## F3 · Episode reasoning vs the memoryless comparator
 
-**Source:** `docs/W1_WINDOW_COMPARATOR_REPORT_V1.md` §3 per-subject table, read
+**Source:** `docs/experiments/w1/W1_WINDOW_COMPARATOR_REPORT_V1.md` §3 per-subject table, read
 verbatim; subject-macro values and the paired interval from the same report and
 `docs/T1_DESCRIPTIVE_REPORT_V1.md`.
 

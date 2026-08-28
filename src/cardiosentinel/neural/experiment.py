@@ -1,7 +1,8 @@
 """Canonical B4 train/validation experiment runner with no sealed-test route.
 
 This module drives the single prospective B4 experiment frozen by
-`docs/B4_PROTOCOL_V1.md`. It owns provenance, crash-safety, and lock creation
+`docs/experiments/b4/B4_PROTOCOL_V1.md`. It owns provenance, crash-safety, and lock
+creation
 only; every scientific decision remains in `cardiosentinel.neural.training`.
 
 There is exactly one canonical B4 run. This module never enumerates, loads, or

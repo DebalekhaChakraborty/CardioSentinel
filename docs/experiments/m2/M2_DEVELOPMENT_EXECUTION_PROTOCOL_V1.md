@@ -11,7 +11,7 @@
 ## 0. Scientific rules are inherited unchanged
 
 Every M2 scientific choice remains exactly as frozen in
-`docs/M2_CONTAMINATION_SAFE_MEMORY_PROTOCOL_V1.md` and the M2 gate derivation
+`docs/experiments/m2/M2_CONTAMINATION_SAFE_MEMORY_PROTOCOL_V1.md` and the M2 gate derivation
 receipt. Nothing in this protocol, and nothing in the execution route it
 describes, changes:
 
@@ -26,7 +26,7 @@ family definitions; the prototype-drift formula; or the rollback exclusion.
 No retraining occurs. No threshold is selected. No arm is chosen automatically.
 
 The stress-family eligibility rule is frozen separately in
-`docs/M2_STRESS_INTERVAL_ELIGIBILITY_DECISION_V1.md`
+`docs/experiments/m2/M2_STRESS_INTERVAL_ELIGIBILITY_DECISION_V1.md`
 (SHA-256 `078acb3d72a11513010c88a03b0143a2be43da5da807c72d3d7433f98031f8f6`),
 which this route binds into every claim-bearing artifact.
 
@@ -108,7 +108,7 @@ imported by the canonical route, and no `TEST_ATTEMPT` is ever created.
 > legitimate representation of an upstream source null, so a valid corpus raised
 > a structural error. Exactly one further recovery is permitted:
 > `m2-v1-development-two-arm-recovery2`. See
-> `docs/M2_DEVELOPMENT_RECOVERY1_FAILURE_AND_RECOVERY2_DECISION_V1.md`
+> `docs/experiments/m2/M2_DEVELOPMENT_RECOVERY1_FAILURE_AND_RECOVERY2_DECISION_V1.md`
 > (SHA-256 `93e53d3c8281d922823d48b73712a2a1ede1c5b0f5bc9f41694af563e1a2fca4`).
 > Every recovery2 artifact binds **both** prior lineages.
 >
@@ -118,7 +118,7 @@ imported by the canonical route, and no `TEST_ATTEMPT` is ever created.
 > TRAIN-vs-VALIDATION feature-join defect. It is permanently preserved and never
 > re-run. Exactly one recovery is permitted:
 > `m2-v1-development-two-arm-recovery1`. See
-> `docs/M2_DEVELOPMENT_ATTEMPT1_FAILURE_AND_RECOVERY_DECISION_V1.md`
+> `docs/experiments/m2/M2_DEVELOPMENT_ATTEMPT1_FAILURE_AND_RECOVERY_DECISION_V1.md`
 > (SHA-256 `e9d55d7a047e9610c6e156afc9e1a98aafbca86a3131c02a8e56624da7ad57d6`),
 > whose digest every recovery artifact binds along with the lineage fields
 > `recovery_from_suite_id`, `recovery_suite_id`, `recovery_reason_class`,

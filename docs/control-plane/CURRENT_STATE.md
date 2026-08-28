@@ -11,14 +11,14 @@ source of truth; this file is a cache of it.**
 
 Read this file for *"where are we"*. Read the `_V1` documents for *"what did we
 decide and why"*. Read
-`docs/CardioSentinel_Research_Execution_Handbook_v1.4.md` for the programme's
-governing account of itself, `docs/ARCHITECTURE.md` for where the code actually
-lives, and `docs/EXPERIMENT_CATALOGUE.md` for what has been spent.
+`handbook/CardioSentinel_Research_Execution_Handbook_v1.4.md` for the programme's
+governing account of itself, `docs/control-plane/ARCHITECTURE.md` for where the code actually
+lives, and `docs/control-plane/EXPERIMENT_CATALOGUE.md` for what has been spent.
 
 For the sealed test specifically:
-`docs/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md` for **what the number is made
+`docs/experiments/b4/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md` for **what the number is made
 of** — written after the values were read, and explicitly not a revision of
-anything pre-registered — and `docs/IMPROVEMENT_ROADMAP_V1.md` for what follows
+anything pre-registered — and `docs/control-plane/IMPROVEMENT_ROADMAP_V1.md` for what follows
 from it. **Neither authorizes an experiment.**
 
 ---
@@ -136,18 +136,18 @@ search and neither touches a sealed-test number.**
 
 **The previous refresh pinned `0480b34`, which no longer resolves on the
 remote.** It is the pre-rewrite identifier for `544581e`. Translate through
-`docs/COMMIT_PIN_TRANSLATION_V1.md` rather than following any pin written before
+`docs/provenance/COMMIT_PIN_TRANSLATION_V1.md` rather than following any pin written before
 2026-08-24 — see defect 0.
 
 ---
 
 ## 2. Where this stands vs. the plan docs
 
-`docs/IMPLEMENTATION_PLAN.md` was refreshed in #68 and #77.
-`docs/REPO_AUDIT.md` was refreshed in #77. *(#77 also refreshed a
+`docs/control-plane/IMPLEMENTATION_PLAN.md` was refreshed in #68 and #77.
+`docs/control-plane/REPO_AUDIT.md` was refreshed in #77. *(#77 also refreshed a
 `docs/README.md`; no such file exists on master today, and this line has carried
 the claim forward unchecked ever since.)*
-`docs/RESEARCH_SCOPE.md` retains its original objective and now states the
+`docs/control-plane/RESEARCH_SCOPE.md` retains its original objective and now states the
 post-B4 execution boundary explicitly: attempt 1 completed, repeat is
 prohibited, and the bounded result is available through the post-hoc analysis.
 
@@ -158,11 +158,11 @@ superseded but tracked and unedited, on purpose — v1.2 is the document that
 recorded "not one of the seven research questions is affirmatively answered",
 and that statement is now evidence of a moment rather than a fact.
 
-**`docs/PAPER_OUTLINE_V2.md` is the current outline** (merged in #95, amended
+**`paper/PAPER_OUTLINE_V2.md` is the current outline** (merged in #95, amended
 2026-08-25). It supersedes `PAPER_OUTLINE_V1.md`, which predates the runtime and
 the agentic layer and is retained unedited under the `_V1` convention.
 
-**`docs/B4_TEST_DEFERRAL_DECISION_V1.md` is superseded and frozen.** It argued
+**`docs/experiments/b4/B4_TEST_DEFERRAL_DECISION_V1.md` is superseded and frozen.** It argued
 for not opening the sealed test; it was overridden in writing by
 `B4_TEST_AUTHORIZATION_V1.md`. It is not edited, because a decision that was
 reconsidered is evidence and a deleted one is not.
@@ -197,7 +197,7 @@ evaluation, refused in writing on 2026-08-24
 §2.4 records the price: **no second cohort will corroborate any result in this
 paper, permanently.**
 
-Full ledger with the consumed/available column: `docs/EXPERIMENT_CATALOGUE.md`
+Full ledger with the consumed/available column: `docs/control-plane/EXPERIMENT_CATALOGUE.md`
 and handbook §51.
 
 ---
@@ -213,8 +213,8 @@ authorized-but-unrun, or in progress is out of date.**
 | Executed | 2026-08-26T19:54:43Z → 2026-08-27T00:57:30Z, 5.04 h, `failure_state: null` |
 | **Primary mechanism** | **NOT ESTABLISHED** |
 | **Registered interpretation** | **Category C** — performance changes without established geometry improvement |
-| Report | `docs/B4_E11_MORPHOLOGY_AWARE_REPRESENTATION_REPORT_V1.md` |
-| Plan | `docs/B4_E11_MORPHOLOGY_AWARE_REPRESENTATION_PLAN_V1.md` (+ amendments A1–A8) |
+| Report | `docs/experiments/b4/B4_E11_MORPHOLOGY_AWARE_REPRESENTATION_REPORT_V1.md` |
+| Plan | `docs/experiments/b4/B4_E11_MORPHOLOGY_AWARE_REPRESENTATION_PLAN_V1.md` (+ amendments A1–A8) |
 | Run root | `cardiosentinel-runs/b4-e11-morphology-aware-v1/E11_ATTEMPT_2/` |
 | Manifest digest | `5d357209005bf1571e3a740219dd89f6cd770ea62ee00b17c6c9806985f49359` |
 
@@ -244,7 +244,7 @@ that E1–E10 were confined to.
 auxiliary loss mask), classified by the authorizing human as **no scientific
 attempt consumed**; its fold-0 B0 values are **quarantined** and were used only
 as ATTEMPT 2's bit-for-bit reproduction gate.
-`docs/B4_E11_ATTEMPT_1_FAILURE_RECEIPT_V1.md`.
+`docs/experiments/b4/B4_E11_ATTEMPT_1_FAILURE_RECEIPT_V1.md`.
 
 **One protocol deviation:** the registered operating-point sensitivity /
 specificity endpoint **could not be computed** — the runner persisted neither
@@ -266,7 +266,7 @@ regenerated, no outer-held-out subject scored at any alternative epoch.**
 | **E12a** | **COMPLETE — READ-ONLY TRAINING-DYNAMICS / SELECTION AUDIT** |
 | **E11** | **remains CATEGORY C, unchanged** |
 | **E12a decision** | **C — NO FURTHER CONCLUSION** |
-| Report | `docs/B4_E12A_TRAINING_DYNAMICS_SELECTION_AUDIT_V1.md` |
+| Report | `docs/experiments/b4/B4_E12A_TRAINING_DYNAMICS_SELECTION_AUDIT_V1.md` |
 
 **Established:**
 
@@ -308,8 +308,8 @@ planned, or in progress is out of date.**
 | **E12d** | **COMPLETE — ATTEMPT 2** |
 | **Historical replication** | **PASSED** |
 | **Decision** | **D — NO FURTHER CONCLUSION** |
-| Report | `docs/B4_E12D_INSTRUMENTED_PHASE1_REPLICATION_REPORT_V1.md` |
-| Plan | `docs/B4_E12D_INSTRUMENTED_PHASE1_REPLICATION_PLAN_V1.md` (amended §7.0) |
+| Report | `docs/experiments/b4/B4_E12D_INSTRUMENTED_PHASE1_REPLICATION_REPORT_V1.md` |
+| Plan | `docs/experiments/b4/B4_E12D_INSTRUMENTED_PHASE1_REPLICATION_PLAN_V1.md` (amended §7.0) |
 | Run root | `cardiosentinel-runs/b4-e11-morphology-aware-v1/E12D_PHASE1_REPLICATION_ATTEMPT_2/` |
 | Executed | 2026-08-27T15:31:38Z → 20:02:26Z · 3.60 h training + 0.91 h geometry |
 
@@ -345,7 +345,7 @@ E12d results. ATTEMPT 2 is the only scientific E12d execution.
 **E13a is COMPLETE (2026-08-28). Decision D — NO COHERENT MECHANISM
 ESTABLISHED.** Post-hoc mechanism analysis of subjects prospectively
 outer-held-out during E11; **read-only, no training**.
-Report: `docs/B4_E13A_HELD_OUT_GEOMETRY_RELIABILITY_PLAN_V1.md` (plan + frozen
+Report: `docs/experiments/b4/B4_E13A_HELD_OUT_GEOMETRY_RELIABILITY_PLAN_V1.md` (plan + frozen
 decision table); results
 `cardiosentinel-runs/b4-e11-morphology-aware-v1/E13A_HELD_OUT_GEOMETRY/`.
 
@@ -532,7 +532,7 @@ Explanation Agent and its deterministic fallback), and `cli.py`.
 **Every agent is grounded on the evidence graph and none is autonomous.** The
 claim guard sits between every generator and its output; a violation falls back
 to deterministic prose rather than publishing the claim. See
-`docs/ARCHITECTURE.md` §0.2 for the flow.
+`docs/control-plane/ARCHITECTURE.md` §0.2 for the flow.
 
 The research assistant's current-state topic is `sealed_test_consumed`: it
 reports attempt 1 `COMPLETE`, repeat prohibited, and routes stale-premise
@@ -673,10 +673,10 @@ and no path in it touches the test partition.
    268 commit identifiers moved and **69 commits cited across 71 tracked files
    stopped resolving**.
 
-   **Now translated rather than repaired.** `docs/COMMIT_PIN_TRANSLATION_V1.md`
+   **Now translated rather than repaired.** `docs/provenance/COMMIT_PIN_TRANSLATION_V1.md`
    (#102) carries **326 exact mappings**, both directions, with the derivation
    stated so a third party can re-derive it, and
-   `docs/PROVENANCE_INCIDENT_V1.md` carries the dated chronology. The pins in
+   `docs/provenance/PROVENANCE_INCIDENT_V1.md` carries the dated chronology. The pins in
    frozen `_V1` records are **not** edited: rewriting them would mean editing
    records whose immutability is itself a claim.
 
@@ -710,7 +710,7 @@ and no path in it touches the test partition.
 2. ~~The generative explanation path has never run against a real model~~ —
    **closed 2026-08-25.** Arm B is exercised: `Qwen/Qwen3-1.7B` at revision
    `70d244cc`, greedy on CPU, reported in
-   `docs/EXPLANATION_EVALUATION_REPORT_V1.md`. Fidelity 1.000, **0 claim
+   `docs/explanation/EXPLANATION_EVALUATION_REPORT_V1.md`. Fidelity 1.000, **0 claim
    violations**, completeness 1.000, 63.4 s.
 
    **The result worth carrying forward is not the table.** `Qwen3-1.7B`
@@ -725,7 +725,7 @@ and no path in it touches the test partition.
    directly and no runtime gate runs during evaluation. That table is not what a
    user receives, and reading it as such would be wrong.
 3. **Three empty packages** advertise an architecture the code does not use.
-   Repair named in `docs/ARCHITECTURE.md` §5, deliberately not done during the
+   Repair named in `docs/control-plane/ARCHITECTURE.md` §5, deliberately not done during the
    freeze.
 4. **`scripts/provenance/` is ruff-excluded**, so lint errors there are
    invisible to CI. Passing explicit paths still reports **116 errors, 9

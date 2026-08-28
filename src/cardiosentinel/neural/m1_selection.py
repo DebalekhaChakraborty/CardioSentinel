@@ -26,7 +26,7 @@ from cardiosentinel.neural.patient_memory import (
 
 M1_RETENTION_DECISION_NAME: Final = "M1_MEMORY_RETENTION_DECISION_V1"
 M1_RETENTION_DECISION_PATH: Final = (
-    REPOSITORY_ROOT / "docs" / f"{M1_RETENTION_DECISION_NAME}.md"
+    REPOSITORY_ROOT / "docs" / "experiments" / "m1" / f"{M1_RETENTION_DECISION_NAME}.md"
 )
 M1_RETENTION_DECISION_SHA256: Final = (
     "a3685fc0f8ff1fa0dce2bf9954bb28a925787070c021f3e80ca5716a4fa5f0ed"

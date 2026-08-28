@@ -34,4 +34,4 @@ carries `expected_record_count`, the official manifest digest and
 **There is no independent cohort.** No drop-in external dataset exists in the
 public record. EDB is a **secondary** cohort, partly contaminated with LTSTDB,
 enforced in code by `validate_edb_secondary_evaluation_policy`, and **may never
-be described as external**. See `docs/EXTERNAL_VALIDATION_STRATEGY_V1.md`.
+be described as external**. See `docs/external-validation/EXTERNAL_VALIDATION_STRATEGY_V1.md`.

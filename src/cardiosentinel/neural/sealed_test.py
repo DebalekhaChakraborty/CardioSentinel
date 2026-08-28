@@ -303,7 +303,10 @@ def _execution_payload(
     }
 
 
-SELECTION_RECORD_PATH = REPOSITORY_ROOT / "docs" / "B4_GLOBAL_ENCODER_SELECTION_V1.json"
+SELECTION_RECORD_PATH = (
+    REPOSITORY_ROOT / "docs" / "experiments" / "b4"
+    / "B4_GLOBAL_ENCODER_SELECTION_V1.json"
+)
 
 
 def refuse_rejected_candidate(experiment_id: str) -> None:

@@ -1,6 +1,6 @@
 """Runtime-integrity sentinel: the implementation of the frozen V1 design.
 
-`docs/RUNTIME_INTEGRITY_SENTINEL_V1.md` specified this control after the
+`docs/provenance/RUNTIME_INTEGRITY_SENTINEL_V1.md` specified this control after the
 2026-08-12 shared-interpreter incident, in which unrelated distributions were
 installed into the then-shared scientific interpreter while a canonical run was
 executing. That run had a startup gate only, so the mutation was invisible to
@@ -41,7 +41,7 @@ from typing import Any, Final
 from cardiosentinel.neural.p1_experiment import FROZEN_DEPENDENCY_DIGEST
 from cardiosentinel.neural.provenance import dependency_environment
 
-SENTINEL_DESIGN_DOCUMENT: Final = "docs/RUNTIME_INTEGRITY_SENTINEL_V1.md"
+SENTINEL_DESIGN_DOCUMENT: Final = "docs/provenance/RUNTIME_INTEGRITY_SENTINEL_V1.md"
 SENTINEL_DESIGN_SHA256: Final = (
     "cd5c2e6d0b5dbc4ea35b319f98e9b9e678256c391491839d3f1745247eeb4075"
 )

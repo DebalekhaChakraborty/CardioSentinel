@@ -4,8 +4,8 @@
 Everything below is derived from artifact *structure* — array names, shapes,
 dtypes, manifest fields, SHA-256 digests, subject identifiers and row counts —
 and from values already published in
-`docs/B4_IMPROVEMENT_INVESTIGATION_BRIEF_V1.md`,
-`docs/B4_GLOBAL_ENCODER_SELECTION_V1.md` and `VALIDATION_METRICS.json`.
+`docs/experiments/b4/B4_IMPROVEMENT_INVESTIGATION_BRIEF_V1.md`,
+`docs/experiments/b4/B4_GLOBAL_ENCODER_SELECTION_V1.md` and `VALIDATION_METRICS.json`.
 
 **This plan authorizes nothing and requires nothing.** No model is trained, no
 encoder forward pass is run, no budget is opened, no lock is modified, and **no

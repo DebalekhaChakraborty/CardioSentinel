@@ -350,7 +350,7 @@ are correct about themselves; say which one you mean.**
 |---|---|
 | `VALIDATION_METRICS.json` | `87852fa5c3dcb0d05d2fe3124a384e408846f6b3fb8522a9cccd203ba5f26d06` |
 | `EXPERIMENT_LOCK.json` (B4-B) | `5bf251780f469115164d61a3f3cef2eecfc9ef9765af3f544479e961da00e7bc` |
-| `docs/B4_GLOBAL_ENCODER_SELECTION_V1.json` | `b40796848e8a28d5fc489101fe6ed2d04eb760ee1a354ff8dc9f182eb60df638` |
+| `docs/experiments/b4/B4_GLOBAL_ENCODER_SELECTION_V1.json` | `b40796848e8a28d5fc489101fe6ed2d04eb760ee1a354ff8dc9f182eb60df638` |
 | `VALIDATION_CHALLENGE_RESULTS.json` | `8127f5a4a2a501f92fb47d100c561e15b4129670ef1d25acc236a1c0580ec672` |
 | `U1_DEPLOYMENT_CALIBRATOR.json` | `acec97c1ebd3bed459ad2d75204b6c82f274b248edbb1d779b844bd46c62fdc1` |
 
@@ -359,7 +359,7 @@ are correct about themselves; say which one you mean.**
 ## 8. What follows from this
 
 Nothing in this document authorizes an experiment. The forward plan is
-`docs/IMPROVEMENT_ROADMAP_V1.md`, which grants no permission either.
+`docs/control-plane/IMPROVEMENT_ROADMAP_V1.md`, which grants no permission either.
 
 The one-line summary, for anyone who reads no further: **the B4 neural baseline
 did not beat the classical baselines it was pre-registered against, on either

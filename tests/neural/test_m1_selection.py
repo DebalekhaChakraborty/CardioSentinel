@@ -91,7 +91,9 @@ def test_validator_refuses_a_missing_result(tmp_path):
 
 
 def test_m2_protocol_is_frozen_and_defers_absent_capabilities():
-    text = Path("docs/M2_CONTAMINATION_SAFE_MEMORY_PROTOCOL_V1.md").read_text()
+    text = (
+        Path("docs/experiments/m2/M2_CONTAMINATION_SAFE_MEMORY_PROTOCOL_V1.md").read_text()
+    )
     assert "FROZEN SCIENTIFIC PROTOCOL" in text
     # capabilities that provably do not exist must be deferred, not assumed
     assert "DEFERRED → U1/U2" in text

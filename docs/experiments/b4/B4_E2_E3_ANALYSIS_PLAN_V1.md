@@ -4,9 +4,9 @@
 this document.** Everything below is derived from artifact *structure* — file
 inventories, `.npz` column names, dtypes and shapes, `score_semantics` strings —
 and from values already published in
-`docs/B4_IMPROVEMENT_INVESTIGATION_BRIEF_V1.md`,
-`docs/B4_GLOBAL_ENCODER_SELECTION_V1.md` and
-`docs/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md`.
+`docs/experiments/b4/B4_IMPROVEMENT_INVESTIGATION_BRIEF_V1.md`,
+`docs/experiments/b4/B4_GLOBAL_ENCODER_SELECTION_V1.md` and
+`docs/experiments/b4/B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md`.
 
 **This plan authorizes nothing, and needs nothing.** E2 and E3 are derived
 analyses over existing development artifacts. **No model is loaded, no training

@@ -21,7 +21,10 @@ from cardiosentinel.neural import m2_gate_derivation as D
 from cardiosentinel.neural.patient_memory import REPOSITORY_ROOT
 
 RECEIPT = json.loads(
-    (REPOSITORY_ROOT / "docs" / "M2_GATE_DERIVATION_RECEIPT_V1.json").read_text()
+    (
+        REPOSITORY_ROOT / "docs" / "experiments" / "m2"
+        / "M2_GATE_DERIVATION_RECEIPT_V1.json"
+    ).read_text()
 )
 SUPERSEDED_RECEIPT_SHA256 = (
     "3befd05dc7e9c51ddfed99078d3020375fd610b328d19e64fc7ee3cc745f398e"
@@ -105,7 +108,7 @@ def test_binding_module_still_has_no_execution_or_mutation_path():
 
 
 def test_runtime_sentinel_remains_design_only_and_untouched():
-    path = REPOSITORY_ROOT / "docs" / "RUNTIME_INTEGRITY_SENTINEL_V1.md"
+    path = REPOSITORY_ROOT / "docs" / "provenance" / "RUNTIME_INTEGRITY_SENTINEL_V1.md"
     text = path.read_text()
     assert "STATUS: DESIGN ONLY" in text
     assert "NOT IMPLEMENTED" in text

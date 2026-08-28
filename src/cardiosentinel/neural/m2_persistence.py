@@ -854,7 +854,8 @@ def build_canonical_run_lock(
         "m2_protocol_sha256": GATE.M2_PROTOCOL_SHA256,
         "m2_gate_receipt_sha256": GATE.M2_GATE_RECEIPT_SHA256,
         "m1_retention_decision_sha256": sha256_file(
-            REPOSITORY_ROOT / "docs" / "M1_MEMORY_RETENTION_DECISION_V1.md"
+            REPOSITORY_ROOT / "docs" / "experiments" / "m1" /
+            "M1_MEMORY_RETENTION_DECISION_V1.md"
         ),
         "retained_m1l_lock_sha256": scorer["retained_lock_sha256"],
         "retained_m1l_checkpoint_sha256": scorer["retained_checkpoint_sha256"],

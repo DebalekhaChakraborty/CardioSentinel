@@ -1,7 +1,8 @@
 """Strictly causal dual-timescale patient memory for M1.
 
 This module owns the causal primitives promised by
-`docs/M1_DUAL_MEMORY_PROTOCOL_V1.md`: the chronology contract, the train-only
+`docs/experiments/m1/M1_DUAL_MEMORY_PROTOCOL_V1.md`: the chronology contract, the train-
+only
 distance standardizer, the dual-timescale prototype state, deterministic
 full-stream feature generation, the M1 candidate heads, and the one-shot claim
 helpers.
@@ -61,7 +62,9 @@ from cardiosentinel.neural.protocol import (
 )
 
 M1_PROTOCOL_V1_NAME: Final = "M1_DUAL_MEMORY_PROTOCOL_V1"
-M1_PROTOCOL_V1_PATH: Final = REPOSITORY_ROOT / "docs" / f"{M1_PROTOCOL_V1_NAME}.md"
+M1_PROTOCOL_V1_PATH: Final = (
+    REPOSITORY_ROOT / "docs" / "experiments" / "m1" / f"{M1_PROTOCOL_V1_NAME}.md"
+)
 # M1-v1 is IMMUTABLE HISTORICAL EVIDENCE. It is superseded prospectively by
 # M1-v2 and is never rewritten; its digest must keep validating.
 M1_PROTOCOL_V1_SHA256: Final = (
@@ -78,7 +81,9 @@ M1_ATTEMPT2_FAILURE_SHA256: Final = (
 )
 
 M1_PROTOCOL_NAME: Final = "M1_DUAL_MEMORY_PROTOCOL_V2"
-M1_PROTOCOL_PATH: Final = REPOSITORY_ROOT / "docs" / f"{M1_PROTOCOL_NAME}.md"
+M1_PROTOCOL_PATH: Final = (
+    REPOSITORY_ROOT / "docs" / "experiments" / "m1" / f"{M1_PROTOCOL_NAME}.md"
+)
 M1_PROTOCOL_SHA256: Final = (
     "31a81358870cd23c2258cf4f307ab8c4dc7bf245bc4bf18a4d1f48fe2aada39c"
 )

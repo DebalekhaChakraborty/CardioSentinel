@@ -1,6 +1,7 @@
 """Frozen B4-B and B4-C architecture candidates.
 
-Both candidates are frozen by `docs/B4_ARCHITECTURE_SELECTION_PROTOCOL_V1.md`.
+Both candidates are frozen by
+`docs/experiments/b4/B4_ARCHITECTURE_SELECTION_PROTOCOL_V1.md`.
 They reuse the exact B4-A convolutional front end and classifier head, so the
 only difference between B4-A, B4-B and B4-C is the temporal block that consumes
 the 79x128 token sequence.

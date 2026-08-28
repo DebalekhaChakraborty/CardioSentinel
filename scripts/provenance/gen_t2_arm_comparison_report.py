@@ -1,6 +1,6 @@
 """Emit the T2 arm-comparison report per the approved analysis plan.
 
-Implements step 3 of `docs/T2_ARM_COMPARISON_ANALYSIS_PLAN_V1.md`
+Implements step 3 of `docs/experiments/t2/T2_ARM_COMPARISON_ANALYSIS_PLAN_V1.md`
 (`84adf43b885d6dd3ecef3b678d1a2b89fc6e94f48ffdf8d2f0dc2bb0a7eba973`): the first
 read of T2 outer-validation measured values.
 
@@ -53,9 +53,18 @@ DEFAULT_RUN = (
 S4D = "causal_s4d_longitudinal_v1"
 GRU = "causal_gru_longitudinal_v1"
 
+#: The paths **as recorded in the frozen report**, which this script must
+#: reproduce byte-for-byte. Both documents now live under
+#: `docs/experiments/t2/`; `docs/provenance/DOCUMENT_PATH_TRANSLATION_V1.md`
+#: resolves them. These two are emitted, never opened.
 PLAN = "docs/T2_ARM_COMPARISON_ANALYSIS_PLAN_V1.md"
 PLAN_SHA256 = "84adf43b885d6dd3ecef3b678d1a2b89fc6e94f48ffdf8d2f0dc2bb0a7eba973"
 AMENDMENT = "docs/T2_ARM_COMPARISON_ANALYSIS_PLAN_AMENDMENT_V1_1.md"
+
+#: Where that amendment actually is now. This one is opened, never emitted.
+AMENDMENT_PATH = (
+    "docs/experiments/t2/T2_ARM_COMPARISON_ANALYSIS_PLAN_AMENDMENT_V1_1.md"
+)
 
 #: Amendment V1.1 §3.1. The two quantities the registered differences are
 #: computed from, and deliberately nothing else.
@@ -266,7 +275,7 @@ def build_report(run: pathlib.Path) -> str:
     w("boundaries are exactly as approved before the first read.")
     w("")
     w(f"**An amendment postdates that read.** `{AMENDMENT}`")
-    w(f"(`{_sha256(REPOSITORY_ROOT / AMENDMENT)}`) was written on 2026-08-22,")
+    w(f"(`{_sha256(REPOSITORY_ROOT / AMENDMENT_PATH)}`) was written on 2026-08-22,")
     w("**after** the values were visible, and is stated here rather than left to")
     w("be inferred. It repairs an unreconciled conflict between plan §5.3, which")
     w("required cold-start strata verbatim, and plan §3, which constrained")

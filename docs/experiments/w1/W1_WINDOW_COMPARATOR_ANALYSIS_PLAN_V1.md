@@ -260,7 +260,7 @@ Not done, and not to be added as a follow-up without a separate decision:
 |---|---|---|
 | 1 | Merge this plan **together with a reviewed implementation and synthetic tests** | PR |
 | 2 | Human authorizes the held-out label re-read, naming this plan | **human** |
-| 3 | Execute against a merged commit; produce `docs/W1_WINDOW_COMPARATOR_REPORT_V1.md` | first read of comparator values |
+| 3 | Execute against a merged commit; produce `docs/experiments/w1/W1_WINDOW_COMPARATOR_REPORT_V1.md` | first read of comparator values |
 | 4 | Manuscript positioning | separate decision |
 
 Step 1 pairs the plan with the implementation deliberately. The T2 analysis found
