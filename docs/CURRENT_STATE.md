@@ -23,12 +23,14 @@ from it. **Neither authorizes an experiment.**
 
 ---
 
-**As of:** `master` `652da3d` (handoff ECG 20), 2026-08-25 ·
-tags `research-freeze-v1.0` · `ips-agentic-runtime-v1.0`
+**As of:** `master` `e0e3a79` (merge of PR #127) plus **PR #128 open**
+(E11–E13a, instrumentation, paper readiness), 2026-08-28 · tags
+`research-freeze-v1.0` · `ips-agentic-runtime-v1.0`
 **Refresh status:** **this is a targeted correction, not a wholesale
-regeneration.** The §2 / §9.3 / literature-search claims below were false after
-2026-08-25 and are fixed; the run, artifact and ledger sections were not
-re-derived and carry whatever date their last full refresh gave them.
+regeneration.** Two sessions edited this file on 2026-08-25 and 2026-08-28; the
+§2 / §9.3 / literature-search claims were corrected by the first, the E11–E13a
+sections added by the second. **The run, artifact and ledger sections were not
+re-derived** and carry whatever date their last full refresh gave them.
 **Working tree:** shared by three workers; run `git status` before assuming
 anything about it
 **Open PRs:** none at the time of writing. *(Snapshot only — `gh pr list`
@@ -38,6 +40,15 @@ is authoritative; this line is stale the moment a PR opens or merges.)*
 **T2 outer validation:** **CONSUMED and ANALYSED** — values published
 **Sealed B4/neural TEST:** **CONSUMED 2026-08-25 — attempt 1 of 1, and the last
 budget in the programme**
+**B4 E11 morphology-aware representation:** **COMPLETED — ATTEMPT 2, 2026-08-27.
+Primary mechanism NOT ESTABLISHED (Category C). Not pending.**
+**B4 E12a training-dynamics / selection audit:** **COMPLETE — read-only,
+2026-08-27. Decision C, no further conclusion. Not pending.**
+**B4 E12d instrumented phase-1 replication:** **COMPLETE — ATTEMPT 2,
+2026-08-27. Historical replication PASSED. Decision D. Not pending.**
+**B4 E13a held-out geometry reliability:** **COMPLETE 2026-08-28. Decision D.
+The 44-subject / 79-stream E11 B0 held-out geometry population is CONSUMED for
+future confirmatory geometry claims.**
 
 ---
 
@@ -69,9 +80,10 @@ opened, which is the point: a discussion revised in light of the result would be
 post-hoc reasoning whatever it concluded. **§9.3 and §9.5.5 were added after the
 search and neither touches a sealed-test number.**
 
-**What is still missing is §4 and §4.6 — the contribution — and §3.5.** They have
-no draft, every source is on disk, and they are the sections the outline's own
-writing order puts first.
+**§4 and §4.6 are now drafted** (`PAPER_S4_EVIDENCE_FRAMEWORK_DRAFT.md`,
+2026-08-28, PR #128), together with tables T1–T4 and figures F1–F5.
+**What is still missing is §3.5**, and the assembly sections — §1, §3, §5–§8,
+§10–§12 — which compose existing material rather than create it.
 
 ---
 
@@ -172,9 +184,9 @@ reconsidered is evidence and a deleted one is not.
 | **W1 window comparator** | derived — no run directory | complete · **RQ4 supported (bounded)** |
 | **IPS runtime** | `edge/`, 1,692 lines | complete · replay simulation on a laptop; **not edge hardware** |
 | **Evidence graph** | `agents/graph.py` | complete · 35 nodes / 39 edges per alert, closed vocabularies |
-| **Explanation agents** | `agents/context.py`, `explain.py`, `providers.py` | complete · guarded generation, opt-in local provider, deterministic fallback; real-model arm unexercised |
+| **Explanation agents** | `agents/context.py`, `explain.py`, `providers.py` | complete · guarded generation, opt-in local provider, deterministic fallback; **generative arm exercised once (n=1 context)** — `EXPLANATION_EVALUATION_REPORT_V1.md` |
 | **Architecture Selection Agent** | `agents/architecture.py` | complete · lifecycle, not recommendation |
-| **Explanation evaluation framework** | `agents/evaluation/` | complete · deterministic arm measured, generative arm **unexercised** |
+| **Explanation evaluation framework** | `agents/evaluation/` | complete · **both arms exercised on n=1 context** (Qwen3-1.7B, Qwen3-4B-Instruct-2507): fidelity 1.000, 0 claim violations, and the runtime **refused** the generation for a categorical gate inversion. The separate manual contract `QWEN_EVALUATION_RUN.md` is **NOT EXECUTED** |
 
 **Not started:** E1 edge hardware. RQ5 is open and a laptop is not an edge
 device.
@@ -187,6 +199,176 @@ paper, permanently.**
 
 Full ledger with the consumed/available column: `docs/EXPERIMENT_CATALOGUE.md`
 and handbook §51.
+
+---
+
+### 3.1 B4 representation investigation — E1 through E11
+
+**E11 is COMPLETE. Any document or session describing E11 as pending, planned,
+authorized-but-unrun, or in progress is out of date.**
+
+| | |
+|---|---|
+| **E11** | **COMPLETED — ATTEMPT 2** |
+| Executed | 2026-08-26T19:54:43Z → 2026-08-27T00:57:30Z, 5.04 h, `failure_state: null` |
+| **Primary mechanism** | **NOT ESTABLISHED** |
+| **Registered interpretation** | **Category C** — performance changes without established geometry improvement |
+| Report | `docs/B4_E11_MORPHOLOGY_AWARE_REPRESENTATION_REPORT_V1.md` |
+| Plan | `docs/B4_E11_MORPHOLOGY_AWARE_REPRESENTATION_PLAN_V1.md` (+ amendments A1–A8) |
+| Run root | `cardiosentinel-runs/b4-e11-morphology-aware-v1/E11_ATTEMPT_2/` |
+| Manifest digest | `5d357209005bf1571e3a740219dd89f6cd770ea62ee00b17c6c9806985f49359` |
+
+**Primary geometry paired contrasts** (B1 − B0; subject bootstrap, 44 evaluable
+subjects, 1,000 replicates, seed 2026):
+
+| endpoint | point | 95% CI |
+|---|---|---|
+| median cosine | **+0.0030** | [−0.0178, +0.0073] |
+| median `‖delta‖` | **+0.1217** | [−0.5993, +0.5617] |
+| negative-cosine fraction | **−0.0127** | [−0.0406, 0.0000] |
+
+**All three include zero.** All three point estimates moved in the predicted
+pooled direction; per-fold effects are heterogeneous in sign.
+
+**Secondary subject-macro AUPRC: +0.0258, 95% CI [+0.0002, +0.0562].**
+Secondary, nominally separated, **fragile** — the lower bound is +0.0002 — and
+**unsupported by the primary mechanism**. It is not E11's headline result.
+
+**Boundaries.** **Sealed TEST untouched** (`test_partition_opened: false`,
+`test_authority_constructed: false`). **Historical 12-subject VALIDATION
+untouched by E11.** **44 evaluable held-out subjects — prospective development
+evidence**, the largest honest unit count the programme has had, against the 9
+that E1–E10 were confined to.
+
+**ATTEMPT 1 was an experimental-apparatus failure** (`NaN * 0 == NaN` in the
+auxiliary loss mask), classified by the authorizing human as **no scientific
+attempt consumed**; its fold-0 B0 values are **quarantined** and were used only
+as ATTEMPT 2's bit-for-bit reproduction gate.
+`docs/B4_E11_ATTEMPT_1_FAILURE_RECEIPT_V1.md`.
+
+**One protocol deviation:** the registered operating-point sensitivity /
+specificity endpoint **could not be computed** — the runner persisted neither
+the inner-validation F1-optimal threshold nor the inner-validation predictions
+needed to reconstruct it. A runner implementation gap. No threshold was derived
+from held-out scores and no substitute operating point was used. See report §9.1.
+
+**E1–E10 conclusions are unchanged by E11.**
+
+### 3.2 E12a — read-only training-dynamics and checkpoint-selection audit
+
+**E12a is COMPLETE. Any document or session describing E12a as pending,
+planned, or in progress is out of date.** Read-only audit of E11's six
+persisted phase-1 training histories. **No model was trained, no checkpoint
+regenerated, no outer-held-out subject scored at any alternative epoch.**
+
+| | |
+|---|---|
+| **E12a** | **COMPLETE — READ-ONLY TRAINING-DYNAMICS / SELECTION AUDIT** |
+| **E11** | **remains CATEGORY C, unchanged** |
+| **E12a decision** | **C — NO FURTHER CONCLUSION** |
+| Report | `docs/B4_E12A_TRAINING_DYNAMICS_SELECTION_AUDIT_V1.md` |
+
+**Established:**
+
+- **checkpoint selection is not demonstrably stable;**
+- **four of six selected epochs are epoch 1;**
+- **four of six best-vs-second-best AUPRC margins are below the previously
+  documented +0.032 argmax-selection bias;**
+- **fold 1 B1's best-vs-second-best margin is only +0.00029213;**
+- **training-loss and AUPRC epoch ordering disagree in all six fits;**
+- **inner-validation prevalence is 8.4×–12.1× below inner-training prevalence.**
+
+**Unobservable from persisted evidence:**
+
+- separate BCE trajectory;
+- auxiliary-loss trajectory;
+- morphology prediction trajectory;
+- inner-validation AUROC trajectory;
+- per-epoch representation geometry;
+- whether the auxiliary task was mature at checkpoint selection;
+- when the fold-2 B1 negative TRAIN stream emerged.
+
+**Interpretation.** E11 tested the registered morphology auxiliary objective
+through a **noisy early-selection regime**, but **persisted evidence cannot
+distinguish a weak objective from a weak delivery/selection instrument.**
+
+**E12a does not invalidate E11**, and **nothing in E12a states or implies that
+a later epoch would have improved E11.** E11's Category C classification is
+unmodified. The decision is C precisely because the auxiliary-maturity half of
+the question was never persisted — an instrumentation gap, not a scientific
+ambiguity.
+
+### 3.3 E12d — instrumented E11 phase-1 replication
+
+**E12d is COMPLETE. Any document or session describing E12d as pending,
+planned, or in progress is out of date.**
+
+| | |
+|---|---|
+| **E12d** | **COMPLETE — ATTEMPT 2** |
+| **Historical replication** | **PASSED** |
+| **Decision** | **D — NO FURTHER CONCLUSION** |
+| Report | `docs/B4_E12D_INSTRUMENTED_PHASE1_REPLICATION_REPORT_V1.md` |
+| Plan | `docs/B4_E12D_INSTRUMENTED_PHASE1_REPLICATION_PLAN_V1.md` (amended §7.0) |
+| Run root | `cardiosentinel-runs/b4-e11-morphology-aware-v1/E12D_PHASE1_REPLICATION_ATTEMPT_2/` |
+| Executed | 2026-08-27T15:31:38Z → 20:02:26Z · 3.60 h training + 0.91 h geometry |
+
+**Historical replication gate: PASSED.** All six fits reproduced E11
+inner-validation AUPRC **bit-identically**; selected epochs **1, 1, 1, 2, 4, 1**
+and epoch counts **5, 5, 5, 6, 8, 5** exact; all three B0 `train_loss`
+trajectories bit-identical; B1 total-loss differences only the preregistered
+accumulation effect (≈1.3–1.8 × 10⁻⁹ relative).
+
+**Established:**
+
+- **B1 auxiliary loss continues decreasing after AUPRC selection in all three
+  folds;**
+- **`F_aux` = +0.6208 / +0.2556 / +0.5378;**
+- **post-selection loss trajectories are monotone, `V == F`;**
+- **5/6 selected epochs precede the largest observed geometry movement;**
+- **no coherent B1-specific geometry continuation is established** — B1 exceeds
+  B0 on cosine travel in 1/3 folds and on delta-norm travel in 1/3 folds, and
+  they are *different* folds.
+
+**Decision D** because A fails (no consistent B1-greater geometry), B fails
+(there *is* a coherent auxiliary continuation), and C fails (that continuation
+is B1-specific, so it is not a purely common training-dynamics result).
+
+**E12d ATTEMPT 1 is quarantined: HARNESS / RNG-REPLICATION FAILURE,
+SCIENTIFIC RESULT INTERPRETABLE: NO.** Its B1 trajectories must never enter
+E12d results. ATTEMPT 2 is the only scientific E12d execution.
+
+**E12d does NOT revise E11. E11 remains Category C.**
+
+### 3.4 E13a — held-out geometry reliability and failure taxonomy
+
+**E13a is COMPLETE (2026-08-28). Decision D — NO COHERENT MECHANISM
+ESTABLISHED.** Post-hoc mechanism analysis of subjects prospectively
+outer-held-out during E11; **read-only, no training**.
+Report: `docs/B4_E13A_HELD_OUT_GEOMETRY_RELIABILITY_PLAN_V1.md` (plan + frozen
+decision table); results
+`cardiosentinel-runs/b4-e11-morphology-aware-v1/E13A_HELD_OUT_GEOMETRY/`.
+
+> ## POPULATION CONSUMPTION — RECORDED ON SUCCESSFUL EXECUTION
+>
+> **The E11 B0 outer-held-out 44-subject / 79-stream geometry population is
+> CONSUMED for future confirmatory geometry claims.**
+>
+> It may still be described. It may **not** be quoted as a fresh held-out
+> confirmation of any geometry hypothesis. Any future confirmatory geometry
+> claim requires a partition this programme does not have.
+
+**Established:** within-stream class direction is highly stable across
+independent non-overlapping temporal halves — median `cos_within` **+0.9935**,
+block-to-block sign agreement **56/57 (98%)**. **One stream (`s20171:0`) shows
+temporally reproducible reversal** (`cos_A_train` −0.4984, `cos_B_train`
+−0.3302). **`s20021:1` does not reproduce** (+0.4514 then −0.9537). **`s20101:1`
+is not assessable** — all 390 positives fall in one temporal half.
+
+**Decision D** because the frozen criterion required **both** eligible
+negative-orientation streams to reproduce, and one of two did.
+
+**E13a does not revise E11 (Category C) or E12d (Decision D).**
 
 ---
 

@@ -27,13 +27,16 @@ open one.
 
 | | |
 |---|---|
-| **Latest** | **ECG 20** — the one to read |
-| Covers | master `6be26f9`, no open PRs, the open-weight explanation layer built and exercised |
+| **Latest** | **ECG 23** — the one to read |
+| Covers | **E11 COMPLETED (ATTEMPT 2) — Category C**; **E12a COMPLETE — decision C**; **E12d COMPLETE (ATTEMPT 2) — historical replication PASSED, decision D**; E11-class runner instrumentation built, hardened and exercised end-to-end |
 
 ## Index, newest first
 
 | Session | Date | The danger it named for the session after it |
 |---|---|---|
+| **ECG 23** | 2026-08-27 | four kinds of defensible work — experiment, audit, hardening, documentation — none of them the manuscript |
+| **ECG 22** | 2026-08-26 | relaunching a failed experiment on its own judgement |
+| ECG 21 | 2026-08-26 | *(no handoff written — session ran E11 ATTEMPT 1, which failed on the NaN-mask defect; ECG 22 was written in its place)* |
 | **ECG 20** | 2026-08-25 | the governance layer generating its own work, all of it defensible |
 | ECG 19 | 2026-08-25 | making true documents truer, instead of writing §2 |
 | ECG 18 | 2026-08-25 | *(named by ECG 19)* |

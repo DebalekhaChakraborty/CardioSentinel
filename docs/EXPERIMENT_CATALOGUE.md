@@ -4,7 +4,8 @@ Part of **Research Baseline v1.0**. Complete inventory as of `origin/master`
 `0480b34`.
 
 **The consumed/available ledger is canonical in
-`CardioSentinel_Research_Execution_Handbook_v1.4.md` §51.** This document does
+`CardioSentinel_Research_Execution_Handbook_v1.5.md` §4 (budgets) and §6
+(experiment ledger E1–E13a); v1.4 §51 remains the historical form.** This document does
 not restate it. Two ledgers drifting apart is the exact failure v1.2 just
 demonstrated, and the handbook's is the better one: it tracks fifteen budgets at
 the level of *access* — including M1's and M2's failed attempts as budgets in
