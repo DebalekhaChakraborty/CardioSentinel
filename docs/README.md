@@ -7,16 +7,16 @@ reason recorded below.
 
 | Directory | Holds | Files |
 |---|---|--:|
-| `paper/` | the manuscript, its section drafts, figures, tables, abstract claim audit, submission metadata | 31 |
-| `audits/` | paper-readiness, Related Work, submission-format, runtime-boundary, documentation/demo and work-recovery audits | 9 |
-| `handbook/` | the research execution handbook, all versions, `.md` and `.docx` | 10 |
-| `handoffs/` | the session handoff chain, ECG3–ECG24 | 23 |
-| `docs/` | the experiment record and control plane, categorised below | 104 |
+| `audits/` | paper-readiness, Related Work, submission-format, recovery and migration audits | 10 |
+| `docs/` | the complete document tree, except root audit and reproducibility records | 172 tracked |
 
 ## Inside `docs/`
 
 | Directory | Holds | Files |
 |---|---|--:|
+| `docs/paper/` | the manuscript, section drafts, figures, tables, abstract claim audit and submission metadata | 31 tracked |
+| `docs/handbook/` | every handbook version, `.md` and `.docx` | 10 |
+| `docs/handoffs/` | the historical session handoff chain, ECG3–ECG24 | 23 |
 | `docs/experiments/b4/` | the B4 encoder: protocol, selection, sealed-test authorization, and the E1–E13a investigations | 35 |
 | `docs/experiments/m1/` | patient-relative memory: protocols, failures, retention decision | 7 |
 | `docs/experiments/m2/` | the contamination-safe update gate | 8 |
@@ -25,8 +25,8 @@ reason recorded below.
 | `docs/experiments/w1/` | the memoryless window comparator | 2 |
 | `docs/experiments/p1/` | physiology fusion | 2 |
 | `docs/contracts/` | dataset, experiment and signal-processing contracts; split policy; metrics and annotation semantics; baseline and benchmark protocols | 8 |
-| `docs/control-plane/` | current state, experiment catalogue, evidence map, research scope, architecture, plans, roadmap, repo audit | 8 |
-| `docs/provenance/` | commit-pin and document-path translation, the provenance incident, cross-dataset provenance, the runtime integrity sentinel | 5 |
+| `docs/control-plane/` | current state, experiment catalogue, evidence map, research scope, architecture, plans, roadmap, repo audit, experiment/component identifier mapping | 9 |
+| `docs/provenance/` | commit-pin and V1/V2 document-path translation, migration receipts, the provenance incident, cross-dataset provenance and runtime integrity | 8 |
 | `docs/explanation/` | explanation evaluation protocol and report, local-LLM protocol, Qwen run contract, demo scenario | 5 |
 | `docs/external-validation/` | the Route A decline and the strategy that preceded it | 2 |
 | `docs/literature/` | the two frozen literature-search harvests | 2 |
@@ -79,7 +79,7 @@ The full set is whatever this produces — hash every document, then look for th
 digest anywhere else in the repository:
 
 ```python
-# for each file under docs/, paper/, audits/, handbook/:
+# for each file under docs/ and audits/:
 #   h = sha256(file); if h appears in src/, tests/, scripts/, configs/,
 #   protocols/, recovery/, reproducibility/, cardiosentinel-runs/*.json,
 #   or in any OTHER document -> that file's bytes are frozen.
@@ -109,3 +109,7 @@ table resolves it.
 **The handoffs and the superseded handbook versions** are byte-identical to
 their committed form. A stale path in a historical document is a broken link,
 not a false statement, and corrections belong in the current control plane.
+
+`docs/provenance/DOCUMENT_PATH_TRANSLATION_V2.md` maps the former root
+`paper/`, `handbook/` and `handoffs/` paths to their current locations. Apply
+V1 and then V2 for older recorded paths; immutable records are not rewritten.
