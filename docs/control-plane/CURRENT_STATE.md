@@ -23,18 +23,19 @@ from it. **Neither authorizes an experiment.**
 
 ---
 
-**As of:** working branch `feat/e11-e13a-instrumentation-and-paper-readiness`
-at `1bf366e66739f2990012d05c702a4d78400a06da`; GitHub `master` at
-`2da1fe695bcec57a4f529b0d97d8a7c0b0a2ce6c` (merge of PR #128), with
-**PR #129 open**, 2026-08-29 · tags
+**As of:** working branch `fix/runtime-hardening-doc-reconciliation`
+at `dd19d75f8863672541505c84e33292324b54cfa0`; GitHub `master` at
+`4431c58048d9d981d9872e9f49a5335929a82e65` (merge of PR #129), with
+**no open pull requests**, 2026-08-29 · tags
 `research-freeze-v1.0` · `ips-agentic-runtime-v1.0`
 **Refresh status:** living repository, pull-request, manuscript, documentation,
 runtime and demo state reconciled on 2026-08-29. Scientific values below were
 not recomputed or re-scored; their frozen records remain authoritative.
-**Working tree:** one worktree. It contains the PR #129 work plus the reviewed
-runtime trust-boundary and documentation/demo reconciliation changes.
-**Open PRs:** #129 only at the time of refresh. *(Snapshot only — `gh pr list`
-is authoritative.)*
+**Working tree:** one worktree, **clean**. The runtime trust-boundary and
+documentation/demo reconciliation work is committed as the two commits above
+`master` on this branch.
+**Open PRs:** none. #128 and #129 are both merged. *(Snapshot only — `gh pr
+list` is authoritative.)*
 **Canonical T1 attempt:** **CONSUMED** — failed post-claim at stage 24
 **T1 measurement continuation:** **COMPLETED** — the single authorization is spent
 **T2 outer validation:** **CONSUMED and ANALYSED** — values published
@@ -85,13 +86,13 @@ remaining human submission metadata are also intentionally unresolved.
 
 | | |
 |---|---|
-| `master` | `2da1fe695bcec57a4f529b0d97d8a7c0b0a2ce6c` — merge of PR #128 |
-| Working branch | `feat/e11-e13a-instrumentation-and-paper-readiness` at `1bf366e66739f2990012d05c702a4d78400a06da` |
+| `master` | `4431c58048d9d981d9872e9f49a5335929a82e65` — merge of PR #129 |
+| Working branch | `fix/runtime-hardening-doc-reconciliation` at `dd19d75f8863672541505c84e33292324b54cfa0` — **2 commits ahead of `master`** |
 | Tags | `research-freeze-v1.0` · `ips-agentic-runtime-v1.0` · `legacy/v0` · three `archive/*` tags |
 | Releases | none |
-| Working tree | one worktree; inspect `git status` for the PR #129 and reconciliation changes |
-| Open PRs | **#129 only** |
-| Tracked Python | 313 files · 136,120 LOC |
+| Working tree | one worktree, **clean** — the reconciliation work is committed, not pending |
+| Open PRs | **none** — #128 and #129 both merged |
+| Tracked Python | 314 files · 136,285 LOC |
 | Tests | 125 `test_*.py` files · 3,566 collected tests |
 | Documents | 104 files in `docs/` (100 `.md`); authoritative publication/governance trees are hoisted at root |
 | Root documentation | `paper/` 31 files (19 `.md`) · `audits/` 8 (8 `.md`, after this reconciliation) · `handbook/` 10 (4 `.md`) · `handoffs/` 23 (23 `.md`) |
@@ -555,21 +556,34 @@ Two of those three stubs describe research that is complete elsewhere.
 
 ---
 
-## 8. Data preservation — **verified 2026-08-25, and the sealed test is now in it**
-
-Two snapshots, both Object-Locked, both verified by content on **2026-08-25**:
+## 8. Data preservation — **three snapshots; two content-verified 2026-08-25, one verified only at creation**
 
 ```
 s3://cardiosentinel-evidence-341181499761/
   snapshot-2026-08-22-1bbbd47/        786 objects ·  24,779,296,980 bytes
   snapshot-2026-08-25-sealed-test/      5 objects ·           5,015,638 bytes
+  snapshot-2026-08-28-4c59ff1/        196 objects ·   1,193,258,795 bytes
 Versioning · Object Lock GOVERNANCE · SSE-S3 · public access blocked
 ```
 
+| Prefix | Covers | Last verified by content |
+|---|---|---|
+| `snapshot-2026-08-22-1bbbd47` | the programme through 2026-08-22 | **2026-08-25** (§8.1) |
+| `snapshot-2026-08-25-sealed-test` | the four sealed-TEST artifacts + manifest | **2026-08-25** (§8.2) |
+| `snapshot-2026-08-28-4c59ff1` | the E11 / E12d / E13a delta | **at creation only, 2026-08-28** |
+
+The 2026-08-28 snapshot was verified at upload by object count, exact byte
+total, manifest round-trip (`07fd04be…`) and 16/16 sample re-hash, under
+GOVERNANCE until **2027-08-28**. **It has not been re-verified since**, and it
+is the only prefix with no independent later check.
+
 **Read the date, not the sentence.** The guarantee is exactly as current as its
-last check, and it degrades silently: between 2026-08-24 and this check the AWS
-session expired and the mirror was unverifiable, with nothing failing to
-announce it. It will happen again.
+last check, and it degrades silently: between 2026-08-24 and the 2026-08-25
+check the AWS session expired and the mirror was unverifiable, with nothing
+failing to announce it. **It has happened again — on 2026-08-29
+`aws sts get-caller-identity` returned an expired session, so no prefix could be
+checked on that date.** Re-authenticate and re-run §8.1 before relying on any
+statement in this section.
 
 ### 8.1 What was checked on 2026-08-25, all read-only
 
@@ -694,14 +708,20 @@ and no path in it touches the test partition.
    old SHA succeeds *on this machine* and fails on a fresh clone, so it is not a
    test of whether a pin resolves.
 
-1. ~~**AWS session expired; the S3 mirror is unverified.**~~ **Closed
-   2026-08-25.** The session was renewed and both snapshots verified by content
-   — 786 objects exact, 0 delete markers, manifest digest matching handbook §47,
-   785/785 rows resolving, 15/15 sampled digests recomputed (§8.1). **It will
-   degrade again**, silently and with nothing failing: this defect has now been
-   opened and closed twice in three days. The guarantee is only as current as
-   its last check, so re-verify with a date attached rather than inheriting
-   this one.
+1. **AWS session expired; the S3 mirror is unverified. REOPENED 2026-08-29.**
+   It was closed on 2026-08-25 — session renewed, both snapshots verified by
+   content: 786 objects exact, 0 delete markers, manifest digest matching
+   handbook §47, 785/785 rows resolving, 15/15 sampled digests recomputed
+   (§8.1). That entry then said, in as many words, *"it will degrade again,
+   silently and with nothing failing."*
+
+   **It did.** On 2026-08-29 `aws sts get-caller-identity` returned
+   `Your session has expired`, so **no prefix could be checked on that date** —
+   including `snapshot-2026-08-28-4c59ff1`, which has never been verified by
+   anything other than its own creation. This defect has now been opened and
+   closed three times in one week. The guarantee is only as current as its last
+   check: **re-authenticate, re-run §8.1, and attach the new date** rather than
+   inheriting an older one.
 2. ~~The generative explanation path has never run against a real model~~ —
    **closed 2026-08-25.** Arm B is exercised: `Qwen/Qwen3-1.7B` at revision
    `70d244cc`, greedy on CPU, reported in
@@ -719,6 +739,45 @@ and no path in it touches the test partition.
    **The harness measures raw model output** — it calls `provider.generate()`
    directly and no runtime gate runs during evaluation. That table is not what a
    user receives, and reading it as such would be wrong.
+2b. **The frozen environment is bound to the repository's old directory name.**
+   `/home/AI_POC/venvs/tactics/lib/python3.12/site-packages/__editable__.cardiosentinel-0.1.0.pth`
+   contains one line —
+   `/home/AI_POC/tactics/Myocardial-Ischemia-Detection-by-Analysing-ECG-Signal/src`
+   — and the working directory was renamed to `.../tactics/CardioSentinel`.
+   `import cardiosentinel` then fails outright, and **nine governance tests fail
+   for a reason that has nothing to do with the code they guard**: the
+   source-order and capability-gate proofs resolve their own source through
+   `inspect.getsource`, which follows the stale path.
+
+   ```
+   tests/neural/test_b4b_e2e.py::test_preflight_runs_before_the_claim_in_source_order
+   tests/neural/test_b4b_sealed_test_identity.py  (2)
+   tests/neural/test_candidate_experiment.py::test_simultaneous_candidate_claims_yield_exactly_one_winner
+   tests/neural/test_sealed_test.py  (2)
+   tests/neural/test_t1_capability_gate.py  (3)
+   ```
+
+   **They report `DID NOT RAISE`, which reads as a guard that stopped working.**
+   It is not: with the path restored, all nine pass. A failure mode that makes
+   safety guards look disabled is worth more alarm than a normal red test, not
+   less.
+
+   **Do not repair this with `pip install -e .`.** The `tactics` interpreter is
+   the frozen scientific environment — 335 packages,
+   `installed_packages_sha256 = b0fd6ea…`, asserted by the code that consumes it
+   — and reinstalling would put that digest at risk to fix a filename. The
+   repair is a symlink at the old path, which changes nothing inside the venv:
+
+   ```bash
+   ln -s /home/AI_POC/tactics/CardioSentinel \
+         /home/AI_POC/tactics/Myocardial-Ischemia-Detection-by-Analysing-ECG-Signal
+   ```
+
+   That symlink is in place as of 2026-08-29. **It is untracked infrastructure,
+   not repository state** — a fresh clone or a different machine will not have
+   it, and will see the same nine failures until either the directory is named
+   as the `.pth` expects or the symlink is recreated.
+
 3. **Three empty packages** advertise an architecture the code does not use.
    Repair named in `docs/control-plane/ARCHITECTURE.md` §5, deliberately not done during the
    freeze.
@@ -821,8 +880,10 @@ rather than lifted — there is nothing left to open.
    failed or assumed.
 2. Supply and verify the human-controlled submission metadata: author names,
    affiliations, acknowledgements and any venue declarations.
-3. Complete final review of PR #129 after the documentation/demo reconciliation
-   gate. Do not introduce a second directory reorganization.
+3. Land the runtime trust-boundary and documentation/demo reconciliation branch
+   (`fix/runtime-hardening-doc-reconciliation`, 2 commits) — PR #129 is merged
+   and this work is not yet on `master`. Do not introduce a second directory
+   reorganization.
 4. Re-verify the evidence mirror when credentials are next available or the
    existing dated verification becomes too old for the intended claim (§8.1).
 5. Keep E1 edge hardware and external validation explicitly open. They are not
@@ -838,7 +899,8 @@ human authorization.
 ---
 
 _Live-state regeneration: 2026-08-29, on
-`feat/e11-e13a-instrumentation-and-paper-readiness` at `1bf366e66739`; GitHub
-`master` `2da1fe695bce`, PR #129 open. Git, layout, document counts, manuscript,
-handbook, runtime and demo state were re-derived. Scientific values were not
-recomputed; their frozen source records remain authoritative._
+`fix/runtime-hardening-doc-reconciliation` at `dd19d75f8863`; GitHub
+`master` `4431c58048d9`, no open pull requests. Git, layout, document counts,
+manuscript, handbook, runtime and demo state were re-derived. Scientific values
+were not recomputed; their frozen source records remain authoritative. The
+evidence-mirror statements in §8 carry their own, older verification dates._

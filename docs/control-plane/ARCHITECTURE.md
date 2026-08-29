@@ -4,6 +4,25 @@ Part of **Research Baseline v1.0**. Describes the repository as of
 `origin/master` `0480b34` (merge of #97). #95-#97 changed documentation only;
 every count below is unchanged from `a8f1b47`.
 
+> **The counts below are the frozen v1.0 baseline and are no longer current.**
+> The structure they describe still holds — this is still the right map of where
+> the work lives — but three figures moved materially after the baseline was
+> taken, and a reader sizing the runtime or the agentic layer from this page
+> would be wrong. The baseline numbers are kept as written rather than
+> overwritten, and the delta is recorded here.
+>
+> | | v1.0 baseline (`a8f1b47`) | current (`dd19d75`, 2026-08-29) |
+> |---|---|---|
+> | `neural/` | 86 files · 54,097 LOC | **96 files · 57,980 LOC** (still ~43% of the codebase) |
+> | `edge/` | 8 files · 1,666 LOC | 8 files · **2,276 LOC** — the runtime trust-boundary hardening |
+> | `agents/` | 14 files · 3,065 LOC | **15 files · 4,023 LOC** |
+> | Tracked Python | 287 files · 124,672 LOC | **314 files · 136,285 LOC** |
+> | Tests | 116 files · 3,302 collected | **125 files · 3,566 collected** |
+> | `docs/` | 74 files (67 `.md`) | **104 files (100 `.md`)**, reorganised into categories; `paper/`, `audits/`, `handbook/`, `handoffs/` hoisted to the root |
+>
+> `docs/control-plane/CURRENT_STATE.md` §1 carries the live figures and is
+> regenerated; this page is not.
+
 **Read this before navigating the package tree.** The top-level layout of
 `src/cardiosentinel/` does not describe where the work is. Three packages that
 look like major subsystems are empty, and two of those three describe research
