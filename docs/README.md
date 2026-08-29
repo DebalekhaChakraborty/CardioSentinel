@@ -8,7 +8,7 @@ reason recorded below.
 | Directory | Holds | Files |
 |---|---|--:|
 | `paper/` | the manuscript, its section drafts, figures, tables, abstract claim audit, submission metadata | 31 |
-| `audits/` | paper-readiness, Related Work, submission-format, runtime-boundary and documentation/demo reconciliation audits | 8 |
+| `audits/` | paper-readiness, Related Work, submission-format, runtime-boundary, documentation/demo and work-recovery audits | 9 |
 | `handbook/` | the research execution handbook, all versions, `.md` and `.docx` | 10 |
 | `handoffs/` | the session handoff chain, ECG3–ECG24 | 23 |
 | `docs/` | the experiment record and control plane, categorised below | 104 |
