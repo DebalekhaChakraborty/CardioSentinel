@@ -28,7 +28,7 @@ based on GitHub `master` at
 `4431c58048d9d981d9872e9f49a5335929a82e65` (merge of PR #129), with
 **no open pull requests**, 2026-08-29 · tags
 `research-freeze-v1.0` · `ips-agentic-runtime-v1.0`
-**Refresh status:** living repository, pull-request, manuscript, documentation,
+**Refresh status:** living repository, pull-request, reporting, documentation,
 runtime and demo state reconciled on 2026-08-29. Scientific values below were
 not recomputed or re-scored; their frozen records remain authoritative.
 **Working tree:** one worktree, **clean** after the path-only document hierarchy
@@ -55,7 +55,7 @@ future confirmatory geometry claims.**
 
 ---
 
-## Live flag — every budget is spent; the manuscript is content-frozen
+## Live flag — every one-shot budget is spent
 
 **The B4 / neural sealed test was consumed on 2026-08-25, 00:17:57Z to
 00:43:22Z.** It was the fifteenth of fifteen one-shot budgets and the last
@@ -72,15 +72,15 @@ authorization, a re-scoring run, or data the project does not have. That was
 true before the sealed test opened; the one remaining exception has now been
 taken.
 
-**The remaining submission gap is formatting and human-supplied metadata, not
-model capability or manuscript assembly.** The content-frozen candidate is
-`docs/paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md`: 14,415
-words, SHA-256
-`78863bcc659f9ee54b1c6566c12fe815098f2d2852598a3bd0a708fe60029fe2`.
-All manuscript sections are assembled. Official TACTiCS 2026 instructions and
-a template have not been obtained, so this repository does not infer a page
-limit, layout rule or submission format. Author names, affiliations and the
-remaining human submission metadata are also intentionally unresolved.
+**A content-frozen long-form write-up of the programme exists in the tree** at
+`docs/paper/`, 14,415 words, SHA-256
+`78863bcc659f9ee54b1c6566c12fe815098f2d2852598a3bd0a708fe60029fe2`. It is a
+historical record of how the evidence was narrated, not a live research
+artifact, and **nothing in this repository depends on it.**
+
+**Venue-specific preparation is out of scope for this repository** and belongs
+in an external publication workspace — see `CONTRIBUTING.md`. No formatting
+rule, layout constraint or author metadata is inferred or tracked here.
 
 ---
 
@@ -153,11 +153,10 @@ prohibited, and the bounded result is available through the post-hoc analysis.
 and unedited on purpose; they remain evidence of what the programme asserted at
 those moments rather than living descriptions of the repository.
 
-**`docs/paper/PAPER_OUTLINE_V2.md` remains the governing outline**, and the assembled
-content-frozen candidate is
-`docs/paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md`.
-`PAPER_OUTLINE_V1.md` predates the runtime and agentic layer and is retained
-unedited under the `_V1` convention.
+**The long-form write-up and its outlines are retained under `docs/paper/` as
+historical records** of how this evidence was narrated. They are preserved
+unedited under the `_V1` convention, are not authoritative for any scientific
+value, and no code, test or artifact depends on their content.
 
 **`docs/experiments/b4/B4_TEST_DEFERRAL_DECISION_V1.md` is superseded and frozen.** It argued
 for not opening the sealed test; it was overridden in writing by
@@ -902,23 +901,21 @@ and no path in it touches the test partition.
 ### Next steps
 
 The **Research Baseline v1.0** freeze (handbook §51) still governs: documentation,
-analysis of existing evidence, and submission preparation. No new experiment, no
+analysis of existing evidence, and reporting. No new experiment, no
 architecture change, no threshold generation. The sealed-test clause is now moot
 rather than lifted — there is nothing left to open.
 
-1. Obtain the official TACTiCS 2026 submission instructions and template. Until
-   they are available, page-limit and formatting compliance are **unknown**, not
-   failed or assumed.
-2. Supply and verify the human-controlled submission metadata: author names,
-   affiliations, acknowledgements and any venue declarations.
-3. Land the runtime trust-boundary and documentation/demo reconciliation branch
+1. Keep venue-specific preparation outside this repository, in the publication
+   workspace described in `CONTRIBUTING.md`. Formatting rules and author
+   metadata are not repository state and are not inferred here.
+2. Land the runtime trust-boundary and documentation/demo reconciliation branch
    (`fix/runtime-hardening-doc-reconciliation`, 2 commits) — PR #129 is merged
    and this work is not yet on `master`. Do not introduce a second directory
    reorganization.
-4. Re-verify the evidence mirror when credentials are next available or the
+3. Re-verify the evidence mirror when credentials are next available or the
    existing dated verification becomes too old for the intended claim (§8.1).
-5. Keep E1 edge hardware and external validation explicitly open. They are not
-   authorized as part of submission preparation.
+4. Keep E1 edge hardware and external validation explicitly open. Neither is
+   authorized under the current freeze.
 
 Leaving the freeze requires a named experiment with a pre-registered protocol,
 as T1, T2, U1 and W1 each had. The two candidates are the **T2-score ablation**

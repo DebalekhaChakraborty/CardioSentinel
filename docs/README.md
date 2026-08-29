@@ -7,14 +7,14 @@ reason recorded below.
 
 | Directory | Holds | Files |
 |---|---|--:|
-| `audits/` | paper-readiness, Related Work, submission-format, recovery and migration audits | 10 |
+| `audits/` | verification records: runtime trust boundary, reproducibility, related-work verification, recovery and migration audits | 10 |
 | `docs/` | the complete document tree, except root audit and reproducibility records | 172 tracked |
 
 ## Inside `docs/`
 
 | Directory | Holds | Files |
 |---|---|--:|
-| `docs/paper/` | the manuscript, section drafts, figures, tables, abstract claim audit and submission metadata | 31 tracked |
+| `docs/paper/` | historical long-form write-up and its drafts, plus the **evidence visualizations** in `figures/` and their generators | 31 tracked |
 | `docs/handbook/` | every handbook version, `.md` and `.docx` | 10 |
 | `docs/handoffs/` | the historical session handoff chain, ECG3–ECG24 | 23 |
 | `docs/experiments/b4/` | the B4 encoder: protocol, selection, sealed-test authorization, and the E1–E13a investigations | 35 |
