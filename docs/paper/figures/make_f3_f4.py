@@ -19,9 +19,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-REPO = pathlib.Path(__file__).resolve().parents[2]
+REPO = pathlib.Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO / "src"))
-OUT = REPO / "paper" / "figures"
+OUT = pathlib.Path(__file__).resolve().parent
 
 from cardiosentinel.neural.e11_data_binding import (  # noqa: E402
     E11Sources,

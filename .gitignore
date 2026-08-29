@@ -42,9 +42,32 @@ models/checkpoints/
 .vscode/
 .idea/
 
-# Working paper drafts (e.g. uploaded DOCX submission drafts) stay local;
-# the tracked manuscript lives under paper/ itself, not paper/drafts/.
-paper/drafts/
+# ---------------------------------------------------------------------------
+# Publication-workspace policy
+#
+# This repository is a computational research artifact. Venue-specific
+# preparation -- DOCX manuscripts, final PDFs, conference figure variants,
+# reviewer notes, submission metadata, templates and formatting experiments --
+# belongs in an external publication workspace (see CONTRIBUTING.md), not here.
+#
+# These patterns prevent FUTURE local publication artifacts from being tracked;
+# they do not remove files already tracked by Git.
+#
+# Deliberately narrow. No blanket *.docx / *.pdf / *.md rule: the research
+# handbook ships as .docx, the evidence visualizations ship as .pdf, and almost
+# every scientific record here is .md.
+# ---------------------------------------------------------------------------
+publication-local/
+submission-local/
+paper-drafts/
+docs/paper/drafts/
+
+*_TACTiCS_*.docx
+*_TACTiCS_*.pdf
+*.submission.docx
+*.submission.pdf
+*_review_notes.md
+*_review_report.md
 
 # The curated IPS demo reproduction bundle is committed deliberately: 1.63 MiB,
 # selected by scripts/provenance/select_demo_bundle.py and verified by

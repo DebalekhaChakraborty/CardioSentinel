@@ -34,7 +34,7 @@
 > gap statement, and the EDB/LTSTDB comparison that must not be reintroduced.
 >
 > **Every citation key here resolves to a record the recorded search returned.**
-> `python scripts/literature_search.py verify paper/PAPER_S2_RELATED_WORK_DRAFT.md`
+> `python scripts/literature_search.py verify docs/paper/PAPER_S2_RELATED_WORK_DRAFT.md`
 > fails on any key that does not. That check proves provenance, not
 > comprehension: it cannot tell whether a work says what this section says it
 > says. `LITERATURE_SEARCH_V1.md` §6 states the rest of the limits, and a

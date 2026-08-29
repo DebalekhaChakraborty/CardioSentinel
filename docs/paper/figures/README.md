@@ -1,4 +1,4 @@
-# Manuscript figures — provenance and reproduction
+# Evidence visualizations — provenance and reproduction
 
 **Assembly and plotting only. No figure computes a new scientific quantity.**
 Every value plotted traces to a frozen report or a promoted run artifact.
@@ -6,11 +6,11 @@ Every value plotted traces to a frozen report or a promoted run artifact.
 Regenerate with:
 
 ```
-venvs/tactics/bin/python paper/figures/make_f3_f4.py      # data figures
-venvs/tactics/bin/python paper/figures/make_f1_f2_f5.py   # diagrams
+venvs/tactics/bin/python docs/paper/figures/make_f3_f4.py      # data figures
+venvs/tactics/bin/python docs/paper/figures/make_f1_f2_f5.py   # diagrams
 ```
 
-Outputs vector `.pdf` (submission) and `.png` at 200 dpi (review).
+Outputs vector `.pdf` and `.png` at 200 dpi.
 
 ## Palette
 
@@ -75,7 +75,7 @@ each carries the evidence that constrains it — **18 of 25** Appendix A claims
 machine-checked, **35 nodes / 39 edges** per alert, **~61×** real time,
 **4.161 ms/window** median.
 
-The orange band is the part a reviewer will press on: the bridge between the
+The orange band is the part a careful reader will press on: the bridge between the
 trained pipeline and the running one. **Physiology half bit-exact at
 `0.000e+00` on 64 of 64 audited rows; embedding half max `7.15e-07` = 6 ULP of
 float32.**

@@ -1,11 +1,16 @@
 # CardioSentinel documentation relocation and demo reconciliation, V1
 
-**Date:** 2026-08-29  
-**Branch:** `feat/e11-e13a-instrumentation-and-paper-readiness`  
-**HEAD:** `1bf366e66739f2990012d05c702a4d78400a06da`  
+**Date:** 2026-08-29
+
+**Branch:** `feat/e11-e13a-instrumentation-and-paper-readiness`
+
+**HEAD:** `1bf366e66739f2990012d05c702a4d78400a06da`
+
 **GitHub base:** `master` at
-`2da1fe695bcec57a4f529b0d97d8a7c0b0a2ce6c` (PR #128 merged)  
-**Open pull requests:** PR #129 only at the time of reconciliation  
+`2da1fe695bcec57a4f529b0d97d8a7c0b0a2ce6c` (PR #128 merged)
+
+**Open pull requests:** PR #129 only at the time of reconciliation
+
 **Interpreter:** `/home/AI_POC/venvs/tactics/bin/python`
 
 ## Scope and freeze

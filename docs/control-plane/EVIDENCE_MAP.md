@@ -9,8 +9,8 @@ number below were different. **Part 2 is findings** — what the numbers actuall
 say, each with the boundary that travels with it.
 
 A reader deciding what CardioSentinel established should be able to answer *"is
-this a method claim or a result claim?"* about any sentence in the manuscript.
-That is what this page is for.
+this a method claim or a result claim?"* about any sentence in the reported
+record. That is what this page is for.
 
 Companion documents, both fuller and neither a substitute: the **Research
 Execution Handbook** for governance and rationale, the **Experiment Catalogue**
@@ -166,7 +166,7 @@ not implement. **A well-tuned memoryless rule was never tested.** RQ4 reads
 
 **What W1 does not answer.** `s4d_temporal_evidence_s_t` feeds **both** arms, so
 W1 says nothing about what the S4D architecture contributed — the question a
-reviewer will actually ask.
+careful reader will actually ask.
 
 ### 2.5 External validation — a negative finding, not a gap awaiting effort
 

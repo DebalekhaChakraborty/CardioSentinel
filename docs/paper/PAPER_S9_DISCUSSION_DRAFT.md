@@ -405,7 +405,7 @@ embedding half within **6 ULP of float32** (max `7.15e-07`, median 2.5 ULP).
 > pair of numbers belongs to the U1 calibration-agreement guard**
 > (`U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md`), not to the ULP comparison,
 > and reached this draft by copy-paste from the router material above. The ULP
-> figures are in `paper/figures/README.md` §F1 and `PAPER_OUTLINE_V2.md`
+> figures are in `docs/paper/figures/README.md` §F1 and `PAPER_OUTLINE_V2.md`
 > §3.5.1. **No frozen report was changed** — the error was local to this draft,
 > and the manuscript never carried it: §3.6 of the submission candidate was
 > written from the figures README and states the ULP values correctly.
