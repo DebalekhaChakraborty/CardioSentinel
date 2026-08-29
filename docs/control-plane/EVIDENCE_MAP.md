@@ -65,8 +65,12 @@ values is precisely what the pre-registration existed to prevent.
 **A one-shot budget is an access that can be taken once.** Not a policy that can
 be relaxed, and not a flag that can be re-read.
 
-- **Fourteen of fifteen budgets are spent.** Only the B4 / neural sealed test
-  remains, and no `TEST_ATTEMPT.json` exists anywhere in the tree.
+- **All fifteen budgets are spent.** The last of them, the B4 / neural sealed
+  test, was consumed on 2026-08-25, and the single `TEST_ATTEMPT.json` in the
+  tree is its receipt: `attempt_sequence 1`, `attempt_status COMPLETE`,
+  `repeat_attempt_permitted false`. **There is now no budget left to protect and
+  none left to spend** — from here the machinery protects the *record* of
+  accesses already taken rather than an unspent one.
 - ***"TEST is sealed" is half true.*** B0–B3 spent theirs in Phase 3B-1 — four
   `test_evaluation_attempt.json` receipts are what a consumed chain looks like.
 - **Spent flags are not live permissions.** `T1_CONTINUATION_AUTHORIZED` and
@@ -203,10 +207,13 @@ a matter of course**, not as a caveat added when someone happens to look.
 bounded. RQ2 partially. **Four of seven remain open, and every one of them needs
 a run, not an analysis.**
 
-**Why that is not a weakness of the method.** The programme spent fourteen
+**Why that is not a weakness of the method.** The programme spent all fifteen
 one-shot budgets and produced two answers, one rejection, six failure records,
-and four refuted-or-corrected predictions. **That ratio is what honest
-measurement looks like** when the machinery is built to prevent the alternative.
+and four refuted-or-corrected predictions. The fifteenth — the sealed test —
+**answered no research question at all**: it characterises the selected encoder
+on held-out subjects and moved nothing from open to answered. **That ratio is
+what honest measurement looks like** when the machinery is built to prevent the
+alternative.
 
 **The trap this page exists to prevent.** Every Part 2 finding is small, bounded
 or negative. Every Part 1 mechanism is complete and demonstrated. The temptation

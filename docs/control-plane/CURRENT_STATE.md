@@ -23,21 +23,19 @@ from it. **Neither authorizes an experiment.**
 
 ---
 
-**As of:** working branch `chore/document-hierarchy-migration-v2`
+**As of:** working branch `chore/post-merge-living-state`
 based on GitHub `master` at
-`4431c58048d9d981d9872e9f49a5335929a82e65` (merge of PR #129), with
+`1bdc1b7b3d0182aae87332375c56062d35dcc143` (merge of PR #131), with
 **no open pull requests**, 2026-08-29 · tags
 `research-freeze-v1.0` · `ips-agentic-runtime-v1.0`
 **Refresh status:** living repository, pull-request, reporting, documentation,
 runtime and demo state reconciled on 2026-08-29. Scientific values below were
 not recomputed or re-scored; their frozen records remain authoritative.
-**Working tree:** one worktree, **clean** after the path-only document hierarchy
-migration. The
-runtime trust-boundary and documentation/demo reconciliation work is committed
-as `1723436` and `dd19d75`; later owner-authored living-state, evidence-mirror
-and paper-draft-ignore updates are separately committed through `8346a7e`.
-**Open PRs:** none. #128 and #129 are both merged. *(Snapshot only — `gh pr
-list` is authoritative.)*
+**Working tree:** one worktree, **clean**. The runtime trust-boundary work, the
+document-hierarchy V2 migration, the identifier mapping and the research-artifact
+presentation pass are all merged; `master` carries them.
+**Open PRs:** none. #128, #129, #130 and #131 are all merged. *(Snapshot only —
+`gh pr list` is authoritative.)*
 **Canonical T1 attempt:** **CONSUMED** — failed post-claim at stage 24
 **T1 measurement continuation:** **COMPLETED** — the single authorization is spent
 **T2 outer validation:** **CONSUMED and ANALYSED** — values published
@@ -88,16 +86,16 @@ rule, layout constraint or author metadata is inferred or tracked here.
 
 | | |
 |---|---|
-| `master` | `4431c58048d9d981d9872e9f49a5335929a82e65` — merge of PR #129 |
-| Working branch | `chore/document-hierarchy-migration-v2`, created from the clean recovered post-#129 state at `61cc553`; no automatic merge |
+| `master` | `1bdc1b7b3d0182aae87332375c56062d35dcc143` — merge of PR #131 |
+| Working branch | `chore/post-merge-living-state`, created from `master` at `1bdc1b7`; living-state refresh only |
 | Tags | `research-freeze-v1.0` · `ips-agentic-runtime-v1.0` · `legacy/v0` · three `archive/*` tags |
 | Releases | none |
 | Working tree | one worktree, **clean** — the reconciliation work is committed, not pending |
-| Open PRs | **none** — #128 and #129 both merged |
-| Tracked Python | 314 files · 136,285 LOC |
+| Open PRs | **none** — #128 through #131 all merged |
+| Tracked Python | 318 files · 136,707 LOC |
 | Tests | 127 `test_*.py` files · 3,579 collected tests |
-| Documents | 171 tracked files in `docs/` (148 `.md`), including `docs/paper/` 31, `docs/handbook/` 10 and `docs/handoffs/` 23; four ignored owner DOCX drafts also remain under `docs/paper/drafts/` |
-| Root documentation | `audits/` 10 Markdown audits, including recovery and hierarchy-migration receipts; `reproducibility/` remains separate |
+| Documents | 172 tracked files in `docs/` (149 `.md`), including `docs/paper/` 31, `docs/handbook/` 10 and `docs/handoffs/` 23; ignored owner DOCX drafts also remain under `docs/paper/drafts/` |
+| Root documentation | `audits/` 9 Markdown audits, including recovery and hierarchy-migration receipts; `reproducibility/` remains separate |
 | Handbook | **v1.5**, with v1.2–v1.4 retained, superseded and unedited |
 | `neural/` | 96 Python files · 57,980 LOC — still where most research code lives |
 | `edge/` · `agents/` | 2,276 · 4,023 Python lines |
@@ -926,10 +924,9 @@ human authorization.
 
 ---
 
-_Post-PR #129 recovery refresh: 2026-08-29, on
-`fix/runtime-hardening-doc-reconciliation`, based on GitHub `master`
-`4431c58048d9`, no open pull requests. The recovered runtime/documentation
-commits and later owner-authored updates through `8346a7e` are committed; the
-recovery audit accompanies this metadata refresh. Scientific values were not
-recomputed; their frozen source records remain authoritative. Evidence-mirror
+_Post-PR #131 living-state refresh: 2026-08-29, on
+`chore/post-merge-living-state`, based on GitHub `master` `1bdc1b7b3d01`, no
+open pull requests. The document-hierarchy V2 migration, the identifier mapping
+and the research-artifact presentation pass are merged. Scientific values were
+not recomputed; their frozen source records remain authoritative. Evidence-mirror
 statements in §8 carry their own verification dates._
