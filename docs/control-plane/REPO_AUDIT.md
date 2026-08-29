@@ -3,7 +3,7 @@
 **This is a historical record of the *pre-reboot* repository, not a current
 audit.** It describes the 2020 B.Tech prototype as it stood on 2026-08-06,
 before the rebuild. That prototype is retained unchanged in
-[`legacy/v0/`](../legacy/v0/README.md).
+[`legacy/v0/`](../../legacy/v0/README.md).
 
 For the current state of the repository see
 [`CURRENT_STATE.md`](CURRENT_STATE.md), and for the research ladder see
@@ -44,4 +44,3 @@ They are excluded from the active pipeline. The historical sample data must not
 be used until provenance, rights, and suitability are independently established.
 Git history also contains deleted CSV and XLSX data blobs; a separate, reviewed
 data-governance task must decide whether history remediation is needed.
-

@@ -11,7 +11,7 @@ source of truth; this file is a cache of it.**
 
 Read this file for *"where are we"*. Read the `_V1` documents for *"what did we
 decide and why"*. Read
-`handbook/CardioSentinel_Research_Execution_Handbook_v1.4.md` for the programme's
+`handbook/CardioSentinel_Research_Execution_Handbook_v1.5.md` for the programme's
 governing account of itself, `docs/control-plane/ARCHITECTURE.md` for where the code actually
 lives, and `docs/control-plane/EXPERIMENT_CATALOGUE.md` for what has been spent.
 
@@ -23,18 +23,18 @@ from it. **Neither authorizes an experiment.**
 
 ---
 
-**As of:** `master` `e0e3a79` (merge of PR #127) plus **PR #128 open**
-(E11–E13a, instrumentation, paper readiness), 2026-08-28 · tags
+**As of:** working branch `feat/e11-e13a-instrumentation-and-paper-readiness`
+at `1bf366e66739f2990012d05c702a4d78400a06da`; GitHub `master` at
+`2da1fe695bcec57a4f529b0d97d8a7c0b0a2ce6c` (merge of PR #128), with
+**PR #129 open**, 2026-08-29 · tags
 `research-freeze-v1.0` · `ips-agentic-runtime-v1.0`
-**Refresh status:** **this is a targeted correction, not a wholesale
-regeneration.** Two sessions edited this file on 2026-08-25 and 2026-08-28; the
-§2 / §9.3 / literature-search claims were corrected by the first, the E11–E13a
-sections added by the second. **The run, artifact and ledger sections were not
-re-derived** and carry whatever date their last full refresh gave them.
-**Working tree:** shared by three workers; run `git status` before assuming
-anything about it
-**Open PRs:** none at the time of writing. *(Snapshot only — `gh pr list`
-is authoritative; this line is stale the moment a PR opens or merges.)*
+**Refresh status:** living repository, pull-request, manuscript, documentation,
+runtime and demo state reconciled on 2026-08-29. Scientific values below were
+not recomputed or re-scored; their frozen records remain authoritative.
+**Working tree:** one worktree. It contains the PR #129 work plus the reviewed
+runtime trust-boundary and documentation/demo reconciliation changes.
+**Open PRs:** #129 only at the time of refresh. *(Snapshot only — `gh pr list`
+is authoritative.)*
 **Canonical T1 attempt:** **CONSUMED** — failed post-claim at stage 24
 **T1 measurement continuation:** **COMPLETED** — the single authorization is spent
 **T2 outer validation:** **CONSUMED and ANALYSED** — values published
@@ -52,7 +52,7 @@ future confirmatory geometry claims.**
 
 ---
 
-## Live flag — every budget is spent, and the paper is still not written
+## Live flag — every budget is spent; the manuscript is content-frozen
 
 **The B4 / neural sealed test was consumed on 2026-08-25, 00:17:57Z to
 00:43:22Z.** It was the fifteenth of fifteen one-shot budgets and the last
@@ -69,21 +69,15 @@ authorization, a re-scoring run, or data the project does not have. That was
 true before the sealed test opened; the one remaining exception has now been
 taken.
 
-**The remaining gap is the manuscript, not model capability.** ~~§2 Related Work
-still does not exist and its literature search has not been started~~ — **§2 was
-searched and drafted on 2026-08-25** (`LITERATURE_SEARCH_V1.md`,
-`PAPER_S2_RELATED_WORK_DRAFT.md`), honouring the §6.3 condition of
-`B4_TEST_AUTHORIZATION_V1.md`: **no sealed-test value appears in the section.**
-The search **refuted the gap statement** the outline specified. §9 Discussion
-exists as a merged skeleton and draft (#105), both written *before* the test
-opened, which is the point: a discussion revised in light of the result would be
-post-hoc reasoning whatever it concluded. **§9.3 and §9.5.5 were added after the
-search and neither touches a sealed-test number.**
-
-**§4 and §4.6 are now drafted** (`PAPER_S4_EVIDENCE_FRAMEWORK_DRAFT.md`,
-2026-08-28, PR #128), together with tables T1–T4 and figures F1–F5.
-**What is still missing is §3.5**, and the assembly sections — §1, §3, §5–§8,
-§10–§12 — which compose existing material rather than create it.
+**The remaining submission gap is formatting and human-supplied metadata, not
+model capability or manuscript assembly.** The content-frozen candidate is
+`paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md`: 14,415
+words, SHA-256
+`78863bcc659f9ee54b1c6566c12fe815098f2d2852598a3bd0a708fe60029fe2`.
+All manuscript sections are assembled. Official TACTiCS 2026 instructions and
+a template have not been obtained, so this repository does not infer a page
+limit, layout rule or submission format. Author names, affiliations and the
+remaining human submission metadata are also intentionally unresolved.
 
 ---
 
@@ -91,19 +85,21 @@ search and neither touches a sealed-test number.**
 
 | | |
 |---|---|
-| `master` | `652da3d72dbedd5c5994803ba9c9a41c1b111fd2` — handoff ECG 20. **Ahead of the last full refresh of this file, which was pinned to `84991e147d94c74481a1458645e8796781ebe14e` (merge of PR #121)** |
+| `master` | `2da1fe695bcec57a4f529b0d97d8a7c0b0a2ce6c` — merge of PR #128 |
+| Working branch | `feat/e11-e13a-instrumentation-and-paper-readiness` at `1bf366e66739f2990012d05c702a4d78400a06da` |
 | Tags | `research-freeze-v1.0` · `ips-agentic-runtime-v1.0` · `legacy/v0` · three `archive/*` tags |
 | Releases | none |
-| Working tree | **shared.** Two Claude sessions and the user work in this checkout; `HEAD` moves under you |
-| Open PRs | none |
-| Tracked Python | 292 files · 126,844 LOC |
-| Tests | 120 files |
-| Documents | 85 in `docs/` (78 `.md`) |
-| Handbook | **v1.4**, amended 2026-08-25 (v1.2 and v1.3 retained, superseded, unedited) |
-| `neural/` | 87 files · 54,964 LOC — still where the work lives |
-| `edge/` · `agents/` | 1,692 · 3,289 lines |
+| Working tree | one worktree; inspect `git status` for the PR #129 and reconciliation changes |
+| Open PRs | **#129 only** |
+| Tracked Python | 313 files · 136,120 LOC |
+| Tests | 125 `test_*.py` files · 3,566 collected tests |
+| Documents | 104 files in `docs/` (100 `.md`); authoritative publication/governance trees are hoisted at root |
+| Root documentation | `paper/` 31 files (19 `.md`) · `audits/` 8 (8 `.md`, after this reconciliation) · `handbook/` 10 (4 `.md`) · `handoffs/` 23 (23 `.md`) |
+| Handbook | **v1.5**, with v1.2–v1.4 retained, superseded and unedited |
+| `neural/` | 96 Python files · 57,980 LOC — still where most research code lives |
+| `edge/` · `agents/` | 2,276 · 4,023 Python lines |
 | `reproducibility/` | 35 tracked files including the 1.63 MiB demo bundle |
-| Evidence on disk | `cardiosentinel-runs` 2.3 GB · `cardiosentinel-data` 5.6 GB · `cardiosentinel-features` 16 GB (all gitignored) |
+| Evidence on disk | `cardiosentinel-runs` 3.4 GB · `cardiosentinel-data` 5.6 GB · `cardiosentinel-features` 16 GB (all gitignored) |
 
 ### Merged since the previous refresh (`544581e`, PR #97)
 
@@ -144,23 +140,21 @@ remote.** It is the pre-rewrite identifier for `544581e`. Translate through
 ## 2. Where this stands vs. the plan docs
 
 `docs/control-plane/IMPLEMENTATION_PLAN.md` was refreshed in #68 and #77.
-`docs/control-plane/REPO_AUDIT.md` was refreshed in #77. *(#77 also refreshed a
-`docs/README.md`; no such file exists on master today, and this line has carried
-the claim forward unchecked ever since.)*
+`docs/control-plane/REPO_AUDIT.md` was refreshed in #77. `docs/README.md` exists
+and indexes the categorized `docs/` tree.
 `docs/control-plane/RESEARCH_SCOPE.md` retains its original objective and now states the
 post-B4 execution boundary explicitly: attempt 1 completed, repeat is
 prohibited, and the bounded result is available through the post-hoc analysis.
 
-**The handbook is v1.4, amended 2026-08-25** to record the consumed sealed test
-(§35.3, §43, new §43.2, §44, §49.1, §50.2, §50.3, §51, §56, Appendix A claim 12).
-The amendment changed no number, interval or finding. v1.2 and v1.3 are
-superseded but tracked and unedited, on purpose — v1.2 is the document that
-recorded "not one of the seven research questions is affirmatively answered",
-and that statement is now evidence of a moment rather than a fact.
+**The handbook is v1.5.** Earlier v1.2–v1.4 editions are superseded but tracked
+and unedited on purpose; they remain evidence of what the programme asserted at
+those moments rather than living descriptions of the repository.
 
-**`paper/PAPER_OUTLINE_V2.md` is the current outline** (merged in #95, amended
-2026-08-25). It supersedes `PAPER_OUTLINE_V1.md`, which predates the runtime and
-the agentic layer and is retained unedited under the `_V1` convention.
+**`paper/PAPER_OUTLINE_V2.md` remains the governing outline**, and the assembled
+content-frozen candidate is
+`paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md`.
+`PAPER_OUTLINE_V1.md` predates the runtime and agentic layer and is retained
+unedited under the `_V1` convention.
 
 **`docs/experiments/b4/B4_TEST_DEFERRAL_DECISION_V1.md` is superseded and frozen.** It argued
 for not opening the sealed test; it was overridden in writing by
@@ -182,11 +176,11 @@ reconsidered is evidence and a deleted one is not.
 | **T1 episode reasoning** | `phase9-t1-*` | complete · measured and reported |
 | **T2 longitudinal comparison** | `phase8-t2-development-v1` | complete · S4D selected; contrast interval spans zero |
 | **W1 window comparator** | derived — no run directory | complete · **RQ4 supported (bounded)** |
-| **IPS runtime** | `edge/`, 1,692 lines | complete · replay simulation on a laptop; **not edge hardware** |
-| **Evidence graph** | `agents/graph.py` | complete · 35 nodes / 39 edges per alert, closed vocabularies |
-| **Explanation agents** | `agents/context.py`, `explain.py`, `providers.py` | complete · guarded generation, opt-in local provider, deterministic fallback; **generative arm exercised once (n=1 context)** — `EXPLANATION_EVALUATION_REPORT_V1.md` |
-| **Architecture Selection Agent** | `agents/architecture.py` | complete · lifecycle, not recommendation |
-| **Explanation evaluation framework** | `agents/evaluation/` | complete · **both arms exercised on n=1 context** (Qwen3-1.7B, Qwen3-4B-Instruct-2507): fidelity 1.000, 0 claim violations, and the runtime **refused** the generation for a categorical gate inversion. The separate manual contract `QWEN_EVALUATION_RUN.md` is **NOT EXECUTED** |
+| **IPS runtime** | `src/cardiosentinel/edge/`, 2,276 lines | complete · replay simulation on a laptop; **not edge hardware** |
+| **Evidence graph** | `src/cardiosentinel/agents/graph.py` | complete · verified or explicitly unavailable artifact lineage, closed node/edge vocabularies |
+| **Explanation agents** | `src/cardiosentinel/agents/context.py`, `explain.py`, `providers.py` | complete · deterministic is the no-call default; local and hosted providers require explicit selection; local has no hosted fallback; **generative arm exercised once (n=1 context)** — `EXPLANATION_EVALUATION_REPORT_V1.md` |
+| **Architecture Selection Agent** | `src/cardiosentinel/agents/architecture.py` | complete · lifecycle, not recommendation |
+| **Explanation evaluation framework** | `src/cardiosentinel/agents/evaluation/` | complete · **both arms exercised on n=1 context** (Qwen3-1.7B, Qwen3-4B-Instruct-2507): fidelity 1.000, 0 claim violations, and the runtime **refused** the generation for a categorical gate inversion. The separate manual contract `QWEN_EVALUATION_RUN.md` is **NOT EXECUTED** |
 
 **Not started:** E1 edge hardware. RQ5 is open and a laptop is not an edge
 device.
@@ -553,9 +547,10 @@ selected-architecture binding that makes "the model the authorization names" and
 sealed access is attempted (`neural/b4b_sealed_test.py`, handbook §43.2).
 
 Weakest: the top-level package tree still partly misrepresents the codebase.
-`edge/` and `agents/` now hold real code (see `ARCHITECTURE.md` §0.1 and §0.2);
+`src/cardiosentinel/edge/` and `src/cardiosentinel/agents/` now hold real code
+(see `ARCHITECTURE.md` §0.1 and §0.2);
 `episodes/`, `personalization/` and `uncertainty/` remain two-line docstring
-stubs, while the work lives in `neural/` — 87 files, 54,897 LOC, 44% of the code.
+stubs, while most work lives in `neural/` — 96 Python files, 57,980 LOC.
 Two of those three stubs describe research that is complete elsewhere.
 
 ---
@@ -795,6 +790,12 @@ and no path in it touches the test partition.
 
 ### Closed since the previous refresh
 
+- **Runtime trust boundaries were reconciled on 2026-08-29.** Waveform-reader
+  failures no longer masquerade as EOF; runtime artifacts are digest-verified;
+  evidence-graph lineage distinguishes verified from unavailable locks; and
+  provider selection is explicit, with no API-key-driven hosted fallback. The
+  authoritative verification record is
+  `audits/CARDIOSENTIN_RUNTIME_TRUST_BOUNDARY_HARDENING_V1.md`.
 - **Eleven stale scratch worktrees** — gone. `git worktree list` shows one entry.
 - **CI was red on master** for two independent reasons, neither a defect in the
   code under test: fifteen ruff errors from #107–#110, and
@@ -811,56 +812,21 @@ and no path in it touches the test partition.
 ### Next steps
 
 The **Research Baseline v1.0** freeze (handbook §51) still governs: documentation,
-analysis of existing evidence, and paper drafting. No new experiment, no
+analysis of existing evidence, and submission preparation. No new experiment, no
 architecture change, no threshold generation. The sealed-test clause is now moot
 rather than lifted — there is nothing left to open.
 
-1. **The manuscript's §7 must carry the fifth row already registered in the
-   outline**, with its boundary inline, and §9.1 gets one sentence. Per
-   `PAPER_S9_DISCUSSION_SKELETON.md` §9.8: the number goes in §7, the sentence
-   goes in §9.1, and **no thesis in §9 moves.**
-2. ~~**The literature search for §2.**~~ **Done 2026-08-25** — 65 queries across
-   Crossref, arXiv and PubMed, 393 hits, recorded in `LITERATURE_SEARCH_V1.json`
-   with the request URL and timestamp per record. §2 is drafted with 61
-   citations, 0 unresolved. **The gap statement did not survive the search**;
-   the draft's §2.6 is the narrower claim. **The replacement next step is §4 and
-   §4.6**, which are the contribution and have no draft.
-3. **Review the drafts already merged** — `PAPER_S2_RELATED_WORK_DRAFT.md`,
-   `PAPER_S5_6_CLAIM_BOUNDARY_DRAFT.md`, `PAPER_S9_DISCUSSION_SKELETON.md`,
-   `PAPER_S9_DISCUSSION_DRAFT.md` (#105). ~~§9.3 is deliberately stubbed~~ —
-   **§9.3 is written**, and §5.6 is now nine findings rather than five. §9.7, the
-   provenance-incident subsection, is accepted and unwritten.
-4. ~~**Remove or re-word one dead entry in `APPROVED_DISCLAIMERS`.**~~
-   **Done 2026-08-25, and it was not dead.** `agents/claims.py` registered *"any
-   claim about the sealed test, which is unopened"* from before the B4-B test was
-   authorized until after it was consumed. It was first assessed as dead code on
-   a `grep` for its literal text, which found one occurrence — **but
-   `evidence.py` aliases the whole tuple as `CANNOT_SUPPORT`, attaches it to
-   every `EvidenceRecord`, prints it under "This alert does not establish:", and
-   `graph.py` emits each entry as a `constraint` node.** It was a false boundary
-   shown to users on every alert, not an unused constant. **Reworded rather than
-   deleted**, because deleting removes a stated boundary from user output. Two
-   tests were added: one binding the disclaimer to claim 12's `reason`, one
-   asserting no registered disclaimer carries research prose — the first
-   rewording spelled out the denominators and the interval and was caught by
-   `test_the_context_carries_no_research_prose`.
-5. **Decide what phrasing the claim guard approves for reporting the sealed
-   test.** Appendix A claim 12 in the handbook now reads *"test
-   performance, stated unqualified"* with a reporting requirement, while
-   `agents/claims.py` still encodes the absolute form and **blocks the §7 text
-   the manuscript must contain** — `"on the sealed test set"` and `"test
-   result"` are both refused. Those two documents now disagree. **This blocks
-   next-step 1.**
-6. **Report the registered comparison in §7, and name the scored artifact.**
-   The sealed test evaluated the **B4-B encoder alone**, which is exactly what
-   `B4_PROTOCOL_V1` §Scope pre-registered — *"a global, single-channel comparator
-   to the frozen B0–B3 classical baselines… not the CardioSentinel
-   contribution"*. §7 must not imply the number characterises the assembled IPS,
-   **and it must report the B0–B3 comparison**, because that comparison is the
-   registered research question and its answer is **no**.
-   `B4B_SEALED_TEST_POST_HOC_ANALYSIS_V1.md` §1.1.
-7. **Re-verify the mirror when the session next expires** (defect 1, closed
-   twice now). §8.1 lists what a real check is: contents, not a headcount.
+1. Obtain the official TACTiCS 2026 submission instructions and template. Until
+   they are available, page-limit and formatting compliance are **unknown**, not
+   failed or assumed.
+2. Supply and verify the human-controlled submission metadata: author names,
+   affiliations, acknowledgements and any venue declarations.
+3. Complete final review of PR #129 after the documentation/demo reconciliation
+   gate. Do not introduce a second directory reorganization.
+4. Re-verify the evidence mirror when credentials are next available or the
+   existing dated verification becomes too old for the intended claim (§8.1).
+5. Keep E1 edge hardware and external validation explicitly open. They are not
+   authorized as part of submission preparation.
 
 Leaving the freeze requires a named experiment with a pre-registered protocol,
 as T1, T2, U1 and W1 each had. The two candidates are the **T2-score ablation**
@@ -871,11 +837,8 @@ human authorization.
 
 ---
 
-_Last fully refreshed: 2026-08-25, against `origin/master` `84991e1` (merge of
-PR #121), after reconciling the research assistant and living state documents to
-the single consumed B4-B attempt._
-
-_Targeted correction: 2026-08-25, against `master` `652da3d`, after the §2
-literature search. Only the §2 / §9.3 / literature-search claims, the repository
-pin, and the next-step list were touched; **the run, artifact and ledger
-sections were not re-derived and are as of the full refresh above.**_
+_Live-state regeneration: 2026-08-29, on
+`feat/e11-e13a-instrumentation-and-paper-readiness` at `1bf366e66739`; GitHub
+`master` `2da1fe695bce`, PR #129 open. Git, layout, document counts, manuscript,
+handbook, runtime and demo state were re-derived. Scientific values were not
+recomputed; their frozen source records remain authoritative._

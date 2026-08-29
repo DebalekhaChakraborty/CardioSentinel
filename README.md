@@ -12,11 +12,13 @@ medical recommendations.
 > [From the manuscript to the evidence](#from-the-manuscript-to-the-evidence) to
 > go from any section to the artifact behind it.
 >
-> **The manuscript is in preparation.** Its current structure is
-> [`paper/PAPER_OUTLINE_V2.md`](paper/PAPER_OUTLINE_V2.md), and the section
-> numbers used below refer to that outline. The governing record of the
+> **The manuscript is content-frozen; submission formatting is blocked.** The
+> current candidate is
+> [`paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md`](paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md).
+> Official TACTiCS 2026 instructions and a template have not been obtained, so
+> no page-limit or formatting rule is inferred. The governing record of the
 > programme is the
-> [Research Execution Handbook v1.4](handbook/CardioSentinel_Research_Execution_Handbook_v1.4.md).
+> [Research Execution Handbook v1.5](handbook/CardioSentinel_Research_Execution_Handbook_v1.5.md).
 
 ---
 
@@ -28,7 +30,7 @@ supply one ECG record from PhysioNet
 ([`reproducibility/DATA_ACCESS.md`](reproducibility/DATA_ACCESS.md)).
 
 ```bash
-pip install -e ".[dev,data,signal,ml]"
+pip install -e ".[dev,data,signal,ml,neural]"
 
 # 1. ECG stream -> alert, with the provenance of every component behind it
 cardiosentinel edge console s20201 --seconds 2400 \
@@ -48,7 +50,7 @@ should see exactly one alert:
 
 | | |
 |---|---|
-| Alert opens | `00:17:05`, held **640 s** across **129** windows |
+| Alert | `00:17:05` → `00:27:45`, held **640 s** across **129** windows |
 | Peak calibrated probability | **`0.545613`** |
 | Safety gates | `G1 PASS  G2 PASS  G3 PASS  G4 BLOCK  G5 BLOCK  G6 PASS` |
 | Memory updates admitted | **0** |
@@ -62,6 +64,13 @@ it blocks during an event by design.
 subjects`). T1 thresholds are leave-one-subject-out; every other record has no
 validated operating point, and the runtime **refuses** rather than borrowing the
 nearest.
+
+Explanation generation is also an explicit boundary. The default is
+`deterministic`: no model call and no data egress. `--provider local` uses only
+the pinned, locally cached model and never falls back to a hosted service.
+`--provider gemini` is an explicit hosted choice: the structured evidence
+context leaves the local machine. A generic `GOOGLE_API_KEY` authenticates that
+explicit choice but never selects Gemini by itself.
 
 ---
 
@@ -166,7 +175,7 @@ All read-only. **These three need nothing but the clone:**
 python reproducibility/verify_reproducibility.py
 #   -> demo bundle verified: 27 files, 1.63 MiB, all digests match.
 
-# the sealed test has never been opened
+# verify exactly one consumed sealed-test attempt and no repeat attempt
 find . -name "TEST_ATTEMPT.json" -not -path "./.git/*"
 #   -> one receipt, since 2026-08-25:
 #      cardiosentinel-runs/phase3b2-architecture-v1/B4B_cnn_transformer_v1/
@@ -191,14 +200,16 @@ cardiosentinel agent graph s20201 --format lineage --of measurement:p_t \
   --seconds 2400 --run-root reproducibility/demo_bundle/runs \
   --feature-root reproducibility/demo_bundle/features
 #   -> measurement:p_t <- component:U1 Platt calibration
-#                      <- artifact:platt_logistic_on_recovered_logit
-#                      <- lock: experiment_id u1-v1-development,
-#                               test_accessed false, sealed_test_state unopened
+#                      <- artifact:U1_DEPLOYMENT_CALIBRATOR.json
+#                         [digest verified via runtime bundle manifest]
+#                      <- experiment lock: unavailable in the demo bundle
 ```
 
-**`sealed_test_state: unopened` in that lock is correct and will not change.** It
-is U1's attestation about U1 — the calibrator was fitted with the B4 test
-unopened, and the lock says so about itself. It is not a status board. Sixty-seven
+**`sealed_test_state: unopened` in the full U1 experiment lock is correct and
+will not change.** That lock is not included in the demo bundle, as the graph
+states. In the full evidence tree it is U1's attestation about U1 — the
+calibrator was fitted with the B4 test unopened, and the lock says so about
+itself. It is not a status board. Sixty-seven
 `.json` artifacts carry that field, thirteen of them `EXPERIMENT_LOCK.json` files
 pinned by a self-referential digest, and **editing one to reflect 2026-08-25
 would be falsifying a record, not updating it.** Handbook §43 says how to read
@@ -264,7 +275,7 @@ entirely.
 
 ```bash
 pip install -e ".[dev]"                      # core + tests
-pip install -e ".[dev,data,signal,ml]"       # everything the demo needs
+pip install -e ".[dev,data,signal,ml,neural]" # everything the demo needs
 cardiosentinel --help
 ```
 
