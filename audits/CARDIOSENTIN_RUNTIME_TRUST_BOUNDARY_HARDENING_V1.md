@@ -1,7 +1,9 @@
 # CardioSentinel Runtime Trust-Boundary Hardening V1
 
-Date: 2026-08-29  
-Branch: `feat/e11-e13a-instrumentation-and-paper-readiness`  
+Date: 2026-08-29
+
+Branch: `feat/e11-e13a-instrumentation-and-paper-readiness`
+
 Starting HEAD: `1bf366e66739f2990012d05c702a4d78400a06da`
 
 ## Outcome

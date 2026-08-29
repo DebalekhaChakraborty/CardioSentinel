@@ -112,6 +112,13 @@ Cherry-picking in logical order completed without a conflict:
 The salvage and promoted trees were compared after both cherry-picks and had no
 content difference.
 
+The final master-relative whitespace check then exposed seven Markdown
+hard-break spaces in the two newly tracked audit headers. Those spaces had been
+invisible to `git diff --check` while the reports were untracked. They were
+replaced with blank-line Markdown formatting; prose and scientific statements
+are unchanged, and the original report bytes remain in the safety snapshot in
+§3.
+
 ## 5. Later committed owner work
 
 While this recovery task was paused, the promoted branch advanced through
