@@ -556,34 +556,64 @@ Two of those three stubs describe research that is complete elsewhere.
 
 ---
 
-## 8. Data preservation — **three snapshots; two content-verified 2026-08-25, one verified only at creation**
+## 8. Data preservation — **three snapshots, all content-verified 2026-08-29**
 
 ```
 s3://cardiosentinel-evidence-341181499761/
   snapshot-2026-08-22-1bbbd47/        786 objects ·  24,779,296,980 bytes
   snapshot-2026-08-25-sealed-test/      5 objects ·           5,015,638 bytes
   snapshot-2026-08-28-4c59ff1/        196 objects ·   1,193,258,795 bytes
-Versioning · Object Lock GOVERNANCE · SSE-S3 · public access blocked
+Versioning · Object Lock GOVERNANCE (365 d default) · SSE-S3 AES256 · SSE-C
+blocked · all four public-access blocks true
 ```
 
-| Prefix | Covers | Last verified by content |
-|---|---|---|
-| `snapshot-2026-08-22-1bbbd47` | the programme through 2026-08-22 | **2026-08-25** (§8.1) |
-| `snapshot-2026-08-25-sealed-test` | the four sealed-TEST artifacts + manifest | **2026-08-25** (§8.2) |
-| `snapshot-2026-08-28-4c59ff1` | the E11 / E12d / E13a delta | **at creation only, 2026-08-28** |
+### 8.0 The 2026-08-29 verification — all three prefixes, all read-only
 
-The 2026-08-28 snapshot was verified at upload by object count, exact byte
-total, manifest round-trip (`07fd04be…`) and 16/16 sample re-hash, under
-GOVERNANCE until **2027-08-28**. **It has not been re-verified since**, and it
-is the only prefix with no independent later check.
+Account `341181499761`, `us-east-1`. Nothing was written, deleted or retained.
+
+| Check | Result |
+|---|---|
+| Object count · bytes, per prefix | **786 / 24,779,296,980**, **5 / 5,015,638**, **196 / 1,193,258,795** — exact match to creation, all three |
+| Prefixes in bucket | exactly the three above; nothing else |
+| Delete markers | **0** in every prefix. Nothing has ever been deleted |
+| Non-latest versions | **0** in every prefix. Nothing has ever been overwritten |
+| Retention, sampled per prefix | `GOVERNANCE` on the object, `RetainUntilDate` 2027-08-22 / 2027-08-25 / 2027-08-28 |
+| Manifest digest, `snapshot-2026-08-22-1bbbd47` | **`dd42385631ded57320116f82d14124c99d3ffb25ea4c6ec046c69b0d13d377f6`** — matches handbook §47 |
+| Manifest digest, `snapshot-2026-08-28-4c59ff1` | **`07fd04bec1d0323724f18c2c99844dbbade3f86663ef490726818f9eecad3713`** — matches the value recorded at creation |
+| Manifest digest, `snapshot-2026-08-25-sealed-test` | `3d91b3b3fd87835a85935ea919a68e476488c2f0683b5a1367a044e81f6994ea` — **recorded here for the first time**; §8.2 round-tripped the five objects but never published the manifest's own digest |
+| Manifest rows resolving locally | 785/785 · 4/4 · 195/195 — **0 missing** |
+| Sizes matching locally | 784/785 · 4/4 · 195/195 — **one drift, explained in §8.0.1** |
+| **Content re-hash, downloaded from S3** | **24/24 matched**, 93,583,879 bytes, seed 2026 — including **12 objects from `snapshot-2026-08-28-4c59ff1`, which had never been checked by anything but its own creation** |
+
+**The 2026-08-28 snapshot is no longer the unverified one.** It was previously
+attested only at upload; it has now been independently round-tripped.
+
+**This is a verification of contents, not of existence.** A headcount would have
+passed even if every file had been replaced.
+
+#### 8.0.1 The one size mismatch, and why it is not a mirror defect
+
+`artifacts/README.md` is **254 bytes in the manifest and 264 bytes on disk**.
+
+The mirror is not wrong. `docs/` was reorganised on 2026-08-28 and that file's
+one stale pointer was repointed — `docs/EXPERIMENT_CONTRACT.md` →
+`docs/contracts/EXPERIMENT_CONTRACT.md`, exactly the ten characters — in commit
+`d6dab5f`. The manifest correctly records the bytes as they were on 2026-08-22.
+
+**It is in the manifest at all for the reason §8.3 gives:** the 2026-08-22
+manifest reaches outside the three evidence trees to cover this one repository
+README. It is documentation, not evidence, and no scientific artifact drifted.
+
+**Do not "repair" this by editing the manifest or re-uploading the file.** A
+snapshot is a point in time; a manifest row that no longer matches a working
+tree is that property working. §8.1's *"785/785 sizes match"* was true on
+2026-08-25 and is now 784/785, for this reason and only this reason.
 
 **Read the date, not the sentence.** The guarantee is exactly as current as its
-last check, and it degrades silently: between 2026-08-24 and the 2026-08-25
-check the AWS session expired and the mirror was unverifiable, with nothing
-failing to announce it. **It has happened again — on 2026-08-29
-`aws sts get-caller-identity` returned an expired session, so no prefix could be
-checked on that date.** Re-authenticate and re-run §8.1 before relying on any
-statement in this section.
+last check, and it degrades silently — the session expired between 2026-08-24
+and the 2026-08-25 check, and again before 2026-08-29, each time with nothing
+failing to announce it. **It will happen again.** Re-authenticate, re-run this
+section, and attach the new date rather than inheriting this one.
 
 ### 8.1 What was checked on 2026-08-25, all read-only
 
@@ -708,20 +738,19 @@ and no path in it touches the test partition.
    old SHA succeeds *on this machine* and fails on a fresh clone, so it is not a
    test of whether a pin resolves.
 
-1. **AWS session expired; the S3 mirror is unverified. REOPENED 2026-08-29.**
-   It was closed on 2026-08-25 — session renewed, both snapshots verified by
-   content: 786 objects exact, 0 delete markers, manifest digest matching
-   handbook §47, 785/785 rows resolving, 15/15 sampled digests recomputed
-   (§8.1). That entry then said, in as many words, *"it will degrade again,
-   silently and with nothing failing."*
+1. ~~**AWS session expired; the S3 mirror is unverified.**~~ **Reopened and
+   closed again on 2026-08-29.** The session had expired for the third time in
+   one week; it was renewed and **all three prefixes were verified by content**
+   — exact object counts and byte totals, 0 delete markers, 0 overwrites,
+   GOVERNANCE retention on the objects, both recorded manifest digests matching,
+   984/984 manifest rows resolving, and **24/24 sampled objects downloaded from
+   S3 and re-hashed** (§8.0). `snapshot-2026-08-28-4c59ff1` is no longer
+   attested only by its own upload.
 
-   **It did.** On 2026-08-29 `aws sts get-caller-identity` returned
-   `Your session has expired`, so **no prefix could be checked on that date** —
-   including `snapshot-2026-08-28-4c59ff1`, which has never been verified by
-   anything other than its own creation. This defect has now been opened and
-   closed three times in one week. The guarantee is only as current as its last
-   check: **re-authenticate, re-run §8.1, and attach the new date** rather than
-   inheriting an older one.
+   **The pattern is the defect, not the outage.** Three open-and-close cycles in
+   one week, each discovered by someone happening to look. The guarantee is only
+   as current as its last check, so re-verify with a date attached rather than
+   inheriting this one.
 2. ~~The generative explanation path has never run against a real model~~ —
    **closed 2026-08-25.** Arm B is exercised: `Qwen/Qwen3-1.7B` at revision
    `70d244cc`, greedy on CPU, reported in
