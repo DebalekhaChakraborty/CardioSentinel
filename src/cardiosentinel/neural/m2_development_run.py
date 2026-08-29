@@ -79,7 +79,7 @@ CANONICAL_ARM_ORDER: Final = ("M2-0", "M2-G")
 ORIGINAL_SUITE_ID: Final = "m2-v1-development-two-arm"
 """Attempt #1. CONSUMED and FAILED before scoring; permanently preserved and
 never re-run, re-cleaned or reused. See
-`docs/M2_DEVELOPMENT_ATTEMPT1_FAILURE_AND_RECOVERY_DECISION_V1.md`."""
+`docs/experiments/m2/M2_DEVELOPMENT_ATTEMPT1_FAILURE_AND_RECOVERY_DECISION_V1.md`."""
 
 RECOVERY1_SUITE_ID: Final = "m2-v1-development-two-arm-recovery1"
 """Recovery1. ALSO consumed and failed before scoring, on a distinct defect:
@@ -95,7 +95,7 @@ attempt4, timestamp or random suffix: if this suite is ever claimed and fails,
 execution STOPS FOR HUMAN REVIEW."""
 
 RECOVERY_DECISION_DOCUMENT: Final = (
-    "docs/M2_DEVELOPMENT_ATTEMPT1_FAILURE_AND_RECOVERY_DECISION_V1.md"
+    "docs/experiments/m2/M2_DEVELOPMENT_ATTEMPT1_FAILURE_AND_RECOVERY_DECISION_V1.md"
 )
 RECOVERY_DECISION_SHA256: Final = (
     "e9d55d7a047e9610c6e156afc9e1a98aafbca86a3131c02a8e56624da7ad57d6"
@@ -104,7 +104,7 @@ ATTEMPT1_REASON_CLASS: Final = "pre_scoring_partition_alignment_execution_defect
 RECOVERY1_REASON_CLASS: Final = "pre_scoring_source_null_join_sentinel_defect"
 
 RECOVERY2_DECISION_DOCUMENT: Final = (
-    "docs/M2_DEVELOPMENT_RECOVERY1_FAILURE_AND_RECOVERY2_DECISION_V1.md"
+    "docs/experiments/m2/M2_DEVELOPMENT_RECOVERY1_FAILURE_AND_RECOVERY2_DECISION_V1.md"
 )
 RECOVERY2_DECISION_SHA256: Final = (
     "93e53d3c8281d922823d48b73712a2a1ede1c5b0f5bc9f41694af563e1a2fca4"

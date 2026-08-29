@@ -1,4 +1,5 @@
-"""Official B4 resource benchmark, frozen by `docs/B4_RESOURCE_BENCHMARK_V1.md`.
+"""Official B4 resource benchmark, frozen by
+`docs/experiments/b4/B4_RESOURCE_BENCHMARK_V1.md`.
 
 Measures locked B4-A, B4-B and B4-C checkpoints only. The procedure is
 dataset-independent: it never opens a train, validation or test waveform, cache,
@@ -62,7 +63,9 @@ from cardiosentinel.neural.protocol import (
 )
 
 BENCHMARK_PROTOCOL_NAME = "B4_RESOURCE_BENCHMARK_V1"
-RESOURCE_PROTOCOL_PATH = REPOSITORY_ROOT / "docs" / "B4_RESOURCE_BENCHMARK_V1.md"
+RESOURCE_PROTOCOL_PATH = (
+    REPOSITORY_ROOT / "docs" / "experiments" / "b4" / "B4_RESOURCE_BENCHMARK_V1.md"
+)
 RESOURCE_PROTOCOL_SHA256 = (
     "9184f54eb2b80fd495460d0a5c8989cdc6b923ed992a87ea18253e836f4c4b98"
 )

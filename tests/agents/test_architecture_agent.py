@@ -46,12 +46,14 @@ def test_the_protocol_was_locked_before_the_measurement():
 
 
 @pytest.mark.skipif(
-    not (DOCS / "U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md").is_file(),
+    not (
+        DOCS / "experiments" / "u1" / "U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md"
+    ).is_file(),
     reason="merged reports absent",
 )
 def test_the_router_numbers_match_the_retention_decision():
     decision = (
-        DOCS / "U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md"
+        DOCS / "experiments" / "u1" / "U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md"
     ).read_text(encoding="utf-8")
     observed = candidate("U1-router").observed
     for key in (
@@ -66,11 +68,13 @@ def test_the_router_numbers_match_the_retention_decision():
 
 
 @pytest.mark.skipif(
-    not (DOCS / "T2_ARM_COMPARISON_REPORT_V1.md").is_file(),
+    not (DOCS / "experiments" / "t2" / "T2_ARM_COMPARISON_REPORT_V1.md").is_file(),
     reason="merged reports absent",
 )
 def test_the_s4d_numbers_match_the_merged_report():
-    report = (DOCS / "T2_ARM_COMPARISON_REPORT_V1.md").read_text(encoding="utf-8")
+    report = (
+        DOCS / "experiments" / "t2" / "T2_ARM_COMPARISON_REPORT_V1.md"
+    ).read_text(encoding="utf-8")
     observed = candidate("T2-S4D").observed
     assert str(observed["pooled_auprc_difference"]) in report
     low, high = observed["paired_subject_bootstrap_95"]

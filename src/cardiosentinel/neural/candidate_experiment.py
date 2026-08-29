@@ -1,7 +1,8 @@
 """Canonical B4-B and B4-C train/validation runners with no sealed-test route.
 
 Each candidate is an independently canonical one-shot experiment frozen by
-`docs/B4_ARCHITECTURE_SELECTION_PROTOCOL_V1.md`. A completed B4-B run does not
+`docs/experiments/b4/B4_ARCHITECTURE_SELECTION_PROTOCOL_V1.md`. A completed B4-B run
+does not
 block the one canonical B4-C run, and vice versa.
 
 The historical B4-A runner in `experiment.py` is deliberately not made generic.
@@ -108,7 +109,8 @@ from cardiosentinel.neural.waveform_cache import (
 )
 
 ARCHITECTURE_PROTOCOL_PATH = (
-    REPOSITORY_ROOT / "docs" / "B4_ARCHITECTURE_SELECTION_PROTOCOL_V1.md"
+    REPOSITORY_ROOT / "docs" / "experiments" / "b4" /
+    "B4_ARCHITECTURE_SELECTION_PROTOCOL_V1.md"
 )
 ARCHITECTURE_PROTOCOL_SHA256 = (
     "986bc166f7f4a787423e1ac33cad65342ae7a700f85bfd8bb9d0291f64d2a0dc"

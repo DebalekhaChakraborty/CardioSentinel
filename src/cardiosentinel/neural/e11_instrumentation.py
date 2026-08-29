@@ -1,11 +1,12 @@
 """Per-epoch observability for E11-class representation experiments.
 
 E11 ATTEMPT 2 ran correctly and was under-instrumented. The E12a audit
-(`docs/B4_E12A_TRAINING_DYNAMICS_SELECTION_AUDIT_V1.md`) could establish that
-checkpoint selection was unstable, and could **not** establish whether the
-morphology auxiliary objective was mature at the selected epoch -- because the
-auxiliary loss was never logged as a separate term. That single missing scalar
-is why E12a returned "no further conclusion" rather than a finding.
+(`docs/experiments/b4/B4_E12A_TRAINING_DYNAMICS_SELECTION_AUDIT_V1.md`) could
+establish that checkpoint selection was unstable, and could **not** establish
+whether the morphology auxiliary objective was mature at the selected epoch --
+because the auxiliary loss was never logged as a separate term. That single
+missing scalar is why E12a returned "no further conclusion" rather than a
+finding.
 
 This module supplies the missing instrumentation for **future** authorized
 runs. It records nothing about E11 ATTEMPT 2, regenerates no historical

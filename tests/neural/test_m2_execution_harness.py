@@ -570,7 +570,10 @@ def test_sentinel_uses_the_official_digest_recipe_not_a_second_one():
     assert (
         S.observe_runtime_identity(S.EnforcementPoint.START).observed_digest == official
     )
-    assert S.SENTINEL_DESIGN_DOCUMENT == "docs/RUNTIME_INTEGRITY_SENTINEL_V1.md"
+    assert (
+        S.SENTINEL_DESIGN_DOCUMENT
+        == "docs/provenance/RUNTIME_INTEGRITY_SENTINEL_V1.md"
+    )
 
 
 def test_simulated_mismatch_at_start_refuses_execution():
@@ -1815,11 +1818,17 @@ def test_no_m1_scientific_file_changed_by_this_work():
     from cardiosentinel.data.provenance import sha256_file
 
     assert (
-        sha256_file(REPOSITORY_ROOT / "docs" / "M1_DUAL_MEMORY_PROTOCOL_V2.md")
+        sha256_file(
+            REPOSITORY_ROOT / "docs" / "experiments" / "m1"
+            / "M1_DUAL_MEMORY_PROTOCOL_V2.md"
+        )
         == "31a81358870cd23c2258cf4f307ab8c4dc7bf245bc4bf18a4d1f48fe2aada39c"
     )
     assert (
-        sha256_file(REPOSITORY_ROOT / "docs" / "M1_MEMORY_RETENTION_DECISION_V1.md")
+        sha256_file(
+            REPOSITORY_ROOT / "docs" / "experiments" / "m1"
+            / "M1_MEMORY_RETENTION_DECISION_V1.md"
+        )
         == "a3685fc0f8ff1fa0dce2bf9954bb28a925787070c021f3e80ca5716a4fa5f0ed"
     )
 

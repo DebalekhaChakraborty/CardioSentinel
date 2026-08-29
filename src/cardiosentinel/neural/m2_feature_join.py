@@ -10,7 +10,7 @@ The canonical DEVELOPMENT route replays VALIDATION, where that TRAIN-only set
 can never equal the stream cache's record list. M2 development attempt #1
 consumed both arm claims and then failed on exactly that mismatch, before any
 row was scored -- see
-`docs/M2_DEVELOPMENT_ATTEMPT1_FAILURE_AND_RECOVERY_DECISION_V1.md`.
+`docs/experiments/m2/M2_DEVELOPMENT_ATTEMPT1_FAILURE_AND_RECOVERY_DECISION_V1.md`.
 
 So scientific timeline assembly gets its own helper that takes the partition
 explicitly and names it in every refusal. The join itself is otherwise
@@ -219,7 +219,8 @@ def join_sqi_and_morphology_for_partition(
     # because NaN is also the legitimate representation of an upstream source
     # null -- a spectral ratio the frozen signal contract permits to be
     # uncomputable. That conflation consumed M2 development recovery1; see
-    # `docs/M2_DEVELOPMENT_RECOVERY1_FAILURE_AND_RECOVERY2_DECISION_V1.md`.
+    # `docs/experiments/m2/M2_DEVELOPMENT_RECOVERY1_FAILURE_AND_RECOVERY2_DECISION_V1.md
+    # `.
     written = np.zeros(rows, dtype=bool)
 
     record_paths = combined_record_cache_paths_for_partition(feature_root, evaluated)

@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Literal, cast
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
-B4_PROTOCOL_PATH = REPOSITORY_ROOT / "docs" / "B4_PROTOCOL_V1.md"
+B4_PROTOCOL_PATH = REPOSITORY_ROOT / "docs" / "experiments" / "b4" / "B4_PROTOCOL_V1.md"
 B4_PROTOCOL_SHA256 = (
     "f6f5e9ed728c86a9b2bd75b2327b9199f0e097b91387525a192c212e6771b28b"
 )

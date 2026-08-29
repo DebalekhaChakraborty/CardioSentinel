@@ -365,7 +365,7 @@ def test_selection_digest_is_not_self_referential() -> None:
 def test_identity_binds_the_frozen_human_decision() -> None:
     identity = SI.build_stress_selection().identity()
     assert identity["decision_document"] == (
-        "docs/M2_STRESS_INTERVAL_ELIGIBILITY_DECISION_V1.md"
+        "docs/experiments/m2/M2_STRESS_INTERVAL_ELIGIBILITY_DECISION_V1.md"
     )
     assert identity["decision_sha256"] == SI.DECISION_SHA256
     assert identity["source_defined_families"] == [
@@ -378,7 +378,10 @@ def test_identity_binds_the_frozen_human_decision() -> None:
 def test_decision_document_digest_matches_the_committed_file() -> None:
     import hashlib
 
-    path = REPOSITORY_ROOT / "docs/M2_STRESS_INTERVAL_ELIGIBILITY_DECISION_V1.md"
+    path = (
+        REPOSITORY_ROOT
+        / "docs/experiments/m2/M2_STRESS_INTERVAL_ELIGIBILITY_DECISION_V1.md"
+    )
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     assert digest == SI.DECISION_SHA256
 

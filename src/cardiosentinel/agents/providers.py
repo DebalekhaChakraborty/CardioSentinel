@@ -73,7 +73,7 @@ class GeminiProvider:
 #: reproduce a reported result without accepting a licence or holding a token.
 #: `Qwen2.5-3B-Instruct` is excluded for `license:other`, Llama 3.1 for being
 #: gated, Mistral 7B v0.3 for vLLM-only packaging, Phi-4-mini for requiring
-#: `trust_remote_code`. See `docs/LOCAL_LLM_EXPLANATION_PROTOCOL_V1.md` §1.
+#: `trust_remote_code`. See `docs/explanation/LOCAL_LLM_EXPLANATION_PROTOCOL_V1.md` §1.
 DEFAULT_LOCAL_MODEL = "Qwen/Qwen3-1.7B"
 REPORTED_LOCAL_MODEL = "Qwen/Qwen3-4B-Instruct-2507"
 

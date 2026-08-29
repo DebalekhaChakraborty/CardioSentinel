@@ -72,14 +72,14 @@ class CandidateArchitecture:
 _B4_PROTOCOL = LifecycleEvent(
     "protocol_locked",
     "selection rule frozen before the deciding evidence existed",
-    "docs/B4_ARCHITECTURE_SELECTION_PROTOCOL_V1.md",
+    "docs/experiments/b4/B4_ARCHITECTURE_SELECTION_PROTOCOL_V1.md",
 )
 _B4_PROPOSED = LifecycleEvent(
     "proposed",
     "predeclared as one of the B4-A/B/C/D families in handbook v1.1 §10.1, "
     "before any candidate was trained",
 )
-_B4_SOURCE = "docs/B4_GLOBAL_ENCODER_SELECTION_V1.md"
+_B4_SOURCE = "docs/experiments/b4/B4_GLOBAL_ENCODER_SELECTION_V1.md"
 
 
 ARCHITECTURE_REGISTRY: tuple[CandidateArchitecture, ...] = (
@@ -231,7 +231,7 @@ ARCHITECTURE_REGISTRY: tuple[CandidateArchitecture, ...] = (
                 "protocol_locked",
                 "selection basis and tie tolerance 0.002 frozen before the "
                 "one-shot outer validation ran",
-                "docs/T2_LONGITUDINAL_TEMPORAL_PROTOCOL_V1.md",
+                "docs/experiments/t2/T2_LONGITUDINAL_TEMPORAL_PROTOCOL_V1.md",
             ),
             LifecycleEvent(
                 "measured",
@@ -242,7 +242,7 @@ ARCHITECTURE_REGISTRY: tuple[CandidateArchitecture, ...] = (
             LifecycleEvent(
                 "decided",
                 "not selected: the registered rule selected the other arm",
-                "docs/T2_ARM_COMPARISON_REPORT_V1.md",
+                "docs/experiments/t2/T2_ARM_COMPARISON_REPORT_V1.md",
             ),
         ),
         observed={
@@ -262,7 +262,7 @@ ARCHITECTURE_REGISTRY: tuple[CandidateArchitecture, ...] = (
             "the GRU arm is worse",
             "S4D outperforms GRU",
         ),
-        source_document="docs/T2_ARM_COMPARISON_REPORT_V1.md",
+        source_document="docs/experiments/t2/T2_ARM_COMPARISON_REPORT_V1.md",
         experiment_lock=(
             "phase8-t2-development-v1/t2-v1-training/T2_GRU_CHECKPOINT_LOCK.json"
         ),
@@ -285,7 +285,7 @@ ARCHITECTURE_REGISTRY: tuple[CandidateArchitecture, ...] = (
                 "protocol_locked",
                 "selection basis and tie tolerance 0.002 frozen before the "
                 "one-shot outer validation ran; the budget is consumed",
-                "docs/T2_ARM_COMPARISON_ANALYSIS_PLAN_V1.md",
+                "docs/experiments/t2/T2_ARM_COMPARISON_ANALYSIS_PLAN_V1.md",
             ),
             LifecycleEvent(
                 "measured",
@@ -298,7 +298,7 @@ ARCHITECTURE_REGISTRY: tuple[CandidateArchitecture, ...] = (
                 "selected by the registered rule; the 95% paired subject "
                 "bootstrap on the difference is [-0.015229, 0.148951] and "
                 "includes zero",
-                "docs/T2_ARM_COMPARISON_REPORT_V1.md",
+                "docs/experiments/t2/T2_ARM_COMPARISON_REPORT_V1.md",
             ),
         ),
         observed={
@@ -326,7 +326,7 @@ ARCHITECTURE_REGISTRY: tuple[CandidateArchitecture, ...] = (
             "S4D is the better architecture",
             "the difference is statistically significant",
         ),
-        source_document="docs/T2_ARM_COMPARISON_REPORT_V1.md",
+        source_document="docs/experiments/t2/T2_ARM_COMPARISON_REPORT_V1.md",
         experiment_lock=(
             "phase8-t2-development-v1/t2-v1-training/T2_S4D_CHECKPOINT_LOCK.json"
         ),
@@ -349,7 +349,7 @@ ARCHITECTURE_REGISTRY: tuple[CandidateArchitecture, ...] = (
                 "protocol_locked",
                 "c_star = 0.90, the calibration-agreement tolerance 0.02 and the "
                 "asymmetric-abstention limit 3.0 all frozen in advance",
-                "docs/U1_CALIBRATION_SELECTIVE_ROUTING_PROTOCOL_V1.md",
+                "docs/experiments/u1/U1_CALIBRATION_SELECTIVE_ROUTING_PROTOCOL_V1.md",
             ),
             LifecycleEvent(
                 "measured",
@@ -363,7 +363,7 @@ ARCHITECTURE_REGISTRY: tuple[CandidateArchitecture, ...] = (
                 "NOT retained: the calibration-agreement guard PASSED, and the "
                 "asymmetric-abstention guard was RAISED at a ratio of "
                 "6.453604523726777 against a limit of 3.0",
-                "docs/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md",
+                "docs/experiments/u1/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md",
             ),
         ),
         observed={
@@ -391,7 +391,7 @@ ARCHITECTURE_REGISTRY: tuple[CandidateArchitecture, ...] = (
             "the router would fail at any other operating point",
             "selective routing is implemented or deployed",
         ),
-        source_document="docs/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md",
+        source_document="docs/experiments/u1/U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1.md",
         experiment_lock="phase7-u1-development-v1/u1-v1-development/U1_EXPERIMENT_LOCK.json",
         keywords=("router", "routing", "selective", "abstention", "u1"),
     ),

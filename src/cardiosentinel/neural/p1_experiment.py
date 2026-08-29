@@ -1,7 +1,7 @@
 """Canonical P1 Stage-1 execution path: matched P1-A vs P1-B ablation.
 
 This is the official scientific route promised by
-`docs/P1_PHYSIOLOGY_FUSION_PROTOCOL_V1.md`. It owns embedding-cache
+`docs/experiments/p1/P1_PHYSIOLOGY_FUSION_PROTOCOL_V1.md`. It owns embedding-cache
 materialization and validation, deterministic head training over precomputed
 frozen embeddings, validation evidence, development challenge evidence, the
 immutable run lock, and the Stage-1 suite that requires *both* arms.

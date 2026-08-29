@@ -878,10 +878,10 @@ def test_preflight_reports_both_historical_attempts(tmp_path, monkeypatch):
     assert governance["prior_failed_preclaim_attempt_documented"] is True
     assert [a["attempt"] for a in governance["prior_failed_attempts"]] == [1, 2]
     assert governance["prior_failed_attempts"][0]["document"] == (
-        "docs/M1_STAGE1_ATTEMPT1_FAILURE.md"
+        "docs/experiments/m1/M1_STAGE1_ATTEMPT1_FAILURE.md"
     )
     assert governance["prior_failed_attempts"][1]["document"] == (
-        "docs/M1_STAGE1_ATTEMPT2_FAILURE.md"
+        "docs/experiments/m1/M1_STAGE1_ATTEMPT2_FAILURE.md"
     )
     assert governance["prior_scientific_m1_arm_claims"] == 0
     assert governance["prior_scientific_m1_results"] == 0
@@ -911,7 +911,7 @@ def test_preflight_reports_both_historical_attempts(tmp_path, monkeypatch):
 
 
 def test_attempt_one_failure_document_exists_and_is_conservative():
-    document = Path("docs/M1_STAGE1_ATTEMPT1_FAILURE.md").read_text()
+    document = Path("docs/experiments/m1/M1_STAGE1_ATTEMPT1_FAILURE.md").read_text()
     assert "strongly consistent with process termination under host memory" in document
     assert "kernel OOM killer confirmed" not in document
     assert "137" in document

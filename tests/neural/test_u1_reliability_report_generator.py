@@ -1,7 +1,8 @@
 """The U1 reliability report generator, exercised on a synthetic artifact set.
 
 The real per-bin values are unread until
-`docs/U1_CALIBRATION_RELIABILITY_ANALYSIS_PLAN_V1.md` §5 step 2, which follows
+`docs/experiments/u1/U1_CALIBRATION_RELIABILITY_ANALYSIS_PLAN_V1.md` §5 step 2, which
+follows
 that plan being merged. So the generator is proven here against a fixture whose
 shape matches the promoted artifacts and whose numbers are invented.
 

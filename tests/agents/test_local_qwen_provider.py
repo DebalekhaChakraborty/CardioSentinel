@@ -445,7 +445,7 @@ def test_real_model_execution_is_a_separate_manual_record():
     record's to state; what this test binds is the separation itself.
     """
     root = pathlib.Path(__file__).resolve().parents[2]
-    contract = (root / "docs" / "QWEN_EVALUATION_RUN.md").read_text(
+    contract = (root / "docs" / "explanation" / "QWEN_EVALUATION_RUN.md").read_text(
         encoding="utf-8"
     )
     assert "CI must never download or execute the real model" in contract

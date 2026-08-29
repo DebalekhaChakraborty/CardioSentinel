@@ -1,6 +1,7 @@
 """The two frozen T2 causal longitudinal candidates, translated from protocol.
 
-This module **translates** `docs/T2_LONGITUDINAL_TEMPORAL_PROTOCOL_V1.md` §13A
+This module **translates** `docs/experiments/t2/T2_LONGITUDINAL_TEMPORAL_PROTOCOL_V1.md`
+§13A
 and §13B into PyTorch. It makes no scientific choice: every width, depth, state
 dimension, activation, normalisation location, bias, dropout position,
 initialiser and dtype is read from `t2_protocol`, and both constructors assert

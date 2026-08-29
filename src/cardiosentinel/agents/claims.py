@@ -168,6 +168,12 @@ class ClaimViolation:
     label: str
     matched: str
     guidance: str
+    #: Character offset of this occurrence in the text that was scanned.
+    #: Defaults to -1 so existing constructions stay valid; every violation
+    #: `find_violations` builds carries a real offset. Two occurrences of the
+    #: same phrase are otherwise indistinguishable, and an audit that cannot
+    #: tell them apart cannot classify them.
+    start: int = -1
 
     def __str__(self) -> str:
         return (
@@ -181,17 +187,33 @@ class ClaimBoundaryError(RuntimeError):
 
 
 def find_violations(text: str) -> tuple[ClaimViolation, ...]:
-    """Every forbidden phrasing in `text`, with the handbook claim it breaks."""
+    """Every forbidden phrasing in `text`, with the handbook claim it breaks.
+
+    **Every occurrence, not the first of each.** This used `re.search`, which
+    returns at most one match per pattern, so a document that broke the same
+    boundary five times reported one violation and a reader counting the
+    output under-counted by four. On the assembled manuscript the difference
+    was fifteen occurrences reported as nine.
+
+    The pass/fail semantics are unchanged: `enforce` raises when the tuple is
+    non-empty, and a text with one violation is as non-empty as a text with
+    five. What changes is that an audit can now classify each occurrence --
+    genuine overclaim, declared quotation, lexical collision -- instead of
+    classifying a representative and hoping the rest match it.
+
+    Ordering is deterministic: patterns in `FORBIDDEN_CLAIMS` order, and within
+    a pattern, occurrences in the order they appear in the text.
+    """
     found: list[ClaimViolation] = []
     for number, pattern, label, guidance in FORBIDDEN_CLAIMS:
-        match = re.search(pattern, text, flags=re.IGNORECASE)
-        if match:
+        for match in re.finditer(pattern, text, flags=re.IGNORECASE):
             found.append(
                 ClaimViolation(
                     claim_number=number,
                     label=label,
                     matched=match.group(0),
                     guidance=guidance,
+                    start=match.start(),
                 )
             )
     return tuple(found)
@@ -236,9 +258,7 @@ APPROVED_DISCLAIMERS: tuple[str, ...] = (
 )
 
 
-def strip_approved_disclaimers(
-    text: str, quoting: Sequence[str] = ()
-) -> str:
+def strip_approved_disclaimers(text: str, quoting: Sequence[str] = ()) -> str:
     """Remove text that names a forbidden claim in order to deny it.
 
     Two sources are removed: the registered `APPROVED_DISCLAIMERS`, and
@@ -262,9 +282,7 @@ def strip_approved_disclaimers(
     return collapsed
 
 
-def audit(
-    text: str, *, quoting: Sequence[str] = ()
-) -> tuple[ClaimViolation, ...]:
+def audit(text: str, *, quoting: Sequence[str] = ()) -> tuple[ClaimViolation, ...]:
     """Violations in `text`, ignoring registered disclaimers.
 
     **Use this, not `find_violations`, whenever the text may legitimately end

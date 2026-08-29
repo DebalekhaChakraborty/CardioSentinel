@@ -105,7 +105,10 @@ def test_binding_names_the_selected_experiment():
 
 def test_binding_agrees_with_the_frozen_selection_record():
     record = json.loads(
-        (Path(REPOSITORY_ROOT) / "docs/B4_GLOBAL_ENCODER_SELECTION_V1.json").read_text()
+        (
+            Path(REPOSITORY_ROOT)
+            / "docs/experiments/b4/B4_GLOBAL_ENCODER_SELECTION_V1.json"
+        ).read_text()
     )
     assert record["selected_official_model"] == "B4-B"
     assert record["experiment_id"] == B4B_BINDING.experiment_id

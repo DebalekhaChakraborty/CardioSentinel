@@ -33,7 +33,9 @@ from typing import Any, Final, Iterable, NamedTuple, Sequence
 REPOSITORY_ROOT: Final = Path(__file__).resolve().parents[3]
 
 T2_PROTOCOL_NAME: Final = "T2_LONGITUDINAL_TEMPORAL_PROTOCOL_V1"
-T2_PROTOCOL_PATH: Final = REPOSITORY_ROOT / "docs" / f"{T2_PROTOCOL_NAME}.md"
+T2_PROTOCOL_PATH: Final = (
+    REPOSITORY_ROOT / "docs" / "experiments" / "t2" / f"{T2_PROTOCOL_NAME}.md"
+)
 T2_PROTOCOL_SHA256: Final = (
     "6546086a55fe2c9c109f4121cdb6b42d4d53ce0112c9611eb895bd8c805cfefb"
 )

@@ -42,7 +42,9 @@ def test_g3_column_identity_and_order():
 def test_g3_quantile_rule_is_q99_linear():
     assert G.G3_QUANTILE == 0.99
     assert G.G3_QUANTILE_METHOD == "linear"
-    receipt = json.loads(Path("docs/M2_GATE_DERIVATION_RECEIPT_V1.json").read_text())
+    receipt = (
+        json.loads(Path("docs/experiments/m2/M2_GATE_DERIVATION_RECEIPT_V1.json").read_text())
+    )
     g3 = receipt["g3_sqi"]
     assert g3["quantile_rule"] == "numpy.quantile(values, 0.99, method='linear')"
     assert g3["population"]["partition"] == "train"
@@ -62,7 +64,9 @@ def test_g3_records_its_redundant_columns():
 
 
 def test_g4_rule_is_train_background_negative_median():
-    receipt = json.loads(Path("docs/M2_GATE_DERIVATION_RECEIPT_V1.json").read_text())
+    receipt = (
+        json.loads(Path("docs/experiments/m2/M2_GATE_DERIVATION_RECEIPT_V1.json").read_text())
+    )
     g4 = receipt["g4_normal_evidence"]
     assert g4["derivation_rule"] == (
         "numpy.quantile(M1L_score_on_PRIMARY_TRAIN_background_negative, 0.50, "
@@ -83,7 +87,9 @@ def test_normal_evidence_threshold_is_not_the_classification_threshold():
 
 def test_score_is_never_called_a_probability():
     assert "not a probability" in G.G4_SCORE_SEMANTICS
-    text = Path("docs/M2_CONTAMINATION_SAFE_MEMORY_PROTOCOL_V1.md").read_text()
+    text = (
+        Path("docs/experiments/m2/M2_CONTAMINATION_SAFE_MEMORY_PROTOCOL_V1.md").read_text()
+    )
     assert "DETERMINISTIC NORMAL-EVIDENCE MARGIN" in text
     # the phrase may appear only where the protocol forbids its use
     for line in text.splitlines():
@@ -104,7 +110,9 @@ def test_refractory_is_sixty_seconds_of_real_time_and_re_armable():
     assert G.REFRACTORY_IS_RE_ARMABLE is True
     assert G.REFRACTORY_COUNTED_IN_UPDATES is False
     assert "NOT NORMAL/WATCH/EVENT/RECOVERY" in G.REFRACTORY_SEMANTICS
-    receipt = json.loads(Path("docs/M2_GATE_DERIVATION_RECEIPT_V1.json").read_text())
+    receipt = (
+        json.loads(Path("docs/experiments/m2/M2_GATE_DERIVATION_RECEIPT_V1.json").read_text())
+    )
     g5 = receipt["g5_refractory"]
     assert g5["implemented_as_update_count"] is False
     assert "(start_sample+2500)/250.0" in g5["timing"].replace(" ", "")
@@ -113,7 +121,9 @@ def test_refractory_is_sixty_seconds_of_real_time_and_re_armable():
 def test_rollback_is_excluded_from_the_claim_bearing_core():
     assert G.M2_CORE_ARMS == ("M2-0", "M2-G")
     assert G.M2_ROLLBACK_IN_CORE is False
-    text = Path("docs/M2_CONTAMINATION_SAFE_MEMORY_PROTOCOL_V1.md").read_text()
+    text = (
+        Path("docs/experiments/m2/M2_CONTAMINATION_SAFE_MEMORY_PROTOCOL_V1.md").read_text()
+    )
     assert "There is no M2-GR claim-bearing arm" in text
     assert "MECHANISM EVIDENCE\nONLY" in text or "MECHANISM EVIDENCE" in text
 
@@ -121,7 +131,9 @@ def test_rollback_is_excluded_from_the_claim_bearing_core():
 def test_no_validation_or_test_was_used_in_any_derivation():
     assert G.M2_VALIDATION_ACCESSED_IN_DERIVATION is False
     assert G.M2_TEST_ACCESSED is False
-    receipt = json.loads(Path("docs/M2_GATE_DERIVATION_RECEIPT_V1.json").read_text())
+    receipt = (
+        json.loads(Path("docs/experiments/m2/M2_GATE_DERIVATION_RECEIPT_V1.json").read_text())
+    )
     assert receipt["validation_accessed"] is False
     assert receipt["test_accessed"] is False
     assert receipt["train_only_sanity"]["validation_accessed"] is False
@@ -130,7 +142,9 @@ def test_no_validation_or_test_was_used_in_any_derivation():
 
 def test_gate_does_not_collapse_adaptation():
     """The exit rule forbids a trivial never-update policy."""
-    receipt = json.loads(Path("docs/M2_GATE_DERIVATION_RECEIPT_V1.json").read_text())
+    receipt = (
+        json.loads(Path("docs/experiments/m2/M2_GATE_DERIVATION_RECEIPT_V1.json").read_text())
+    )
     sanity = receipt["train_only_sanity"]
     assert sanity["final_m2g_update_fraction_after_causal_refractory"] > 0.0
     assert sanity["per_stream_update_fraction"]["median"] > 0.0
@@ -161,7 +175,9 @@ def test_retained_arm_is_unchanged_from_the_m1_decision():
 
 
 def test_protocol_is_frozen_not_proposed():
-    text = Path("docs/M2_CONTAMINATION_SAFE_MEMORY_PROTOCOL_V1.md").read_text()
+    text = (
+        Path("docs/experiments/m2/M2_CONTAMINATION_SAFE_MEMORY_PROTOCOL_V1.md").read_text()
+    )
     assert "STATUS: FROZEN SCIENTIFIC PROTOCOL" in text
     assert "PROPOSED — HUMAN REVIEW REQUIRED" not in text
     assert "**OPEN**" not in text

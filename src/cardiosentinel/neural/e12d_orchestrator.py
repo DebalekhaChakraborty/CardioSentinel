@@ -1,7 +1,7 @@
 """The E12d six-fit orchestrator: phase 1 only, no decisions of its own.
 
 E12d is a **diagnostic replication of E11 phase 1** under E12c instrumentation.
-Its plan is `docs/B4_E12D_INSTRUMENTED_PHASE1_REPLICATION_PLAN_V1.md`.
+Its plan is `docs/experiments/b4/B4_E12D_INSTRUMENTED_PHASE1_REPLICATION_PLAN_V1.md`.
 **Nothing here is authorized to run.**
 
 **This module deliberately contains no intelligence.** It has no model-selection
@@ -169,7 +169,7 @@ def write_dry_run_plan(plans: Sequence[E12dFitPlan], path: Path) -> str:
         "outer_geometry_included": False,
         "operating_point_on_held_out_included": False,
         "plan_document": (
-            "docs/B4_E12D_INSTRUMENTED_PHASE1_REPLICATION_PLAN_V1.md"
+            "docs/experiments/b4/B4_E12D_INSTRUMENTED_PHASE1_REPLICATION_PLAN_V1.md"
         ),
         "fit_count": len(plans),
         "fit_order": [[fold, arm] for fold, arm in E12D_FIT_ORDER],

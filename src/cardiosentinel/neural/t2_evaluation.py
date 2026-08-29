@@ -27,7 +27,8 @@ There is still no setter, argument or environment variable that bypasses
 `require_outer_validation_authorized()`.
 
 **The measured values are a separate gate.** Execution having happened does not
-mean the numbers may be read. `docs/T2_ARM_COMPARISON_ANALYSIS_PLAN_V1.md`
+mean the numbers may be read.
+`docs/experiments/t2/T2_ARM_COMPARISON_ANALYSIS_PLAN_V1.md`
 governs the first read, and §3 of it carries the conditioning disclosure that
 makes S4D's absolute figure on this set inadmissible as a performance claim.
 """

@@ -2,7 +2,8 @@
 
 This script recomputes the G3 SQI bounds, the G4 normal-evidence threshold,
 and the TRAIN-only sanity table recorded in
-`docs/M2_GATE_DERIVATION_RECEIPT_V1.json`, using only already-materialized
+`docs/experiments/m2/M2_GATE_DERIVATION_RECEIPT_V1.json`, using only already-
+materialized
 TRAIN-partition artifacts:
 
 * the M1-v2 stream memory store (`cardiosentinel-features/m1-stream-memory-v2`),
@@ -389,12 +390,18 @@ def verify_identity_bindings(
 
     _check(
         "m1_retention_decision_sha256",
-        sha256_file(REPOSITORY_ROOT / "docs" / "M1_MEMORY_RETENTION_DECISION_V1.md"),
+        sha256_file(
+            REPOSITORY_ROOT / "docs" / "experiments" / "m1"
+            / "M1_MEMORY_RETENTION_DECISION_V1.md"
+        ),
         receipt["m1_retention_decision_sha256"],
     )
     _check(
         "m1_v2_protocol_sha256",
-        sha256_file(REPOSITORY_ROOT / "docs" / "M1_DUAL_MEMORY_PROTOCOL_V2.md"),
+        sha256_file(
+            REPOSITORY_ROOT / "docs" / "experiments" / "m1"
+            / "M1_DUAL_MEMORY_PROTOCOL_V2.md"
+        ),
         receipt["m1_v2_protocol_sha256"],
     )
     stage1_payload = validate_m1_stage1_results(

@@ -1,6 +1,6 @@
 """Emit the U1 calibration reliability report per the approved plan.
 
-Reads `docs/U1_CALIBRATION_RELIABILITY_ANALYSIS_PLAN_V1.md` §3 as its
+Reads `docs/experiments/u1/U1_CALIBRATION_RELIABILITY_ANALYSIS_PLAN_V1.md` §3 as its
 specification. Every number is read verbatim from a promoted artifact except the
 signed gap named in §3.1, which is the one arithmetic derivation the plan
 authorizes. No `.npz` store is opened, no metric is recomputed, and nothing is

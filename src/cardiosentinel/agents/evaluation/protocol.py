@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-PROTOCOL_DOCUMENT = "docs/EXPLANATION_EVALUATION_PROTOCOL.md"
+PROTOCOL_DOCUMENT = "docs/explanation/EXPLANATION_EVALUATION_PROTOCOL.md"
 
 ARM_DETERMINISTIC = "deterministic"
 ARM_GENERATIVE = "generative"

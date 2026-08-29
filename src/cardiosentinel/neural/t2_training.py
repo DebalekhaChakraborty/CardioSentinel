@@ -1,6 +1,7 @@
 """Deterministic synchronized-stream TBPTT training for the two T2 candidates.
 
-This translates `docs/T2_CANONICAL_TRAINING_EXECUTION_SPEC_V1.md` into code and
+This translates `docs/experiments/t2/T2_CANONICAL_TRAINING_EXECUTION_SPEC_V1.md` into
+code and
 decides no science. The parts worth understanding before editing:
 
 **The batch is the set of active streams.** There is no mini-batch-size

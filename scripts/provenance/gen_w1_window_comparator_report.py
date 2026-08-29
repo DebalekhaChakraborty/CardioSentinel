@@ -1,6 +1,6 @@
 """Emit the W1 window-only comparator report per the approved plan.
 
-Executes `docs/W1_WINDOW_COMPARATOR_ANALYSIS_PLAN_V1.md` under the §6
+Executes `docs/experiments/w1/W1_WINDOW_COMPARATOR_ANALYSIS_PLAN_V1.md` under the §6
 authorization: the T1 held-out labels are re-opened, through the §16 authority,
 to score a second arm on rows that were already scored once.
 
@@ -52,6 +52,10 @@ from cardiosentinel.neural.t1_protocol import (  # noqa: E402
     match_runs_to_episodes,
 )
 
+#: The path **as recorded in the frozen report**, which this script must
+#: reproduce byte-for-byte. The document now lives at
+#: `docs/experiments/w1/`; `docs/provenance/DOCUMENT_PATH_TRANSLATION_V1.md`
+#: resolves it. This constant is emitted, never opened.
 PLAN = "docs/W1_WINDOW_COMPARATOR_ANALYSIS_PLAN_V1.md"
 
 #: The evidence tree is gitignored and local-only, so a worktree that does not

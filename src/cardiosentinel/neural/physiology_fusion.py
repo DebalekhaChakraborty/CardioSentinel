@@ -1,6 +1,7 @@
 """P1 physiology-fusion development machinery.
 
-Implements the frozen procedure in `docs/P1_PHYSIOLOGY_FUSION_PROTOCOL_V1.md`:
+Implements the frozen procedure in
+`docs/experiments/p1/P1_PHYSIOLOGY_FUSION_PROTOCOL_V1.md`:
 the B4-B frozen-embedding cache contract, the train-only physiology transform,
 the matched P1-A / P1-B heads, and the canonical run claim.
 
@@ -38,7 +39,8 @@ from cardiosentinel.neural.protocol import (
 
 P1_PROTOCOL_NAME: Final = "P1_PHYSIOLOGY_FUSION_PROTOCOL_V1"
 P1_PROTOCOL_PATH: Final = (
-    REPOSITORY_ROOT / "docs" / "P1_PHYSIOLOGY_FUSION_PROTOCOL_V1.md"
+    REPOSITORY_ROOT / "docs" / "experiments" / "p1" /
+    "P1_PHYSIOLOGY_FUSION_PROTOCOL_V1.md"
 )
 P1_PROTOCOL_SHA256: Final = (
     "f48ffc66e52649d74a8286182d5e7220f78abdd6c12a7ebfe04f116b853337f1"

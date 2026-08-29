@@ -5,7 +5,7 @@ partition-aware join used `isnan(output)` as proof that a row had never been
 assigned. NaN is also the legitimate representation of an upstream source null
 -- the frozen signal contract permits a spectral ratio to be uncomputable -- so
 a valid corpus raised a structural-integrity error. See
-`docs/M2_DEVELOPMENT_RECOVERY1_FAILURE_AND_RECOVERY2_DECISION_V1.md`.
+`docs/experiments/m2/M2_DEVELOPMENT_RECOVERY1_FAILURE_AND_RECOVERY2_DECISION_V1.md`.
 
 These tests prove the two are now distinguished, that a source null survives the
 join bit-for-bit, and that the SCIENTIFIC meaning of such a value is decided

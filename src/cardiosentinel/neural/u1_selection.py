@@ -53,7 +53,7 @@ from cardiosentinel.neural.u1_protocol import (
 
 U1_RETENTION_DECISION_NAME: Final = "U1_CALIBRATION_ROUTING_RETENTION_DECISION_V1"
 U1_RETENTION_DECISION_PATH: Final = (
-    REPOSITORY_ROOT / "docs" / f"{U1_RETENTION_DECISION_NAME}.md"
+    REPOSITORY_ROOT / "docs" / "experiments" / "u1" / f"{U1_RETENTION_DECISION_NAME}.md"
 )
 U1_RETENTION_DECISION_SHA256: Final = (
     "9d8436f2b7d2c303aeeb03e438c60fb8110f7d06d0bbd589f5be65ea8f80cb7b"

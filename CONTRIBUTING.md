@@ -1,8 +1,8 @@
 # Contributing to CardioSentinel
 
 Keep changes small, reviewable, and tied to a documented research question.
-Read `AGENTS.md`, `docs/RESEARCH_SCOPE.md`, and
-`docs/EXPERIMENT_CONTRACT.md` before changing research logic.
+Read `AGENTS.md`, `docs/control-plane/RESEARCH_SCOPE.md`, and
+`docs/contracts/EXPERIMENT_CONTRACT.md` before changing research logic.
 
 Do not commit raw ECG, patient-derived data, credentials, checkpoints, or
 experiment outputs. Add or update tests for behavior changes, then run:
