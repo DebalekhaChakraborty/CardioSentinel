@@ -54,10 +54,20 @@ def add_agent_commands(subparsers: Any) -> None:  # noqa: ANN401 - argparse acti
     explain_why.add_argument("--source-root", default=str(DEFAULT_SOURCE_ROOT))
     explain_why.add_argument("--run-root", default=str(DEFAULT_RUN_ROOT))
     explain_why.add_argument("--feature-root", default=str(DEFAULT_FEATURE_ROOT))
-    explain_why.add_argument(
+    generation = explain_why.add_mutually_exclusive_group()
+    generation.add_argument(
         "--no-generative",
         action="store_true",
-        help="Force the deterministic renderer even if a provider is configured.",
+        help="Deterministic renderer only; no model call and no data egress.",
+    )
+    generation.add_argument(
+        "--provider",
+        choices=("deterministic", "local", "gemini"),
+        help=(
+            "Explicit generation boundary: deterministic makes no model call; "
+            "local uses only local cached weights; gemini is hosted and sends "
+            "the structured evidence context off this machine."
+        ),
     )
     explain_why.add_argument("--json", action="store_true")
 
@@ -125,7 +135,7 @@ def _check_claims(args: argparse.Namespace) -> int:
 
 def _explain(args: argparse.Namespace) -> int:
     from ..edge.artifacts import EdgeArtifactError
-    from ..edge.replay import replay_record
+    from ..edge.replay import ReplayError, replay_record
     from .evidence import EvidenceAgent
 
     try:
@@ -137,7 +147,7 @@ def _explain(args: argparse.Namespace) -> int:
             run_root=args.run_root,
             feature_root=args.feature_root,
         )
-    except EdgeArtifactError as error:
+    except (EdgeArtifactError, ReplayError) as error:
         print(f"refused: {error}")
         return 2
 
@@ -166,7 +176,7 @@ def _explain(args: argparse.Namespace) -> int:
 
 def _graph(args: argparse.Namespace) -> int:
     from ..edge.artifacts import EdgeArtifactError
-    from ..edge.replay import replay_record
+    from ..edge.replay import ReplayError, replay_record
     from .evidence import EvidenceAgent
     from .graph import build_evidence_graph, summarise_lineage
 
@@ -179,7 +189,7 @@ def _graph(args: argparse.Namespace) -> int:
             run_root=args.run_root,
             feature_root=args.feature_root,
         )
-    except EdgeArtifactError as error:
+    except (EdgeArtifactError, ReplayError) as error:
         print(f"refused: {error}")
         return 2
 
@@ -214,11 +224,11 @@ def _why(args: argparse.Namespace) -> int:
     import textwrap
 
     from ..edge.artifacts import EdgeArtifactError
-    from ..edge.replay import replay_record
+    from ..edge.replay import ReplayError, replay_record
     from .evidence import EvidenceAgent
     from .explain import PatientExplanationAgent
     from .graph import build_evidence_graph
-    from .providers import default_provider
+    from .providers import ProviderUnavailable, default_provider
 
     try:
         result = replay_record(
@@ -229,7 +239,7 @@ def _why(args: argparse.Namespace) -> int:
             run_root=args.run_root,
             feature_root=args.feature_root,
         )
-    except EdgeArtifactError as error:
+    except (EdgeArtifactError, ReplayError) as error:
         print(f"refused: {error}")
         return 2
 
@@ -237,7 +247,15 @@ def _why(args: argparse.Namespace) -> int:
         print(f"{args.record}: no alert raised, so there is nothing to explain.")
         return 0
 
-    provider = None if args.no_generative else default_provider()
+    try:
+        provider = (
+            None
+            if args.no_generative
+            else default_provider(provider=getattr(args, "provider", None))
+        )
+    except ProviderUnavailable as error:
+        print(f"refused: {error}")
+        return 2
     agent = PatientExplanationAgent(provider)
     evidence = EvidenceAgent(result.provenance)
 
@@ -333,7 +351,7 @@ def _architecture(args: argparse.Namespace) -> int:
 
 def _evaluate(args: argparse.Namespace) -> int:
     from ..edge.artifacts import EdgeArtifactError
-    from ..edge.replay import replay_record
+    from ..edge.replay import ReplayError, replay_record
     from .context import build_context
     from .evaluation import evaluate_arms, render_report
     from .evidence import EvidenceAgent
@@ -348,7 +366,7 @@ def _evaluate(args: argparse.Namespace) -> int:
             run_root=args.run_root,
             feature_root=args.feature_root,
         )
-    except EdgeArtifactError as error:
+    except (EdgeArtifactError, ReplayError) as error:
         print(f"refused: {error}")
         return 2
 
@@ -367,7 +385,7 @@ def _evaluate(args: argparse.Namespace) -> int:
         for index, alert in enumerate(result.alerts)
     ]
     try:
-        provider = default_provider(strict_local=True)
+        provider = default_provider(provider="local", strict_local=True)
     except ProviderUnavailable as error:
         print(f"refused: {error}")
         return 2
