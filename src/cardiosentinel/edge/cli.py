@@ -91,7 +91,7 @@ def _subjects(args: argparse.Namespace) -> int:
 
 def _simulate(args: argparse.Namespace) -> int:
     from .artifacts import EdgeArtifactError
-    from .replay import replay_record
+    from .replay import ReplayError, replay_record
 
     try:
         result = replay_record(
@@ -102,7 +102,7 @@ def _simulate(args: argparse.Namespace) -> int:
             run_root=args.run_root,
             feature_root=args.feature_root,
         )
-    except EdgeArtifactError as error:
+    except (EdgeArtifactError, ReplayError) as error:
         print(f"refused: {error}")
         return 2
 
@@ -171,6 +171,7 @@ def _simulate(args: argparse.Namespace) -> int:
 def _console(args: argparse.Namespace) -> int:
     from .artifacts import EdgeArtifactError
     from .console import render
+    from .replay import ReplayError
 
     try:
         report = render(
@@ -182,7 +183,7 @@ def _console(args: argparse.Namespace) -> int:
             feature_root=args.feature_root,
             architecture_question=args.ask,
         )
-    except EdgeArtifactError as error:
+    except (EdgeArtifactError, ReplayError) as error:
         print(f"refused: {error}")
         return 2
     print(report.text)

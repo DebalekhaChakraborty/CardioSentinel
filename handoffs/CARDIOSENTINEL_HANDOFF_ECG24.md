@@ -37,17 +37,28 @@ git status           clean
 manuscript is content-frozen, and the repository is organised. Start new work
 freely.
 
-**Four commits are on the branch and not pushed:**
+**Update, 2026-08-29 — those four commits are merged.** They went in as
+**PR #129** (`4431c58`), which is now `origin/master`. `#128` and `#129` are
+both closed and **no pull request is open**.
+
+Two *different* commits are unpushed, on a different branch:
 
 ```
-568c211  Handoff: ECG 24 …
-c063b38  Fix: the claim guard reported one violation per pattern, not every occurrence
-15ad054  Paper: the TACTiCS submission candidate, its audits, and the V2 harvest
-d6dab5f  Docs: reorganise docs/ into categories and repoint every reference
+fix/runtime-hardening-doc-reconciliation   (2 ahead of master)
+  1723436  Runtime: harden replay, artifact integrity, lineage and provider boundaries
+  dd19d75  Docs: reconcile live state, demo contract and path consistency
 ```
 
-PR #128 already merged, so these need a **new** PR. The branch is 4 ahead / 1
-behind `origin/master`.
+A near-identical pair sits on `salvage/runtime-hardening-doc-reconciliation`
+(`9ff5ed1`, `08f913a`) with the **same tree** but an older parent; the `fix/`
+branch is the one rebased onto current `master`. `docs/control-plane/CURRENT_STATE.md`
+§1 is authoritative for the live figures.
+
+**Before you run the suite, read defect 2b in `CURRENT_STATE.md`.** The
+directory was renamed to `.../tactics/CardioSentinel` and the frozen venv's
+editable install still points at the old name, which makes **nine governance
+tests fail as `DID NOT RAISE`** — a guard that looks disabled and is not.
+A symlink fixes it; `pip install -e .` must not be used.
 
 ---
 

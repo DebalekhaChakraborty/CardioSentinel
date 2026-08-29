@@ -90,7 +90,7 @@ def test_the_graph_is_rooted_at_the_alert(graph):
     assert graph.node(graph.root).kind == "alert"
 
 
-def test_every_pipeline_stage_appears_with_its_artifact_and_lock(graph):
+def test_every_pipeline_stage_appears_with_its_artifact_and_provenance_record(graph):
     assert len(graph.of_kind("component")) == 6
     assert len(graph.of_kind("artifact")) == 6
     assert len(graph.of_kind("lock")) == 6
@@ -142,6 +142,89 @@ def test_a_missing_lock_tree_is_recorded_not_raised(graph):
     assert graph.node("lock:calibration").evidence["lock_available"] is False
 
 
+def test_missing_lock_never_receives_a_frozen_by_edge(graph):
+    assert not any(
+        edge.source == "artifact:calibration"
+        and edge.relation == "frozen_by"
+        and edge.target == "lock:calibration"
+        for edge in graph.edges
+    )
+    assert any(
+        edge.source == "artifact:calibration"
+        and edge.relation == "provenance_unavailable"
+        and edge.target == "lock:calibration"
+        for edge in graph.edges
+    )
+    assert any("unavailable" in line for line in summarise_lineage(
+        graph, "measurement:p_t"
+    ))
+
+
+def test_verified_lock_receives_frozen_by_edge(tmp_path):
+    from cardiosentinel.neural.integrity import experiment_lock_sha256
+
+    lock_path = tmp_path / (
+        "phase7-u1-development-v1/u1-v1-development/U1_EXPERIMENT_LOCK.json"
+    )
+    lock_path.parent.mkdir(parents=True)
+    lock = {"experiment_id": "u1-v1-development"}
+    lock["experiment_lock_sha256"] = experiment_lock_sha256(lock)
+    lock_path.write_text(json.dumps(lock), encoding="utf-8")
+
+    builder = AlertBuilder(PROVENANCE)
+    items, previous, alert = [], "NORMAL", None
+    for index, state in enumerate(["NORMAL", "WATCH", "EVENT", "NORMAL"]):
+        item = observation(state, index * 5.0, previous)
+        previous = state
+        items.append(item)
+        alert = builder.observe(item) or alert
+    assert alert is not None
+    record = EvidenceAgent(PROVENANCE).explain(alert, items)
+    verified = build_evidence_graph(record, run_root=tmp_path)
+    assert any(
+        edge.source == "artifact:calibration"
+        and edge.relation == "frozen_by"
+        and edge.target == "lock:calibration"
+        for edge in verified.edges
+    )
+
+
+def test_runtime_manifest_verification_is_not_called_an_experiment_lock(tmp_path):
+    provenance = dict(PROVENANCE)
+    provenance["runtime_artifacts"] = [
+        {
+            "component": "calibration",
+            "logical_artifact_id": "U1_DEPLOYMENT_CALIBRATOR.json",
+            "canonical_path": "/bundle/U1_DEPLOYMENT_CALIBRATOR.json",
+            "expected_sha256": "a" * 64,
+            "observed_sha256": "a" * 64,
+            "expected_digest_source": "DEMO_BUNDLE_SELECTION.json",
+            "verification_mechanism": "runtime_bundle_manifest",
+            "verification_status": "verified",
+        }
+    ]
+    builder = AlertBuilder(provenance)
+    items, previous, alert = [], "NORMAL", None
+    for index, state in enumerate(["NORMAL", "WATCH", "EVENT", "NORMAL"]):
+        item = observation(state, index * 5.0, previous)
+        previous = state
+        items.append(item)
+        alert = builder.observe(item) or alert
+    assert alert is not None
+    record = EvidenceAgent(provenance).explain(alert, items)
+    runtime_graph = build_evidence_graph(record, run_root=tmp_path)
+
+    artifact = runtime_graph.node("artifact:calibration")
+    assert artifact.evidence["verification_mechanism"] == "runtime_bundle_manifest"
+    assert not any(
+        edge.source == artifact.node_id and edge.relation == "frozen_by"
+        for edge in runtime_graph.edges
+    )
+    summary = "\n".join(summarise_lineage(runtime_graph, "measurement:p_t"))
+    assert "digest verified via runtime bundle manifest" in summary
+    assert "experiment lock unavailable" in summary
+
+
 def test_node_kinds_and_relations_are_closed_vocabularies():
     graph = EvidenceGraph("root")
     with pytest.raises(EvidenceGraphError, match="Unknown node kind"):
@@ -150,7 +233,7 @@ def test_node_kinds_and_relations_are_closed_vocabularies():
     graph.add_node(EvidenceNode(node_id="b", kind="gate", label="b"))
     with pytest.raises(EvidenceGraphError, match="Unknown relation"):
         graph.add_edge("a", "probably_caused", "b")
-    assert len(NODE_KINDS) == 8 and len(EDGE_RELATIONS) == 7
+    assert len(NODE_KINDS) == 8 and len(EDGE_RELATIONS) == 8
 
 
 def test_an_edge_never_invents_its_endpoints():

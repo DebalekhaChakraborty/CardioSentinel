@@ -8,6 +8,11 @@ deterministic renderer instead of failing at import time.
 **No SDK is added to the project's dependencies.** The scientific environment is
 frozen at 335 packages with a recorded digest and must not be modified, so an
 adapter uses what happens to be present and is skipped when it is not.
+
+Provider selection is an egress boundary, not dependency discovery:
+``deterministic`` makes no model call, ``local`` uses only a pinned local cache,
+and ``gemini`` sends the structured evidence context to a hosted service. A
+credential authenticates an explicitly selected service; it never selects one.
 """
 
 from __future__ import annotations
@@ -22,7 +27,7 @@ from typing import Any
 
 
 class ProviderUnavailable(RuntimeError):
-    """The provider cannot be constructed here. Callers fall back."""
+    """An explicitly selected provider cannot be constructed safely."""
 
 
 @dataclass(frozen=True)
@@ -41,7 +46,7 @@ class ProviderIdentity:
 
 
 class GeminiProvider:
-    """`google.generativeai`, configured from the environment."""
+    """Explicitly selected hosted generation; evidence leaves this machine."""
 
     name = "gemini"
 
@@ -353,27 +358,39 @@ class LocalQwenProvider:
         return after.strip() if "</think>" in text else ""
 
 
-def default_provider(*, strict_local: bool = False) -> object | None:
-    """The best available provider, or `None` so the caller degrades.
+def default_provider(
+    *, provider: str | None = None, strict_local: bool = False
+) -> object | None:
+    """Construct the explicitly selected provider, deterministic by default.
 
-    Returning `None` rather than raising is deliberate: "no generator" is a
-    normal operating state for this system, not an error.
+    Selection may be supplied directly or through
+    ``CARDIOSENTINEL_LLM_PROVIDER``. ``GOOGLE_API_KEY`` is authentication only
+    and is deliberately never consulted when choosing a provider.
 
-    The local provider is opt-in via `CARDIOSENTINEL_LLM_PROVIDER=local`. It is
-    never selected implicitly: a demonstration that silently became four minutes
-    slower because weights appeared in a cache would be a worse surprise than
-    having no generator at all. Research evaluation passes `strict_local=True`:
-    an explicitly requested but irreproducible local provider is then a refusal,
-    not an arm quietly relabelled "not exercised".
+    ``strict_local`` is a hard egress guard. It can return deterministic mode or
+    construct the local provider, but it can never construct a hosted provider.
     """
-    if os.environ.get("CARDIOSENTINEL_LLM_PROVIDER", "").lower() == "local":
+    selected = (
+        provider
+        if provider is not None
+        else os.environ.get("CARDIOSENTINEL_LLM_PROVIDER", "deterministic")
+    ).strip().lower()
+    if selected in {"", "deterministic", "none", "template"}:
+        return None
+    if strict_local and selected != "local":
+        raise ProviderUnavailable(
+            f"strict-local mode refuses provider {selected!r}; only the pinned "
+            "local provider is permitted."
+        )
+    if selected == "local":
         try:
             return LocalQwenProvider()
         except ProviderUnavailable:
             if strict_local:
                 raise
             return None
-    try:
+    if selected == "gemini":
         return GeminiProvider()
-    except ProviderUnavailable:
-        return None
+    raise ProviderUnavailable(
+        f"Unknown provider {selected!r}; choose deterministic, local, or gemini."
+    )

@@ -8,10 +8,10 @@ reason recorded below.
 | Directory | Holds | Files |
 |---|---|--:|
 | `paper/` | the manuscript, its section drafts, figures, tables, abstract claim audit, submission metadata | 31 |
-| `audits/` | paper-readiness audit, Related Work verification V1/V2, submission-format review, submission handoff, TACTiCS requirements | 6 |
+| `audits/` | paper-readiness, Related Work, submission-format, runtime-boundary and documentation/demo reconciliation audits | 8 |
 | `handbook/` | the research execution handbook, all versions, `.md` and `.docx` | 10 |
-| `handoffs/` | the session handoff chain, ECG3–ECG24 | 22 |
-| `docs/` | the experiment record and control plane, categorised below | 103 |
+| `handoffs/` | the session handoff chain, ECG3–ECG24 | 23 |
+| `docs/` | the experiment record and control plane, categorised below | 104 |
 
 ## Inside `docs/`
 

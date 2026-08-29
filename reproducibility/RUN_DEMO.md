@@ -20,20 +20,21 @@ cardiosentinel edge simulate s20201 --seconds 2400 \
 
 ## What you should see
 
-A live state stream (`.` NORMAL, `w` WATCH, `E` EVENT), then:
+A live state stream (`.` NORMAL, `w` WATCH, `E` EVENT), then the contracted
+40-minute outcome (wall time and real-time factor are machine-dependent):
 
 ```
   record            s20201 channel 0
-  windows           1079
-  simulated ECG     90.0 min in 89.1 s wall (61x real time)
-  memory updates    0/1079 admitted
-  alerts            2
-    EVENT 00:17:05 -> 00:27:45 [640 s] 129 windows, peak p_t 0.5456
+  windows           479
+  simulated ECG     40.0 min
+  memory updates    0/479 admitted
+  alerts            1
+    EVENT 00:17:05 -> 00:27:45 [640 s] 129 windows, peak p_t 0.545613
 ```
 
 Followed by the provenance of every frozen component that produced it.
 
-**`memory updates 0/1079` is correct, not a bug.** The contamination-safe gate
+**`memory updates 0/479` is correct, not a bug.** The contamination-safe gate
 only admits windows that look normal and sit outside a 60-second refractory. A
 blocked update is the control working.
 
@@ -70,9 +71,18 @@ template renderer and **declares that it did**:
 That is the designed behaviour. The generator is a communication layer, not a
 source of truth.
 
+Generation is opt-in. `--provider local` uses only the pinned local cache;
+there is no hosted fallback. `--provider gemini` explicitly selects a hosted
+service and sends the structured evidence context off the local machine.
+`GOOGLE_API_KEY` alone never selects it. `--no-generative` always keeps the
+deterministic path.
+
 ## Two records worth trying
 
 | Record | What it shows |
 |---|---|
-| `s20201` | two EVENT runs, one still open at end of stream |
+| `s20201` | at the contracted 2400 seconds: one 640-second EVENT run |
 | `s20591` | **zero alerts** — which reproduces the published result that subject s2059 has 47 reference episodes and 0 predicted runs |
+
+A longer replay is a different scenario. Its output is not the 2400-second
+contract above and is not predicted by this document.

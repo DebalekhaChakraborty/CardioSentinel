@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import Any
 
 from ..edge.artifacts import DEFAULT_RUN_ROOT
+from ..neural.integrity import canonical_sha256, verify_experiment_lock
 from .evidence import EvidenceRecord
 
 #: What a node is. Kinds are closed: an unknown kind means the graph builder
@@ -51,7 +52,8 @@ EDGE_RELATIONS = (
     "admitted_by",   # alert  -> gate
     "produced_by",   # measurement -> component
     "realised_by",   # component -> artifact
-    "frozen_by",     # artifact -> lock
+    "frozen_by",     # artifact -> verified lock
+    "provenance_unavailable",  # artifact -> absent or unverifiable record
     "operated_at",   # alert -> policy
     "bounded_by",    # alert -> constraint
 )
@@ -286,16 +288,62 @@ def _lock_evidence(run_root: Path, relative: str | None) -> dict[str, Any]:
     machine that has the code but not the gitignored evidence tree.
     """
     if relative is None:
-        return {"lock_available": False}
+        return {"lock_available": False, "lock_verified": False}
     path = Path(run_root) / relative
     if not path.is_file():
-        return {"lock_available": False, "lock_path": relative}
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    evidence: dict[str, Any] = {"lock_available": True, "lock_path": relative}
+        return {
+            "lock_available": False,
+            "lock_verified": False,
+            "lock_path": relative,
+        }
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        return {
+            "lock_available": True,
+            "lock_verified": False,
+            "lock_path": relative,
+            "verification_error": type(error).__name__,
+        }
+    mechanism = None
+    verified = False
+    if "experiment_lock_sha256" in payload:
+        mechanism = "experiment_lock_self_digest"
+        verified = verify_experiment_lock(payload)
+    elif "checkpoint_lock_sha256" in payload:
+        mechanism = "checkpoint_lock_self_digest"
+        recorded = payload.get("checkpoint_lock_sha256")
+        body = {
+            key: value
+            for key, value in payload.items()
+            if key != "checkpoint_lock_sha256"
+        }
+        verified = isinstance(recorded, str) and recorded == canonical_sha256(body)
+    evidence: dict[str, Any] = {
+        "lock_available": True,
+        "lock_verified": verified,
+        "lock_path": relative,
+        "verification_mechanism": mechanism,
+    }
     evidence.update(
         {key: payload[key] for key in _LOCK_KEYS if key in payload}
     )
     return evidence
+
+
+def _runtime_artifacts_for_component(
+    provenance: dict[str, Any], component: str
+) -> tuple[dict[str, Any], ...]:
+    aliases = {"memory": {"memory", "standardizer"}}
+    names = aliases.get(component, {component})
+    records = provenance.get("runtime_artifacts")
+    if not isinstance(records, list):
+        return ()
+    return tuple(
+        dict(item)
+        for item in records
+        if isinstance(item, dict) and item.get("component") in names
+    )
 
 
 def build_evidence_graph(
@@ -336,27 +384,59 @@ def build_evidence_graph(
         )
         realisation = provenance.get(provenance_key)
         if realisation is not None:
-            artifact_id = f"artifact:{key}"
-            graph.add_node(
-                EvidenceNode(
-                    node_id=artifact_id,
-                    kind="artifact",
-                    label=str(realisation),
-                    evidence={provenance_key: realisation},
+            runtime_records = _runtime_artifacts_for_component(provenance, key)
+            if runtime_records:
+                artifact_nodes = []
+                for index, runtime_record in enumerate(runtime_records):
+                    suffix = "" if index == 0 else f":{runtime_record['component']}"
+                    artifact_id = f"artifact:{key}{suffix}"
+                    artifact_nodes.append(artifact_id)
+                    graph.add_node(
+                        EvidenceNode(
+                            node_id=artifact_id,
+                            kind="artifact",
+                            label=str(runtime_record["logical_artifact_id"]),
+                            evidence=runtime_record,
+                        )
+                    )
+                    graph.add_edge(component_id, "realised_by", artifact_id)
+            else:
+                artifact_id = f"artifact:{key}"
+                artifact_nodes = [artifact_id]
+                graph.add_node(
+                    EvidenceNode(
+                        node_id=artifact_id,
+                        kind="artifact",
+                        label=str(realisation),
+                        evidence={provenance_key: realisation},
+                    )
                 )
-            )
-            graph.add_edge(component_id, "realised_by", artifact_id)
+                graph.add_edge(component_id, "realised_by", artifact_id)
             if include_research_lineage:
                 lock_id = f"lock:{key}"
+                lock_evidence = _lock_evidence(Path(run_root), lock_path)
+                lock_status = (
+                    "verified"
+                    if lock_evidence["lock_verified"]
+                    else "unavailable"
+                    if not lock_evidence["lock_available"]
+                    else "unverified"
+                )
                 graph.add_node(
                     EvidenceNode(
                         node_id=lock_id,
                         kind="lock",
-                        label=f"{label} experiment lock",
-                        evidence=_lock_evidence(Path(run_root), lock_path),
+                        label=f"{label} experiment lock ({lock_status})",
+                        evidence=lock_evidence,
                     )
                 )
-                graph.add_edge(artifact_id, "frozen_by", lock_id)
+                relation = (
+                    "frozen_by"
+                    if lock_evidence["lock_verified"]
+                    else "provenance_unavailable"
+                )
+                for artifact_id in artifact_nodes:
+                    graph.add_edge(artifact_id, relation, lock_id)
 
     # Measured quantities, each attributed to the component that produced it.
     for key, label, attribute, component in MEASUREMENT_SOURCES:
@@ -445,4 +525,17 @@ def build_evidence_graph(
 def summarise_lineage(graph: EvidenceGraph, node_id: str) -> Iterable[str]:
     """One line per hop, for a human or a prompt."""
     for node in graph.lineage(node_id):
-        yield f"{node.kind:11s} {node.label}"
+        detail = ""
+        if node.kind == "artifact" and node.evidence.get("verification_status"):
+            mechanism = str(
+                node.evidence.get("verification_mechanism", "unknown mechanism")
+            ).replace("_", " ")
+            detail = f" [digest verified via {mechanism}]"
+        elif node.kind == "lock":
+            if not node.evidence.get("lock_available"):
+                detail = " [experiment lock unavailable]"
+            elif not node.evidence.get("lock_verified"):
+                detail = " [experiment lock present but unverified]"
+            else:
+                detail = " [experiment lock verified]"
+        yield f"{node.kind:11s} {node.label}{detail}"

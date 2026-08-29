@@ -413,6 +413,92 @@ def test_default_provider_does_not_select_local_without_opting_in(monkeypatch):
     assert default_provider() is None
 
 
+def test_google_credentials_do_not_select_gemini_without_consent(monkeypatch):
+    import cardiosentinel.agents.providers as providers
+
+    class FakeGemini:
+        name = "gemini:fake"
+
+        def __init__(self):
+            pytest.fail("credentials alone selected Gemini")
+
+    monkeypatch.delenv("CARDIOSENTINEL_LLM_PROVIDER", raising=False)
+    monkeypatch.setenv("GOOGLE_API_KEY", "synthetic-key-never-used")
+    monkeypatch.setattr(providers, "GeminiProvider", FakeGemini)
+    assert providers.default_provider() is None
+
+
+def test_strict_local_makes_the_gemini_path_impossible(monkeypatch):
+    import cardiosentinel.agents.providers as providers
+
+    class FakeGemini:
+        name = "gemini:fake"
+
+        def __init__(self):
+            pytest.fail("strict local constructed Gemini")
+
+    monkeypatch.delenv("CARDIOSENTINEL_LLM_PROVIDER", raising=False)
+    monkeypatch.setenv("GOOGLE_API_KEY", "synthetic-key-never-used")
+    monkeypatch.setattr(providers, "GeminiProvider", FakeGemini)
+    assert providers.default_provider(strict_local=True) is None
+
+
+def test_explicit_gemini_is_permitted_and_requires_credentials(monkeypatch):
+    import cardiosentinel.agents.providers as providers
+
+    selected = object()
+    monkeypatch.setattr(providers, "GeminiProvider", lambda: selected)
+    assert providers.default_provider(provider="gemini") is selected
+
+    def unavailable():
+        raise ProviderUnavailable("GOOGLE_API_KEY is not set")
+
+    monkeypatch.setattr(providers, "GeminiProvider", unavailable)
+    with pytest.raises(ProviderUnavailable, match="GOOGLE_API_KEY"):
+        providers.default_provider(provider="gemini")
+
+
+def test_strict_local_refuses_an_explicit_hosted_choice(monkeypatch):
+    import cardiosentinel.agents.providers as providers
+
+    monkeypatch.setattr(
+        providers,
+        "GeminiProvider",
+        lambda: pytest.fail("strict local constructed Gemini"),
+    )
+    with pytest.raises(ProviderUnavailable, match="strict-local"):
+        providers.default_provider(provider="gemini", strict_local=True)
+
+
+def test_cli_provider_choice_is_explicit_and_no_generative_remains_exclusive():
+    from cardiosentinel.cli import build_parser
+
+    parser = build_parser()
+    hosted = parser.parse_args(
+        ["agent", "why", "s20201", "--provider", "gemini"]
+    )
+    assert hosted.provider == "gemini"
+    assert hosted.no_generative is False
+
+    deterministic = parser.parse_args(
+        ["agent", "why", "s20201", "--no-generative"]
+    )
+    assert deterministic.no_generative is True
+    assert deterministic.provider is None
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(
+            [
+                "agent",
+                "why",
+                "s20201",
+                "--no-generative",
+                "--provider",
+                "gemini",
+            ]
+        )
+
+
 def test_research_evaluation_can_refuse_an_unresolvable_local_provider(
     monkeypatch,
 ):
