@@ -13,7 +13,7 @@
 **Post-merge living-state commit / PR #132 head:**
 `c2c306a9c57345e617fb870f5a6091c742f7bc30`
 
-**Audit content commit:** pending closure update
+**Audit content commit:** `75b09d0493c775ff07142bb169faff93bb01c21b` (substantive audit content)
 
 **Scientific interpreter:** `/home/AI_POC/venvs/tactics/bin/python`
 
@@ -215,6 +215,7 @@ reproducibility/
 The repository remains research software, not a medical device. The migration
 made no scientific or clinical claim. PR #131 is merged; PR #132 remains open
 at audit closure. This audit closure is committed locally for review and is not
-pushed or merged automatically.
+pushed or merged automatically. After the substantive audit commit, the working
+tree was clean.
 
 DOCUMENT HIERARCHY MIGRATION V2 SAFE — READY FOR REVIEW
