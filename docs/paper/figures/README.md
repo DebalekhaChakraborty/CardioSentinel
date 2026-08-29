@@ -6,8 +6,8 @@ Every value plotted traces to a frozen report or a promoted run artifact.
 Regenerate with:
 
 ```
-venvs/tactics/bin/python paper/figures/make_f3_f4.py      # data figures
-venvs/tactics/bin/python paper/figures/make_f1_f2_f5.py   # diagrams
+venvs/tactics/bin/python docs/paper/figures/make_f3_f4.py      # data figures
+venvs/tactics/bin/python docs/paper/figures/make_f1_f2_f5.py   # diagrams
 ```
 
 Outputs vector `.pdf` (submission) and `.png` at 200 dpi (review).

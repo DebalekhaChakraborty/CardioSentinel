@@ -176,6 +176,7 @@ def test_the_live_section_has_no_hidden_keys() -> None:
     """Regression against the exact defect, on the file that carried it."""
     draft = (
         pathlib.Path(__file__).resolve().parents[2]
+        / "docs"
         / "paper"
         / "PAPER_S2_RELATED_WORK_DRAFT.md"
     )

@@ -6,7 +6,7 @@ default and must be supplied by the paper's human owner.
 
 **Several fields cannot even be known to be *required*** until the official
 TACTiCS 2026 author instructions exist — see
-`paper/TACTICS_OFFICIAL_INSTRUCTIONS_NEEDED.md`. Those are marked
+`docs/paper/TACTICS_OFFICIAL_INSTRUCTIONS_NEEDED.md`. Those are marked
 `UNKNOWN (requirement also unverified)` rather than being quietly assumed
 mandatory or optional.
 

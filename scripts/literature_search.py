@@ -26,7 +26,7 @@ Usage::
     python scripts/literature_search.py harvest --out
     docs/literature/LITERATURE_SEARCH_V1.json
     python scripts/literature_search.py verify \\
-        paper/PAPER_S2_RELATED_WORK_DRAFT.md \\
+        docs/paper/PAPER_S2_RELATED_WORK_DRAFT.md \\
         --record docs/literature/LITERATURE_SEARCH_V1.json
 """
 

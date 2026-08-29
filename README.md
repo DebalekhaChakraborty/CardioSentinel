@@ -14,11 +14,11 @@ medical recommendations.
 >
 > **The manuscript is content-frozen; submission formatting is blocked.** The
 > current candidate is
-> [`paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md`](paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md).
+> [`docs/paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md`](docs/paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md).
 > Official TACTiCS 2026 instructions and a template have not been obtained, so
 > no page-limit or formatting rule is inferred. The governing record of the
 > programme is the
-> [Research Execution Handbook v1.5](handbook/CardioSentinel_Research_Execution_Handbook_v1.5.md).
+> [Research Execution Handbook v1.5](docs/handbook/CardioSentinel_Research_Execution_Handbook_v1.5.md).
 
 ---
 
@@ -76,7 +76,7 @@ explicit choice but never selects Gemini by itself.
 
 ## From the manuscript to the evidence
 
-Section numbers refer to [`paper/PAPER_OUTLINE_V2.md`](paper/PAPER_OUTLINE_V2.md).
+Section numbers refer to [`docs/paper/PAPER_OUTLINE_V2.md`](docs/paper/PAPER_OUTLINE_V2.md).
 
 | Section | What it claims | Where the evidence is |
 |---|---|---|
@@ -84,10 +84,10 @@ Section numbers refer to [`paper/PAPER_OUTLINE_V2.md`](paper/PAPER_OUTLINE_V2.md
 | §3.2–3.4 Pipeline | causal signal path, encoder, memory, calibration, episode layer | [`SIGNAL_PROCESSING_CONTRACT`](docs/contracts/SIGNAL_PROCESSING_CONTRACT.md) · `B4_*` · `P1_*` · `M1_*` · `M2_*` · `U1_*` · `T2_*` · [`T1_CAUSAL_EPISODE_STATE_PROTOCOL_V1`](docs/T1_CAUSAL_EPISODE_STATE_PROTOCOL_V1.md) |
 | §3.5 The runtime | 146-d bridge verified to **6 ULP**; ~61× real time | `src/cardiosentinel/edge/` · Handbook §52, §55 |
 | §4 Evidence framework | one-shot budgets, negative capability, digest-bound provenance | [`EXPERIMENT_CONTRACT`](docs/contracts/EXPERIMENT_CONTRACT.md) · [`RUNTIME_INTEGRITY_SENTINEL_V1`](docs/provenance/RUNTIME_INTEGRITY_SENTINEL_V1.md) · Handbook §40–§47 |
-| §2 Related work | the gap this work sits in, after a recorded search | [`LITERATURE_SEARCH_V1`](paper/LITERATURE_SEARCH_V1.md) · [`PAPER_S2_RELATED_WORK_DRAFT`](paper/PAPER_S2_RELATED_WORK_DRAFT.md) · [`scripts/literature_search.py`](scripts/literature_search.py) |
+| §2 Related work | the gap this work sits in, after a recorded search | [`LITERATURE_SEARCH_V1`](docs/paper/LITERATURE_SEARCH_V1.md) · [`PAPER_S2_RELATED_WORK_DRAFT`](docs/paper/PAPER_S2_RELATED_WORK_DRAFT.md) · [`scripts/literature_search.py`](scripts/literature_search.py) |
 | §4.6 Claim governance | the publication boundary as executable code | [`src/cardiosentinel/agents/claims.py`](src/cardiosentinel/agents/claims.py) · Handbook §53 |
 | §5 Failure and recovery | a consumed attempt, and an authorized single-use recovery | [`T1_EXECUTION_RECOVERY_AMENDMENT_V1_1`](docs/T1_EXECUTION_RECOVERY_AMENDMENT_V1_1.md) · `recovery/` |
-| §5.6 Nine boundaries | the guard catching this repository's own authors, and four gates each added because the previous ones passed a real failure | Handbook §53.2, §53.2.1 · [`PAPER_S5_6_CLAIM_BOUNDARY_DRAFT`](paper/PAPER_S5_6_CLAIM_BOUNDARY_DRAFT.md) |
+| §5.6 Nine boundaries | the guard catching this repository's own authors, and four gates each added because the previous ones passed a real failure | Handbook §53.2, §53.2.1 · [`PAPER_S5_6_CLAIM_BOUNDARY_DRAFT`](docs/paper/PAPER_S5_6_CLAIM_BOUNDARY_DRAFT.md) |
 | §7 Results | the four reported numbers | the four `_V1` reports in the table below |
 | §8 Limitations | 25 forbidden claims | Handbook **Appendix A** |
 | §10 Reproducibility | committed bundle, restore procedure | [`reproducibility/`](reproducibility/) |

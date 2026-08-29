@@ -23,6 +23,12 @@ every count below is unchanged from `a8f1b47`.
 > `docs/control-plane/CURRENT_STATE.md` §1 carries the live figures and is
 > regenerated; this page is not.
 
+The later path-only Document Hierarchy Migration V2 placed the publication,
+handbook and handoff trees at `docs/paper/`, `docs/handbook/` and
+`docs/handoffs/`. The delta table above remains the historical 2026-08-29
+snapshot; resolve its former root paths through
+`docs/provenance/DOCUMENT_PATH_TRANSLATION_V2.md`.
+
 **Read this before navigating the package tree.** The top-level layout of
 `src/cardiosentinel/` does not describe where the work is. Three packages that
 look like major subsystems are empty, and two of those three describe research

@@ -43,8 +43,8 @@ models/checkpoints/
 .idea/
 
 # Working paper drafts (e.g. uploaded DOCX submission drafts) stay local;
-# the tracked manuscript lives under paper/ itself, not paper/drafts/.
-paper/drafts/
+# the tracked manuscript lives under docs/paper/ itself, not its drafts/.
+docs/paper/drafts/
 
 # The curated IPS demo reproduction bundle is committed deliberately: 1.63 MiB,
 # selected by scripts/provenance/select_demo_bundle.py and verified by

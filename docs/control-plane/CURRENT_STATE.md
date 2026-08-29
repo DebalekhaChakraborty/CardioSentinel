@@ -11,7 +11,7 @@ source of truth; this file is a cache of it.**
 
 Read this file for *"where are we"*. Read the `_V1` documents for *"what did we
 decide and why"*. Read
-`handbook/CardioSentinel_Research_Execution_Handbook_v1.5.md` for the programme's
+`docs/handbook/CardioSentinel_Research_Execution_Handbook_v1.5.md` for the programme's
 governing account of itself, `docs/control-plane/ARCHITECTURE.md` for where the code actually
 lives, and `docs/control-plane/EXPERIMENT_CATALOGUE.md` for what has been spent.
 
@@ -23,7 +23,7 @@ from it. **Neither authorizes an experiment.**
 
 ---
 
-**As of:** working branch `fix/runtime-hardening-doc-reconciliation`
+**As of:** working branch `chore/document-hierarchy-migration-v2`
 based on GitHub `master` at
 `4431c58048d9d981d9872e9f49a5335929a82e65` (merge of PR #129), with
 **no open pull requests**, 2026-08-29 · tags
@@ -31,7 +31,8 @@ based on GitHub `master` at
 **Refresh status:** living repository, pull-request, manuscript, documentation,
 runtime and demo state reconciled on 2026-08-29. Scientific values below were
 not recomputed or re-scored; their frozen records remain authoritative.
-**Working tree:** one worktree, **clean** after post-PR #129 recovery. The
+**Working tree:** one worktree, **clean** after the path-only document hierarchy
+migration. The
 runtime trust-boundary and documentation/demo reconciliation work is committed
 as `1723436` and `dd19d75`; later owner-authored living-state, evidence-mirror
 and paper-draft-ignore updates are separately committed through `8346a7e`.
@@ -73,7 +74,7 @@ taken.
 
 **The remaining submission gap is formatting and human-supplied metadata, not
 model capability or manuscript assembly.** The content-frozen candidate is
-`paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md`: 14,415
+`docs/paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md`: 14,415
 words, SHA-256
 `78863bcc659f9ee54b1c6566c12fe815098f2d2852598a3bd0a708fe60029fe2`.
 All manuscript sections are assembled. Official TACTiCS 2026 instructions and
@@ -88,15 +89,15 @@ remaining human submission metadata are also intentionally unresolved.
 | | |
 |---|---|
 | `master` | `4431c58048d9d981d9872e9f49a5335929a82e65` — merge of PR #129 |
-| Working branch | `fix/runtime-hardening-doc-reconciliation`, based on `4431c58`; recovered commits `1723436`, `dd19d75`; later owner commits `4e1a931`, `00aa7d1`, `8346a7e`; current recovery record follows |
+| Working branch | `chore/document-hierarchy-migration-v2`, created from the clean recovered post-#129 state at `61cc553`; no automatic merge |
 | Tags | `research-freeze-v1.0` · `ips-agentic-runtime-v1.0` · `legacy/v0` · three `archive/*` tags |
 | Releases | none |
 | Working tree | one worktree, **clean** — the reconciliation work is committed, not pending |
 | Open PRs | **none** — #128 and #129 both merged |
 | Tracked Python | 314 files · 136,285 LOC |
-| Tests | 125 `test_*.py` files · 3,566 collected tests |
-| Documents | 104 files in `docs/` (100 `.md`); authoritative publication/governance trees are hoisted at root |
-| Root documentation | `paper/` 31 files (19 `.md`) · `audits/` 9 (9 `.md`, including the recovery audit) · `handbook/` 10 (4 `.md`) · `handoffs/` 23 (23 `.md`) |
+| Tests | 127 `test_*.py` files · 3,579 collected tests |
+| Documents | 171 tracked files in `docs/` (148 `.md`), including `docs/paper/` 31, `docs/handbook/` 10 and `docs/handoffs/` 23; four ignored owner DOCX drafts also remain under `docs/paper/drafts/` |
+| Root documentation | `audits/` 10 Markdown audits, including recovery and hierarchy-migration receipts; `reproducibility/` remains separate |
 | Handbook | **v1.5**, with v1.2–v1.4 retained, superseded and unedited |
 | `neural/` | 96 Python files · 57,980 LOC — still where most research code lives |
 | `edge/` · `agents/` | 2,276 · 4,023 Python lines |
@@ -152,9 +153,9 @@ prohibited, and the bounded result is available through the post-hoc analysis.
 and unedited on purpose; they remain evidence of what the programme asserted at
 those moments rather than living descriptions of the repository.
 
-**`paper/PAPER_OUTLINE_V2.md` remains the governing outline**, and the assembled
+**`docs/paper/PAPER_OUTLINE_V2.md` remains the governing outline**, and the assembled
 content-frozen candidate is
-`paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md`.
+`docs/paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md`.
 `PAPER_OUTLINE_V1.md` predates the runtime and agentic layer and is retained
 unedited under the `_V1` convention.
 
