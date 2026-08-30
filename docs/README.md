@@ -8,7 +8,7 @@ reason recorded below.
 | Directory | Holds | Files |
 |---|---|--:|
 | `audits/` | verification records: runtime trust boundary, reproducibility, related-work verification, recovery and migration audits | 10 |
-| `docs/` | the complete document tree, except root audit and reproducibility records | 172 tracked |
+| `docs/` | the complete document tree, except root audit and reproducibility records | 173 tracked |
 
 ## Inside `docs/`
 
@@ -26,7 +26,7 @@ reason recorded below.
 | `docs/experiments/p1/` | physiology fusion | 2 |
 | `docs/contracts/` | dataset, experiment and signal-processing contracts; split policy; metrics and annotation semantics; baseline and benchmark protocols | 8 |
 | `docs/control-plane/` | current state, experiment catalogue, evidence map, research scope, architecture, plans, roadmap, repo audit, experiment/component identifier mapping | 9 |
-| `docs/provenance/` | commit-pin and V1/V2 document-path translation, migration receipts, the provenance incident, cross-dataset provenance and runtime integrity | 8 |
+| `docs/provenance/` | commit-pin and V1/V2 document-path translation, migration and legacy-archive receipts, the provenance incident, cross-dataset provenance and runtime integrity | 9 |
 | `docs/explanation/` | explanation evaluation protocol and report, local-LLM protocol, Qwen run contract, demo scenario | 5 |
 | `docs/external-validation/` | the Route A decline and the strategy that preceded it | 2 |
 | `docs/literature/` | the two frozen literature-search harvests | 2 |
