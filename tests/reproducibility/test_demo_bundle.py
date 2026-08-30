@@ -110,13 +110,21 @@ def test_the_verifier_detects_drift(tmp_path):
 def test_the_documentation_set_is_complete():
     for name in (
         "README.md",
-        "ENVIRONMENT.md",
-        "DATA_ACCESS.md",
-        "RUN_DEMO.md",
         "EXPERIMENT_MAP.md",
         "CHECKSUM_MANIFEST.md",
     ):
         assert (REPRO / name).is_file(), name
+
+    # The environment, data-access and run-the-demo documents were merged into
+    # README.md; what they guaranteed is a section of it now, so assert on the
+    # content rather than only on the filenames that used to carry it.
+    readme = (REPRO / "README.md").read_text(encoding="utf-8")
+    for heading in (
+        "## Run the demonstration",
+        "## Environment",
+        "## Data access",
+    ):
+        assert heading in readme, heading
 
 
 def test_the_package_does_not_depend_on_an_external_mirror():
@@ -136,7 +144,7 @@ BUNDLE_FEATURES = BUNDLE / "features"
 
 
 def test_the_bundle_alone_loads_every_runtime_component():
-    """The claim `RUN_DEMO.md` makes, executed.
+    """The claim `README.md` makes under Run the demonstration, executed.
 
     **This runs everywhere**, including a fresh CI checkout, because the bundle
     is committed and no ECG record is needed to load artifacts. It is the test
@@ -180,7 +188,8 @@ DEMO_RECORD = ROOT / "cardiosentinel-data" / "ltstdb" / "1.0.0" / "s20201.hea"
     not DEMO_RECORD.is_file(),
     reason=(
         "cardiosentinel-data/ltstdb/1.0.0/s20201 absent. The ECG record is "
-        "downloaded from PhysioNet per DATA_ACCESS.md and is not distributed "
+        "downloaded from PhysioNet per README.md, Data access, and is not "
+        "distributed "
         "here; the bundle-only loader test above still runs."
     ),
 )
