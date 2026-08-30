@@ -23,9 +23,11 @@ from it. **Neither authorizes an experiment.**
 
 ---
 
-**As of target post-merge state:** working branch `docs/post-legacy-state`
+**As of target post-merge state:** working branch
+`docs/legacy-content-only-reconciliation`
 based on GitHub `master` at
-`238d54cf3c97b435523bcf01506f1292008cb6ac` (merge of PR #133), with
+`92ed049163e454bfd0a6f81230c6c91e595560b3` (demo-UI consolidation and
+documentation cleanup), with
 **no other open pull request**, 2026-08-30 · tags
 `research-freeze-v1.0` · `ips-agentic-runtime-v1.0`
 **Refresh status:** living repository, pull-request, reporting, documentation,
@@ -35,8 +37,8 @@ authoritative.
 **Working tree:** **clean at refresh**. The runtime trust-boundary work,
 document-hierarchy V2 migration, identifier mapping, research-artifact
 presentation and read-only replay dashboard are merged; `master` carries them.
-**Open PRs:** none after this state-only reconciliation merges; #128 through
-#133 are merged. This reconciliation PR is the sole review-time exception.
+**Open PRs:** none after this reconciliation merges; #128 through #134 are
+merged. This reconciliation PR is the sole review-time exception.
 *(Snapshot only — `gh pr list` is authoritative.)*
 **Canonical T1 attempt:** **CONSUMED** — failed post-claim at stage 24
 **T1 measurement continuation:** **COMPLETED** — the single authorization is spent
@@ -88,20 +90,20 @@ rule, layout constraint or author metadata is inferred or tracked here.
 
 | | |
 |---|---|
-| `master` | `238d54cf3c97b435523bcf01506f1292008cb6ac` — merge of PR #133 |
-| Working branch | `docs/post-legacy-state`, created from `master` at `238d54c`; post-merge state reconciliation only |
+| `master` | `92ed049163e454bfd0a6f81230c6c91e595560b3` — demo-UI consolidation and documentation cleanup |
+| Working branch | `docs/legacy-content-only-reconciliation`, rebased onto `master` at `92ed049`; archive-layout documentation only |
 | Tags | `research-freeze-v1.0` · `ips-agentic-runtime-v1.0` · `legacy/v0` · four `archive/*` tags, including `archive/legacy-v0-tree` |
 | Releases | none |
 | Working tree | **clean at refresh** — the archive receipt, removal and state reconciliation are committed |
-| Open PRs | **none after this reconciliation merges** — #128 through #133 are merged; this state-only PR is the sole review-time exception |
-| Tracked Python | 318 files · 137,211 LOC |
+| Open PRs | **none after this reconciliation merges** — #128 through #134 are merged; this reconciliation PR is the sole review-time exception |
+| Tracked Python | 318 files · 137,221 LOC |
 | Tests | 127 `test_*.py` files · 3,579 collected tests |
 | Documents | 174 tracked files in `docs/` (151 `.md`), including `docs/paper/` 31, `docs/handbook/` 10 and `docs/handoffs/` 24; ignored owner DOCX drafts also remain under `docs/paper/drafts/` |
 | Root documentation | `audits/` 10 Markdown audits, including the recovery and formal hierarchy-migration audits; `reproducibility/` remains separate |
 | Handbook | **v1.5**, with v1.2–v1.4 retained, superseded and unedited |
 | `neural/` | 96 Python files · 57,980 LOC — still where most research code lives |
 | `edge/` · `agents/` | 2,276 · 4,023 Python lines |
-| `reproducibility/` | 39 tracked files totalling 1.72 MiB, including the read-only replay dashboard |
+| `reproducibility/` | 36 tracked files totalling 1.72 MiB, including the read-only replay dashboard |
 | Evidence on disk | `cardiosentinel-runs` 3.4 GB · `cardiosentinel-data` 5.6 GB · `cardiosentinel-features` 16 GB (all gitignored) |
 
 ### Merged since the previous refresh (`544581e`, PR #97)
@@ -926,10 +928,12 @@ human authorization.
 
 ---
 
-_Post-PR #133 living-state reconciliation: 2026-08-30, on
-`docs/post-legacy-state`, based on GitHub `master` `238d54cf3c97`, with no other
-open pull request. The historical prototype is preserved on the locked
-`legacy` branch and `archive/legacy-v0-tree` tag and is absent from `master`.
+_Post-`92ed049` content-only archive reconciliation: 2026-08-30, on
+`docs/legacy-content-only-reconciliation`, based on GitHub `master`
+`92ed049163e4`, with no other open pull request. The historical prototype is
+preserved on the locked content-only `legacy` branch, while
+`archive/legacy-v0-tree` pins the former full pre-removal snapshot; the
+prototype is absent from `master`.
 Scientific values were not recomputed; their frozen source records remain
 authoritative. Evidence-mirror statements in §8 carry their own verification
 dates._

@@ -592,8 +592,8 @@ architectural result whose confidence interval includes zero and says so in
 every document that quotes it.
 
 That original code is preserved **unchanged outside the active tree** on the
-locked `legacy` branch and immutable `archive/legacy-v0-tree` tag. Its commit,
-tree and file identities are recorded in the
+locked, content-only `legacy` branch and immutable `archive/legacy-v0-tree`
+tag. Its commit, tree and file identities are recorded in the
 [`Legacy V0 Archive Receipt`](docs/provenance/LEGACY_V0_ARCHIVE_V1.md). The
 older `legacy/v0` tag still identifies the original 2020 root layout. The
 prototype is not part of the pipeline, was never validated, and its
