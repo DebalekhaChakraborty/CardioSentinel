@@ -237,9 +237,8 @@ Subject-macro `episode_f1` **0.2524** (state machine) against **0.0603**
 subject-bootstrap **[0.0505, 0.3455]**, **excludes zero**.
 
 **Boundary, and it is load-bearing.** Both arms ran at thresholds selected
-*with the state machine in the loop*. **A well-tuned memoryless rule was never
-tested**, and would very likely score better than this arm does here. RQ4 reads
-"Supported (bounded)", never bare "Supported".
+*with the state machine in the loop*. **A separately tuned memoryless rule was
+never tested.** RQ4 reads "Supported (bounded)", never bare "Supported".
 → [`W1_WINDOW_COMPARATOR_REPORT_V1`](docs/experiments/w1/W1_WINDOW_COMPARATOR_REPORT_V1.md)
 
 ### Episode detection, measured and bounded

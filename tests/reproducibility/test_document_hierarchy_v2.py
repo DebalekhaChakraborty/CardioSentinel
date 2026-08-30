@@ -45,7 +45,18 @@ def test_tracked_move_counts_match_the_receipt() -> None:
     ).stdout.splitlines()
     assert sum(path.startswith("docs/paper/") for path in tracked) == 31
     assert sum(path.startswith("docs/handbook/") for path in tracked) == 10
-    assert sum(path.startswith("docs/handoffs/") for path in tracked) == 23
+
+    # Handoffs accumulate: a session written after the migration is a new file,
+    # not a moved one, so a fixed total would fail for the wrong reason. What the
+    # receipt actually asserts is that every file it *moved* is still tracked at
+    # its new path, and that is what is checked here.
+    moved_handoffs = {
+        row["new_path"]
+        for row in _receipt_rows()
+        if row["new_path"].startswith("docs/handoffs/")
+    }
+    assert len(moved_handoffs) == 23
+    assert moved_handoffs <= set(tracked)
 
 
 def test_frozen_and_historical_moved_files_retain_content_identity() -> None:

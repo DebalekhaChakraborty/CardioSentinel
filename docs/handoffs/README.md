@@ -27,13 +27,15 @@ open one.
 
 | | |
 |---|---|
-| **Latest** | **ECG 23** — the one to read |
-| Covers | **E11 COMPLETED (ATTEMPT 2) — Category C**; **E12a COMPLETE — decision C**; **E12d COMPLETE (ATTEMPT 2) — historical replication PASSED, decision D**; E11-class runner instrumentation built, hardened and exercised end-to-end |
+| **Latest** | **ECG 25** — the one to read |
+| Covers | the T1 freeze blocker closed and the seven T1 documents left flat; the document-hierarchy V2 migration; the research-artifact presentation pass; the evidence mirror verified by content; and `reproducibility/demo-ui/`, which reproduced the guarded-generation refusal live |
 
 ## Index, newest first
 
 | Session | Date | The danger it named for the session after it |
 |---|---|---|
+| **ECG 25** | 2026-08-30 | a presentation layer quietly acquiring authority the runtime never gave it |
+| **ECG 24** | 2026-08-29 | breaking a working repository to tidy a directory |
 | **ECG 23** | 2026-08-27 | four kinds of defensible work — experiment, audit, hardening, documentation — none of them the manuscript |
 | **ECG 22** | 2026-08-26 | relaunching a failed experiment on its own judgement |
 | ECG 21 | 2026-08-26 | *(no handoff written — session ran E11 ATTEMPT 1, which failed on the NaN-mask defect; ECG 22 was written in its place)* |

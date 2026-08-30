@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CardioSentinel — replay demonstrator</title>
+<style>
+:root{
+  --bg:#f4f6fa; --card:#fff; --line:#dde3ec; --soft:#eef1f6;
+  --ink:#10141a; --ink2:#48546a; --ink3:#78849a;
+  --blue:#2a78d6; --orange:#eb6834; --violet:#7a5af5;
+  --pass:#177a47; --block:#c0392b;
+  --normal:#9aa6ba; --watch:#e0a008; --event:#eb6834; --recovery:#7a5af5;
+  --r:10px; --fs:15px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-size:var(--fs);
+  font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.mono{font-family:"JetBrains Mono","SF Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;
+  font-variant-numeric:tabular-nums}
+.wrap{max-width:1880px;margin:0 auto;padding:12px 18px 6px}
+[hidden]{display:none!important}
+
+header{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap}
+h1{margin:0;font-size:25px;letter-spacing:-.4px;font-weight:660}
+.sub{margin:2px 0 0;color:var(--ink2);font-size:13.5px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;align-items:center}
+.badge{font-size:10.5px;font-weight:700;letter-spacing:.6px;padding:5px 9px;border-radius:5px;
+  border:1px solid var(--line);background:#fff;color:var(--ink2);white-space:nowrap}
+.badge.warn{border-color:#f0c9b8;background:#fdf1ec;color:#a2401e}
+.badge.info{border-color:#c7dcf5;background:#eef5fd;color:#1d5da8}
+.ident{display:flex;gap:15px;font-size:12px;color:var(--ink3);margin-top:5px;flex-wrap:wrap}
+.ident b{color:var(--ink2);font-weight:600}
+
+.tabs{display:flex;gap:4px;margin:10px 0 9px;border-bottom:1px solid var(--line);align-items:flex-end}
+.tab{appearance:none;border:0;background:none;padding:8px 15px;cursor:pointer;font-family:inherit;
+  font-size:12.5px;font-weight:660;letter-spacing:.5px;color:var(--ink3);border-bottom:2px solid transparent}
+.tab[aria-selected="true"]{color:var(--blue);border-bottom-color:var(--blue)}
+.tab:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.spacer{margin-left:auto;display:flex;gap:7px;align-items:center;padding-bottom:5px}
+
+.arch{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:8px 13px;margin-bottom:9px}
+.arch-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.node{font-size:11px;padding:4px 8px;border-radius:5px;background:#f2f5f9;border:1px solid var(--soft);white-space:nowrap}
+.node.src{background:#eef5fd;border-color:#cfe1f7}
+.node.out{background:#fdf1ec;border-color:#f5d4c4}
+.arrow{color:var(--ink3);font-size:11px}
+.groups{display:flex;gap:7px;margin-top:6px;font-size:10px;letter-spacing:.7px;font-weight:700;color:var(--ink3)}
+.groups span{background:#f2f5f9;border:1px solid var(--soft);border-radius:4px;padding:3px 8px}
+.groups .base{background:#fff;border-style:dashed}
+
+.grid{display:grid;grid-template-columns:1fr 372px 396px;gap:9px;align-items:start}
+.col{display:flex;flex-direction:column;gap:9px;min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;min-width:0}
+.card.hot{border-color:#f2b79c;box-shadow:0 0 0 2px rgba(235,104,52,.10)}
+.card h2{margin:0 0 7px;font-size:10.5px;letter-spacing:.9px;font-weight:700;color:var(--ink3);text-transform:uppercase}
+.card h2 .note{text-transform:none;letter-spacing:0;font-weight:500;font-size:10.5px}
+canvas{display:block;width:100%}
+/* Hard ceiling per canvas. The JS sets style.height explicitly; these bounds mean
+   a bug there can never let a canvas grow into the rest of the page. */
+#ecg{height:146px;max-height:146px}
+#timeline{height:60px;max-height:60px}
+#p-plot,#s-plot,#d-plot{height:114px;max-height:114px}
+
+.ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+button.b{appearance:none;font-family:inherit;font-size:12px;font-weight:620;padding:6px 12px;
+  border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+button.b:hover{border-color:var(--blue);color:var(--blue)}
+button.b.on{background:var(--blue);border-color:var(--blue);color:#fff}
+button.b:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+button.b.mini{padding:4px 9px;font-size:11px}
+.clock{font-size:22px;font-weight:700;letter-spacing:.5px;margin-left:5px}
+.hint{font-size:11px;color:var(--ink3)}
+kbd{font-family:inherit;font-size:10px;background:#f2f5f9;border:1px solid var(--line);
+  border-bottom-width:2px;border-radius:4px;padding:1px 5px;color:var(--ink2)}
+
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:5px 0;border-bottom:1px solid var(--soft)}
+.kv:last-child{border-bottom:0}
+.kv .k{font-size:12px;color:var(--ink2)}
+.kv .k small{display:block;color:var(--ink3);font-size:10.5px;font-weight:400}
+.kv .v{font-size:19px;font-weight:700}
+.pill{display:inline-block;padding:5px 14px;border-radius:6px;font-weight:750;font-size:17px;letter-spacing:.8px;color:#fff}
+.legend{display:flex;gap:11px;font-size:11px;color:var(--ink2);margin-top:5px;flex-wrap:wrap;align-items:center}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.beats{display:flex;gap:5px;flex-wrap:wrap;margin-left:auto}
+
+.gates{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.gate{border:1px solid var(--line);border-radius:7px;padding:6px 3px;text-align:center;background:#fafbfd}
+.gate .g{font-size:12.5px;font-weight:750;color:var(--ink2)}
+.gate .s{font-size:11.5px;font-weight:750;margin-top:2px}
+.gate.pass{border-color:#bfe3cf;background:#f1faf5}.gate.pass .s{color:var(--pass)}
+.gate.block{border-color:#f3c9c3;background:#fdf2f0}.gate.block .s{color:var(--block)}
+.gate.na{background:#f6f7f9}.gate.na .s{color:var(--ink3)}
+.binding{font-size:11.5px;color:var(--ink2);margin-top:8px;line-height:1.5;
+  background:#fdf2f0;border:1px solid #f3c9c3;border-radius:6px;padding:6px 9px}
+.binding.ok{background:#f1faf5;border-color:#bfe3cf}
+.auth{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.auth div{border:1px solid var(--line);border-radius:7px;padding:7px;text-align:center}
+.auth .lab{font-size:10px;letter-spacing:.8px;font-weight:700;color:var(--ink3)}
+.auth .val{font-size:15px;font-weight:750;margin-top:2px}
+.auth .ok{color:var(--pass)}.auth .no{color:var(--block)}
+.auth-note{font-size:11px;color:var(--ink2);margin-top:7px;line-height:1.5}
+.gate-key{font-size:10px;color:var(--ink3);margin-top:6px;line-height:1.5}
+
+.evt{border-left:3px solid var(--orange);padding-left:10px}
+.evt .t{font-size:12px;font-weight:750;letter-spacing:.5px;color:var(--orange)}
+.evt .win{font-size:21px;font-weight:750;margin:2px 0 1px}
+.evt .meta{font-size:11.5px;color:var(--ink2)}
+.peaks{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}
+.peaks div{background:#fafbfd;border:1px solid var(--soft);border-radius:7px;padding:6px 7px}
+.peaks .pl{font-size:10px;color:var(--ink3);line-height:1.35}
+.peaks .pv{font-size:16px;font-weight:750;margin-top:2px}
+.sep-note{font-size:10.5px;color:var(--ink3);margin-top:6px;font-style:italic}
+
+.lin{font-size:11.5px;line-height:1.6}
+.lin .row{display:flex;gap:8px;padding:2px 0}
+.lin .kind{color:var(--ink3);min-width:70px;font-size:10px;letter-spacing:.4px;text-transform:uppercase;font-weight:650;padding-top:2px}
+.lin .val{word-break:break-word;min-width:0}
+.lin .flag{color:var(--orange);font-size:10.5px}
+
+.expl{font-size:12.5px;line-height:1.6}
+.chip{font-size:10px;font-weight:700;letter-spacing:.5px;padding:3px 7px;border-radius:4px;
+  background:#eef5fd;color:#1d5da8;border:1px solid #cfe1f7}
+.chip.grey{background:#f2f5f9;color:var(--ink2);border-color:var(--line)}
+.chip.bad{background:#fdf2f0;color:var(--block);border-color:#f3c9c3}
+.chip.good{background:#f1faf5;color:var(--pass);border-color:#bfe3cf}
+.meta-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+
+.gen{border:1px solid var(--line);border-radius:8px;margin-top:7px;overflow:hidden}
+.gen>summary{cursor:pointer;list-style:none;padding:8px 10px;display:flex;gap:8px;align-items:center;
+  font-size:12px;background:#fafbfd}
+.gen>summary::-webkit-details-marker{display:none}
+.gen .name{font-weight:700}
+.gen .rev{font-size:10px;color:var(--ink3)}
+.gen .body{padding:9px 11px;border-top:1px solid var(--soft);font-size:12px;line-height:1.6}
+.gen.refused{border-left:3px solid var(--block)}
+.gen.served{border-left:3px solid var(--pass)}
+.gen .why{font-size:11.5px;color:var(--block);margin:0 0 7px;line-height:1.5}
+.gen.served .why{color:var(--pass)}
+
+.ga{display:grid;grid-template-columns:1.1fr 1fr;gap:11px;align-items:start}
+.ga img{width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fff}
+.mc{border:1px solid var(--line);border-radius:9px;padding:11px 13px;background:#fff}
+.mc.refused{border-left:4px solid var(--block)}
+.mc.served{border-left:4px solid var(--pass)}
+.mc h3{margin:0 0 3px;font-size:14.5px}
+.mc .out{font-size:11.5px;font-weight:750;letter-spacing:.6px}
+.mc.refused .out{color:var(--block)}.mc.served .out{color:var(--pass)}
+.mc table{width:100%;border-collapse:collapse;margin-top:7px;font-size:11.5px}
+.mc td{padding:3px 0;border-bottom:1px solid var(--soft);vertical-align:top}
+.mc td:last-child{text-align:right;font-weight:650}
+.gaterow{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.gaterow span{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;border:1px solid}
+.gaterow .p{color:var(--pass);border-color:#bfe3cf;background:#f1faf5}
+.gaterow .b{color:var(--block);border-color:#f3c9c3;background:#fdf2f0}
+
+footer{margin:11px 0 20px}
+.limbar{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:8px 12px;
+  font-size:11.5px;color:var(--ink2);display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.limbar b{color:var(--ink)}
+details.lim{margin-top:7px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:8px 12px}
+details.lim summary{cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.7px;color:var(--ink2)}
+details.lim ul{margin:8px 0 2px;padding-left:18px;font-size:12px;line-height:1.7;color:var(--ink2)}
+
+#err{display:none;margin:26px auto;max-width:760px;background:#fff;border:1px solid #f3c9c3;
+  border-left:4px solid var(--block);border-radius:var(--r);padding:20px 24px}
+#err h2{margin:0 0 8px;font-size:18px;color:var(--block)}
+#err pre{background:#f5f7fa;border:1px solid var(--line);border-radius:6px;padding:11px 13px;
+  font-size:13px;overflow-x:auto;margin:11px 0 0}
+
+body.present{--fs:17px}
+body.present .secondary{display:none}
+body.present h1{font-size:31px}
+body.present .sub{font-size:16px}
+body.present .card h2{font-size:12px}
+body.present .kv .v{font-size:23px}
+body.present .pill{font-size:20px;padding:6px 17px}
+body.present .gate .g{font-size:15px}
+body.present .gate .s{font-size:14px}
+body.present .auth .val{font-size:17px}
+body.present .evt .win{font-size:25px}
+body.present .peaks .pv{font-size:18px}
+body.present .expl,body.present .gen .body{font-size:14.5px;line-height:1.65}
+body.present .lin{font-size:12.5px}
+body.present .clock{font-size:26px}
+body.present .grid{grid-template-columns:1fr 392px 424px}
+
+/* Three columns are kept for as long as they fit, narrowing the two fixed tracks
+   rather than moving c3 out of the row: the event summary and explanation belong
+   beside the signals, not below them with the third track left empty.
+
+   A media query carries no specificity, so `body.present .grid` (0,2,1) outranks
+   a bare `.grid` (0,1,0) inside one at every width. Every breakpoint must
+   restate the presentation-mode selector or the rule above silently wins. */
+@media (max-width:1500px){
+  .grid{grid-template-columns:1fr 348px 360px}
+  body.present .grid{grid-template-columns:1fr 372px 380px}
+  .ga{grid-template-columns:1fr}
+}
+@media (max-width:1150px){
+  .grid,body.present .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div id="err">
+  <h2>Demo snapshot not generated.</h2>
+  <p id="errmsg">The dashboard renders <code>demo_snapshot.json</code>, a derived file that is
+     intentionally not committed. Generate it from the repository root:</p>
+  <pre>python reproducibility/demo-ui/export_snapshot.py</pre>
+  <p style="font-size:13px;color:#48546a;margin-bottom:0">
+     Add <code>--with-local-models</code> to also record what the guard did with each
+     locally cached open-weight generation. Then reload. The exporter refuses to write a
+     snapshot that does not reproduce the contracted demonstration.</p>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <header>
+    <div>
+      <h1>CardioSentinel</h1>
+      <p class="sub">Evidence-grounded adaptive intelligence for ambulatory ECG monitoring</p>
+      <div class="ident">
+        <span>Record <b id="i-record">—</b></span>
+        <span>Subject <b id="i-subject">—</b></span>
+        <span>Channel <b id="i-channel">—</b></span>
+        <span class="secondary">Windows <b id="i-windows">—</b> · <b id="i-win">—</b> s / <b id="i-stride">—</b> s stride</span>
+      </div>
+    </div>
+    <div class="badges">
+      <span class="badge warn">REPLAY SIMULATION</span>
+      <span class="badge info">STORED ECG</span>
+      <span class="badge info">RESEARCH DEMONSTRATOR</span>
+      <span class="badge warn">NOT DIAGNOSIS</span>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" id="tab-live" role="tab" aria-selected="true">LIVE REPLAY</button>
+    <button class="tab" id="tab-ai" role="tab" aria-selected="false">GUARDED AI</button>
+    <div class="spacer">
+      <span class="hint secondary"><kbd>Space</kbd> play <kbd>J</kbd> event <kbd>R</kbd> restart</span>
+      <button class="b" id="btn-present">PRESENTATION MODE</button>
+    </div>
+  </div>
+
+  <section id="panel-live">
+    <div class="arch secondary">
+      <div class="arch-row">
+        <span class="node src"><b>PHYSICAL ECG</b></span><span class="arrow">→</span>
+        <span class="node"><b>B4-B</b> CNN-Transformer</span><span class="arrow">→</span>
+        <span class="node"><b>P1-B</b> Physiology Fusion</span><span class="arrow">→</span>
+        <span class="node"><b>M1L</b> Patient Memory</span><span class="arrow">→</span>
+        <span class="node"><b>M2-G</b> Selective Adaptation</span><span class="arrow">→</span>
+        <span class="node"><b>U1</b> Platt Calibration</span><span class="arrow">→</span>
+        <span class="node"><b>T2</b> S4D</span><span class="arrow">→</span>
+        <span class="node"><b>T1</b> Episode State</span><span class="arrow">→</span>
+        <span class="node">Evidence Graph</span><span class="arrow">→</span>
+        <span class="node out">Guarded Explanation</span>
+      </div>
+      <div class="groups">
+        <span>LEARN SELECTIVELY</span><span>REASON PERSISTENTLY</span>
+        <span>EXPLAIN CONDITIONALLY</span><span class="base">SHARED EVIDENCE / PROVENANCE</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:9px">
+      <div class="ctl">
+        <button class="b on" id="btn-play">PLAY</button>
+        <button class="b" id="btn-restart">RESTART</button>
+        <button class="b" id="btn-jump">JUMP TO EVENT</button>
+        <span id="speeds" style="display:flex;gap:3px;margin-left:3px"></span>
+        <span class="hint">Visualization playback</span>
+        <span class="clock mono" id="clock">00:00:00</span>
+        <span class="hint" id="wallnote" style="margin-left:auto;text-align:right"></span>
+      </div>
+    </div>
+
+    <div class="card" id="ecg-card" style="margin-bottom:9px">
+      <h2>Actual physical ECG <span class="note" id="ecg-note"></span></h2>
+      <canvas id="ecg" data-h="146"></canvas>
+    </div>
+
+    <div class="card" style="margin-bottom:9px">
+      <h2>Episode state timeline <span class="note">— every window across the replay horizon</span></h2>
+      <canvas id="timeline" data-h="60"></canvas>
+      <div class="legend">
+        <span><i style="background:var(--normal)"></i>NORMAL</span>
+        <span><i style="background:var(--watch)"></i>WATCH</span>
+        <span><i style="background:var(--event)"></i>EVENT</span>
+        <span><i style="background:var(--recovery)"></i>RECOVERY</span>
+        <span class="beats" id="beats"></span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="col">
+        <div class="card"><h2>Calibrated probability p<sub>t</sub></h2><canvas id="p-plot" data-h="114"></canvas></div>
+        <div class="card"><h2>Temporal evidence s<sub>t</sub> <span class="note">— bounded score, not a probability</span></h2><canvas id="s-plot" data-h="114"></canvas></div>
+        <div class="card"><h2>Memory deviation d<sub>long</sub></h2><canvas id="d-plot" data-h="114"></canvas></div>
+      </div>
+
+      <div class="col c2">
+        <div class="card" id="cur-card">
+          <h2>Current window</h2>
+          <div class="kv"><span class="k">Episode state</span><span class="v"><span class="pill" id="c-state">—</span></span></div>
+          <div class="kv"><span class="k">Calibrated probability p<sub>t</sub></span><span class="v mono" id="c-p">—</span></div>
+          <div class="kv"><span class="k">Temporal evidence s<sub>t</sub><small>bounded score, not a probability</small></span><span class="v mono" id="c-s">—</span></div>
+          <div class="kv"><span class="k">Memory deviation d<sub>long</sub></span><span class="v mono" id="c-d">—</span></div>
+          <div class="kv"><span class="k">Memory update</span><span class="v" id="c-mem" style="font-size:15px">—</span></div>
+        </div>
+
+        <div class="card">
+          <h2>Memory admission gate G1–G6</h2>
+          <div class="gates" id="gates"></div>
+          <div class="binding" id="binding">—</div>
+          <div class="auth">
+            <div><div class="lab">INFERENCE</div><div class="val ok" id="a-inf">—</div></div>
+            <div><div class="lab">ADAPTATION</div><div class="val" id="a-ada">—</div></div>
+          </div>
+          <p class="auth-note">An observation may contribute to detection without being
+             permitted to update the patient baseline.</p>
+          <div class="gate-key secondary">
+            G1 physical observation available · G2 representation finite · G3 signal quality
+            admissible · G4 normal enough to learn from · G5 outside memory-update refractory ·
+            G6 morphology computable
+          </div>
+        </div>
+      </div>
+
+      <div class="col c3">
+        <div class="card" id="evt-card">
+          <h2>Event summary <span class="note">— independent of the current window</span></h2>
+          <div class="evt">
+            <div class="t">PERSISTENT MONITORING EVENT</div>
+            <div class="win mono" id="e-window">—</div>
+            <div class="meta"><span id="e-dur">—</span> · <span id="e-wins">—</span> windows · <span class="mono" id="e-id">—</span></div>
+          </div>
+          <div class="peaks">
+            <div><div class="pl">Peak calibrated<br>probability</div><div class="pv mono" id="e-p">—</div></div>
+            <div><div class="pl">Peak temporal<br>evidence</div><div class="pv mono" id="e-s">—</div></div>
+            <div><div class="pl">Maximum memory<br>deviation</div><div class="pv mono" id="e-d">—</div></div>
+          </div>
+          <p class="sep-note">Computed independently over the event; they need not fall on the same window.</p>
+        </div>
+
+        <div class="card">
+          <h2>Evidence lineage <span class="note">— measurement:p_t</span></h2>
+          <div class="lin" id="lineage"></div>
+        </div>
+
+        <div class="card">
+          <h2>Explanation <span class="note" id="expl-note"></span></h2>
+          <div class="meta-row" id="expl-meta"></div>
+          <p class="expl" id="expl-text" style="margin:0">—</p>
+          <div id="gen-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-ai" hidden>
+    <div class="card" style="margin-bottom:9px">
+      <h2>Frozen explanation-evaluation result — not a live model call</h2>
+      <p style="margin:0;font-size:13px;color:#48546a;line-height:1.6">
+        Nothing on this tab invokes a language model. It renders the tracked figure and the
+        recorded outcome of an evaluation executed once, on <b>one</b> evidence context, on a
+        local CPU, with no network access. <span id="ai-live-note"></span>
+      </p>
+    </div>
+    <div class="ga">
+      <div class="card">
+        <h2>Guarded generation — tracked repository figure</h2>
+        <img src="../../docs/paper/figures/F5_guarded_generation.png"
+             alt="Guarded generation: a model output is admitted or refused against the recorded evidence.">
+        <p class="hint" style="margin:8px 0 0">
+          Source: <span class="mono">docs/paper/figures/F5_guarded_generation.png</span> — rendered in
+          place, not copied or regenerated.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div class="mc refused">
+          <h3>Qwen3-1.7B</h3>
+          <div class="out">RUNTIME OUTCOME · REFUSED → DETERMINISTIC FALLBACK</div>
+          <table>
+            <tr><td>Evidence fidelity</td><td>1.000</td></tr>
+            <tr><td>Registered claim violations</td><td>0</td></tr>
+            <tr><td>Completeness</td><td>1.000</td></tr>
+            <tr><td>Categorical state inversion</td><td style="color:var(--block)">FOUND</td></tr>
+          </table>
+          <p style="font-size:11.5px;color:#48546a;margin:8px 0 3px">Actual recorded evidence:</p>
+          <div class="gaterow"><span class="p">G1 PASS</span><span class="p">G2 PASS</span><span class="p">G3 PASS</span><span class="b">G4 BLOCK</span><span class="b">G5 BLOCK</span><span class="p">G6 PASS</span></div>
+          <p style="font-size:11.5px;color:#48546a;margin:8px 0 0;line-height:1.55">
+            <b>Observed model error:</b> the generation stated that the G1–G6 range passed. Three
+            prior gates and four registered metrics passed it; the categorical-alignment guard
+            refused it and the deterministic explanation was served.</p>
+        </div>
+        <div class="mc served">
+          <h3>Qwen3-4B-Instruct-2507</h3>
+          <div class="out">RUNTIME OUTCOME · SERVED</div>
+          <p style="font-size:11.5px;color:#48546a;margin:7px 0 3px">Same contracted evidence context. Correctly represented:</p>
+          <div class="gaterow"><span class="p">G1 PASS</span><span class="p">G2 PASS</span><span class="p">G3 PASS</span><span class="b">G4 BLOCK</span><span class="b">G5 BLOCK</span><span class="p">G6 PASS</span></div>
+          <p style="font-size:11.5px;color:#48546a;margin:8px 0 0;line-height:1.55">No gate fired, and the generation was served.</p>
+        </div>
+        <div class="card" style="border-style:dashed">
+          <p style="margin:0;font-size:13px;font-weight:650">Two models, one context. No failure rate or scaling law is claimed.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="limbar">
+      <b>Stored-record replay</b> · No sensor · <b>Not diagnosis</b> · Not edge-hardware validation · One primary dataset
+    </div>
+    <details class="lim"><summary>EVIDENCE BOUNDARIES</summary><ul id="lims"></ul></details>
+  </footer>
+</div>
+
+<script>
+"use strict";
+(function () {
+  var S=null, obs=[], wave=null, A=null;
+  var idx=0, playing=false, speed=60, lastT=0, simT=0, raf=0;
+  var COL={NORMAL:"#9aa6ba",WATCH:"#e0a008",EVENT:"#eb6834",RECOVERY:"#7a5af5"};
+  var GATES=["G1","G2","G3","G4","G5","G6"];
+  /* Why a gate BLOCKED. The static legend below the panel states the opposite
+     polarity — the condition each gate asserts when it PASSES — and must never
+     be reused here: naming a pass condition as the reason for a block states
+     the opposite of the recorded evidence. */
+  var WHY={G1:"no physical observation",G2:"representation not finite",
+    G3:"signal quality not admissible",G4:"not normal enough to learn from",
+    G5:"inside the memory-update refractory window",G6:"morphology not computable"};
+  var layers={};                       /* cached static canvas layers */
+
+  function $(id){return document.getElementById(id);}
+  function clock(s){s=Math.max(0,Math.floor(s));
+    var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),x=s%60;
+    return [h,m,x].map(function(n){return String(n).padStart(2,"0");}).join(":");}
+  function num(v,dp){ if(v===null||v===undefined) return "n/a";
+    var f=Number(v); if(!isFinite(f)) return "n/a"; return f.toFixed(dp===undefined?6:dp);}
+  function esc(s){var d=document.createElement("div");d.textContent=String(s);return d.innerHTML;}
+  function fail(m){$("err").style.display="block";$("app").hidden=true;if(m)$("errmsg").textContent=m;}
+
+  /* ---- static layers: drawn once per size, then blitted every frame ---- */
+  function mkLayer(el){
+    /* `data-h` is the intended CSS height and is never written to. Reading the
+       `height` *attribute* here would be a bug: this function overwrites it with
+       height*dpr, so every rebuild would multiply the canvas again. */
+    var dpr=window.devicePixelRatio||1;
+    var w=el.clientWidth||0, h=Number(el.dataset.h)||100;
+    if(!w) return null;                       /* hidden or not laid out yet */
+    el.style.height=h+"px";
+    el.width=Math.round(w*dpr); el.height=Math.round(h*dpr);
+    var off=document.createElement("canvas"); off.width=el.width; off.height=el.height;
+    var g=off.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0);
+    return {el:el, off:off, g:g, w:w, h:h, dpr:dpr};
+  }
+
+  function buildTimeline(){
+    var L=mkLayer($("timeline")); if(!L) return;
+    var g=L.g, total=S.meta.simulated_seconds, bh=L.h-17;
+    g.clearRect(0,0,L.w,L.h);
+    for(var i=0;i<obs.length;i++){
+      var o=obs[i];
+      var x0=(o.elapsed_stream_seconds-S.meta.stride_seconds)/total*L.w;
+      var x1=o.elapsed_stream_seconds/total*L.w;
+      g.fillStyle=COL[o.state]||"#ccc";
+      g.fillRect(x0,0,Math.max(1,x1-x0+0.6),bh);
+    }
+    g.strokeStyle="#dde3ec";g.lineWidth=1;
+    g.beginPath();g.moveTo(0,bh+0.5);g.lineTo(L.w,bh+0.5);g.stroke();
+    g.fillStyle="#78849a";g.font="10px system-ui";
+    for(var m=0;m<=total;m+=300){
+      var x=m/total*L.w;
+      g.beginPath();g.moveTo(x,bh);g.lineTo(x,bh+4);g.stroke();
+      g.textAlign=m===0?"left":(m>=total?"right":"center");
+      g.fillText(clock(m),x,L.h-4);
+    }
+    g.textAlign="left";
+    layers.timeline=L;
+  }
+
+  function buildPlot(id,key,color,dp){
+    var L=mkLayer($(id)); if(!L) return;
+    var g=L.g, total=S.meta.simulated_seconds, pad=22, i, v;
+    g.clearRect(0,0,L.w,L.h);
+    var lo=Infinity,hi=-Infinity;
+    for(i=0;i<obs.length;i++){v=obs[i][key];if(v===null||v===undefined)continue;
+      if(v<lo)lo=v; if(v>hi)hi=v;}
+    if(!isFinite(lo)||!isFinite(hi)||hi===lo){lo=0;hi=1;}
+    var r=hi-lo; lo-=r*0.08; hi+=r*0.08;
+    g.fillStyle="rgba(235,104,52,0.11)";
+    for(i=0;i<obs.length;i++){
+      if(obs[i].state!=="EVENT")continue;
+      var a=(obs[i].elapsed_stream_seconds-S.meta.stride_seconds)/total*(L.w-pad)+pad;
+      var b=obs[i].elapsed_stream_seconds/total*(L.w-pad)+pad;
+      g.fillRect(a,0,Math.max(1,b-a+0.6),L.h);
+    }
+    g.strokeStyle="#eef1f6";g.lineWidth=1;
+    g.beginPath();g.moveTo(pad,L.h-0.5);g.lineTo(L.w,L.h-0.5);g.stroke();
+    g.strokeStyle=color;g.lineWidth=1.5;g.beginPath();
+    var started=false;
+    for(i=0;i<obs.length;i++){
+      v=obs[i][key];
+      if(v===null||v===undefined){started=false;continue;}
+      var x=obs[i].elapsed_stream_seconds/total*(L.w-pad)+pad;
+      var y=L.h-((v-lo)/(hi-lo))*(L.h-6)-3;
+      if(!started){g.moveTo(x,y);started=true;}else g.lineTo(x,y);
+    }
+    g.stroke();
+    g.fillStyle="#78849a";g.font="10px system-ui";
+    g.fillText(num(hi,dp),2,10); g.fillText(num(lo,dp),2,L.h-3);
+    L.pad=pad; layers[id]=L;
+  }
+
+  var lastW=0, lastDpr=0;
+  function buildStatic(force){
+    var w=$("timeline").clientWidth||0, dpr=window.devicePixelRatio||1;
+    if(!force && w===lastW && dpr===lastDpr) return;
+    lastW=w; lastDpr=dpr;
+    buildTimeline();
+    buildPlot("p-plot","calibrated_probability","#2a78d6",3);
+    buildPlot("s-plot","temporal_evidence","#eb6834",3);
+    buildPlot("d-plot","memory_deviation","#7a5af5",3);
+    layers.ecg=mkLayer($("ecg"));
+  }
+
+  function blit(L,px,topOnly){
+    if(!L) return;
+    var c=L.el.getContext("2d");
+    c.setTransform(1,0,0,1,0,0);
+    c.clearRect(0,0,L.el.width,L.el.height);
+    c.drawImage(L.off,0,0);
+    c.setTransform(L.dpr,0,0,L.dpr,0,0);
+    c.strokeStyle="#10141a"; c.lineWidth=1.5;
+    c.beginPath(); c.moveTo(px,0); c.lineTo(px, topOnly||L.h); c.stroke();
+  }
+
+  function drawEcg(){
+    var L=layers.ecg; if(!L) return;
+    var g=L.el.getContext("2d");
+    g.setTransform(L.dpr,0,0,L.dpr,0,0);
+    g.clearRect(0,0,L.w,L.h);
+    var fs=wave.display_sampling_frequency_hz, V=wave.values, span=10;
+    var end=Math.round(simT*fs), start=Math.max(0,end-Math.round(span*fs));
+    g.strokeStyle="#eef1f6";g.lineWidth=1;
+    for(var k=0;k<=10;k++){var x=L.w*k/10;g.beginPath();g.moveTo(x,0);g.lineTo(x,L.h);g.stroke();}
+    if(end<=start)return;
+    var lo=Infinity,hi=-Infinity,i;
+    for(i=start;i<end&&i<V.length;i++){var v=V[i];if(v<lo)lo=v;if(v>hi)hi=v;}
+    if(!isFinite(lo)||!isFinite(hi)||hi===lo){lo=-1;hi=1;}
+    var pad=(hi-lo)*0.15;lo-=pad;hi+=pad;
+    var o=cur(), hot=o&&o.state==="EVENT";
+    g.strokeStyle=hot?"#eb6834":"#2a78d6";g.lineWidth=1.7;g.beginPath();
+    var n=end-start;
+    for(i=0;i<n;i++){
+      var val=V[start+i]; if(val===undefined)break;
+      var x2=L.w*i/(n-1||1), y2=L.h-((val-lo)/(hi-lo))*L.h;
+      if(i===0)g.moveTo(x2,y2);else g.lineTo(x2,y2);
+    }
+    g.stroke();
+    g.fillStyle="#78849a";g.font="11px system-ui";
+    g.fillText(clock(Math.max(0,simT-span))+"  →  "+clock(simT),6,13);
+    g.textAlign="right";
+    g.fillText(num(hi,2)+" mV",L.w-6,13); g.fillText(num(lo,2)+" mV",L.w-6,L.h-5);
+    g.textAlign="left";
+  }
+
+  function cur(){return obs[idx]||null;}
+
+  function renderCurrent(){
+    var o=cur(); if(!o)return;
+    var hot=o.state==="EVENT";
+    $("cur-card").classList.toggle("hot",hot);
+    $("ecg-card").classList.toggle("hot",hot);
+    var p=$("c-state"); p.textContent=o.state; p.style.background=COL[o.state]||"#9aa6ba";
+    $("c-p").textContent=num(o.calibrated_probability);
+    $("c-s").textContent=num(o.temporal_evidence);
+    $("c-d").textContent=num(o.memory_deviation);
+    var m=$("c-mem");
+    m.textContent=o.memory_update_admitted?"ADMITTED":"BLOCKED";
+    m.style.color=o.memory_update_admitted?"var(--pass)":"var(--block)";
+
+    var html="",blockers=[];
+    for(var i=0;i<GATES.length;i++){
+      var n=GATES[i], st=(o.gate&&o.gate[n])||"N/A";
+      var cls=st==="PASS"?"pass":(st==="BLOCK"?"block":"na");
+      if(st==="BLOCK")blockers.push(n);
+      html+='<div class="gate '+cls+'"><div class="g">'+n+'</div><div class="s">'+st+'</div></div>';
+    }
+    $("gates").innerHTML=html;
+
+    var bind=$("binding");
+    if(blockers.length){
+      bind.className="binding";
+      bind.innerHTML="<b>"+blockers.join(" + ")+"</b> "+(blockers.length>1?"are":"is")+
+        " blocking the baseline update — "+
+        blockers.map(function(g){return WHY[g];}).join("; ")+
+        ". That is the contamination control working, not a fault.";
+    }else if(o.memory_update_admitted){
+      bind.className="binding ok";
+      bind.innerHTML="Every applicable condition passed; the baseline update was admitted.";
+    }else{
+      /* Admission is fail-closed: a gate that is N/A is not a PASS, so there can
+         be no blocker and still no update. Never report this as an admission. */
+      bind.className="binding";
+      bind.innerHTML="No condition is recorded as blocking, and the baseline update was "+
+        "still not admitted — admission requires an explicit pass on every gate.";
+    }
+
+    var scored=o.calibrated_probability!==null&&o.calibrated_probability!==undefined;
+    var inf=$("a-inf"); inf.textContent=scored?"ACTIVE":"NO SCORE"; inf.className="val "+(scored?"ok":"no");
+    var ada=$("a-ada"); ada.textContent=o.memory_update_admitted?"ADMITTED":"BLOCKED";
+    ada.className="val "+(o.memory_update_admitted?"ok":"no");
+  }
+
+  function renderFrame(){
+    $("clock").textContent=clock(simT);
+    var total=S.meta.simulated_seconds;
+    drawEcg();
+    if(layers.timeline){
+      blit(layers.timeline, simT/total*layers.timeline.w, layers.timeline.h-17);
+    }
+    ["p-plot","s-plot","d-plot"].forEach(function(id){
+      var L=layers[id]; if(L) blit(L, simT/total*(L.w-L.pad)+L.pad);
+    });
+    renderCurrent();
+  }
+
+  function syncIndex(){
+    var i=0;
+    while(i+1<obs.length && obs[i+1].elapsed_stream_seconds<=simT) i++;
+    idx=i;
+  }
+  function seek(t){ simT=Math.max(0,Math.min(S.meta.simulated_seconds,t)); syncIndex(); renderFrame(); }
+
+  function tick(t){
+    if(!playing){raf=0;return;}
+    if(!lastT)lastT=t;
+    var dt=(t-lastT)/1000; lastT=t;
+    simT+=dt*speed;
+    if(simT>=S.meta.simulated_seconds){simT=S.meta.simulated_seconds;setPlaying(false);}
+    syncIndex(); renderFrame();
+    if(playing)raf=requestAnimationFrame(tick);
+  }
+  function setPlaying(on){
+    playing=on; lastT=0;
+    $("btn-play").textContent=on?"PAUSE":"PLAY";
+    $("btn-play").classList.toggle("on",on);
+    if(on&&!raf)raf=requestAnimationFrame(tick);
+  }
+
+  /* ---------------- guarded generation cards ---------------- */
+  function genCards(rows){
+    if(!rows||!rows.length)return "";
+    var out='<div style="font-size:10.5px;letter-spacing:.9px;font-weight:700;color:#78849a;'
+          + 'text-transform:uppercase;margin:11px 0 3px">Guarded generation, this run</div>';
+    rows.forEach(function(r){
+      if(r.unavailable_reason){
+        out+='<div class="gen"><summary style="display:flex"><span class="name">'+esc(r.label)
+           +'</span><span class="chip grey" style="margin-left:auto">UNAVAILABLE</span></summary></div>';
+        return;
+      }
+      var served=r.served===true;
+      var id=r.identity||{};
+      out+='<details class="gen '+(served?"served":"refused")+'">'
+         + '<summary><span class="name">'+esc(r.label)+'</span>'
+         + '<span class="rev">'+esc(String(id.revision||"").slice(0,8))+'</span>'
+         + '<span class="chip '+(served?"good":"bad")+'" style="margin-left:auto">'
+         + (served?"SERVED":"REFUSED")+'</span></summary>'
+         + '<div class="body">';
+      if(r.fallback_reason){
+        out+='<p class="why"><b>'+(served?"Note":"Guard fired")+':</b> '+esc(r.fallback_reason)+'</p>';
+      }
+      if(r.claim_violations&&r.claim_violations.length){
+        out+='<p class="why">'+r.claim_violations.length+' registered violation(s): '
+           + esc(r.claim_violations.join("; "))+'</p>';
+      }
+      out+='<div style="font-size:10px;letter-spacing:.7px;font-weight:700;color:#78849a;'
+         + 'text-transform:uppercase;margin:0 0 4px">Delivered to the user — '
+         + (served?"model generation":"deterministic fallback")+'</div>'
+         + '<p style="margin:0">'+esc(r.text||"(no text recorded)")+'</p>';
+      if(!served){
+        out+='<p class="hint" style="margin:7px 0 0">The refused generation itself is not '
+           + 'retained by the runtime — only the reason it was refused.</p>';
+      }
+      if(r.latency_seconds!==undefined){
+        out+='<p class="hint" style="margin:7px 0 0">generated in '+num(r.latency_seconds,1)
+           +' s on CPU · '+esc(id.runtime||"")+' · quantization '+esc(id.quantization||"n/a")+'</p>';
+      }
+      out+='</div></details>';
+    });
+    out+='<p class="hint" style="margin:7px 0 0">One evidence context. The outcome above is the '
+       + 'runtime’s decision, not a summary of it. No failure rate or scaling law is claimed.</p>';
+    return out;
+  }
+
+  /* ---------------- boot ---------------- */
+  function boot(s){
+    S=s;
+    if(!S.meta||!S.observations||!S.observations.length||!S.waveform){
+      fail("The snapshot is missing required fields (meta, observations, waveform). Regenerate it:");
+      return;
+    }
+    obs=S.observations; wave=S.waveform;
+    A=(S.alerts&&S.alerts.length)?S.alerts[0]:null;
+
+    $("i-record").textContent=S.meta.record_id;
+    $("i-subject").textContent=S.meta.subject_id;
+    $("i-channel").textContent=S.meta.channel;
+    $("i-windows").textContent=S.meta.windows;
+    $("i-win").textContent=S.meta.window_seconds;
+    $("i-stride").textContent=S.meta.stride_seconds;
+    $("ecg-note").textContent="— display-decimated from "+wave.source_sampling_frequency_hz
+      +" Hz source to "+wave.display_sampling_frequency_hz
+      +" Hz · visualization only, never an inference input";
+    $("wallnote").textContent="Snapshot generation on this host: "+num(S.meta.wall_seconds,0)
+      +" s wall, "+num(S.meta.real_time_factor,0)+"x — unrelated to visualization playback";
+
+    var sp="";[30,60,120].forEach(function(v){
+      sp+='<button class="b mini'+(v===speed?" on":"")+'" data-speed="'+v+'">'+v+'&times;</button>';});
+    $("speeds").innerHTML=sp;
+    $("speeds").addEventListener("click",function(e){
+      var b=e.target.closest("button[data-speed]"); if(!b)return;
+      speed=Number(b.dataset.speed);
+      Array.prototype.forEach.call($("speeds").children,function(x){
+        x.classList.toggle("on",Number(x.dataset.speed)===speed);});
+    });
+
+    /* story beats, all derived from the data */
+    var beats=[];
+    for(var i=0;i<obs.length;i++){
+      if(obs[i].state==="WATCH"){beats.push({t:obs[i].elapsed_stream_seconds,l:"first WATCH"});break;}
+    }
+    if(A){
+      beats.push({t:A.opened_at_seconds,l:"event opens"});
+      var best=null;
+      obs.forEach(function(o){
+        if(o.state!=="EVENT"||o.calibrated_probability==null)return;
+        if(!best||o.calibrated_probability>best.calibrated_probability)best=o;});
+      if(best)beats.push({t:best.elapsed_stream_seconds,l:"peak pₜ"});
+      if(A.closed_at_seconds!=null)beats.push({t:A.closed_at_seconds,l:"event closes"});
+    }
+    $("beats").innerHTML=beats.map(function(b,k){
+      return '<button class="b mini" data-beat="'+k+'">'+b.l+'</button>';}).join("");
+    $("beats").addEventListener("click",function(e){
+      var b=e.target.closest("button[data-beat]"); if(!b)return;
+      setPlaying(false); seek(beats[Number(b.dataset.beat)].t);
+    });
+
+    if(A){
+      $("e-window").textContent=A.opened_at+"  →  "+(A.closed_at||"(still open)");
+      $("e-dur").textContent=(A.duration_seconds==null?"open":num(A.duration_seconds,0)+" s");
+      $("e-wins").textContent=A.window_count;
+      $("e-id").textContent=A.alert_id;
+      $("e-p").textContent=num(A.peak_calibrated_probability);
+      $("e-s").textContent=num(A.peak_temporal_evidence);
+      $("e-d").textContent=num(A.max_memory_deviation);
+
+      var lin="";
+      (A.lineage||[]).forEach(function(line){
+        var m=String(line).trim().match(/^(\S+)\s+([\s\S]*)$/);
+        var kind=m?m[1]:"", rest=m?m[2]:String(line), flag="";
+        var fm=rest.match(/\[([^\]]*)\]\s*$/);
+        if(fm){flag=fm[1];rest=rest.slice(0,fm.index).trim();}
+        lin+='<div class="row"><span class="kind">'+esc(kind)+'</span><span class="val">'+esc(rest)
+           +(flag?' <span class="flag">['+esc(flag)+']</span>':'')+'</span></div>';
+      });
+      $("lineage").innerHTML=lin||'<div class="row"><span class="val">no lineage exported</span></div>';
+
+      var ex=A.explanation||{};
+      $("expl-meta").innerHTML='<span class="chip">mode = '+esc(ex.explanation_mode||"n/a")+'</span>'
+        +'<span class="chip grey">provider = '+esc(ex.provider||"none")+'</span>'
+        +(ex.fallback_reason?'<span class="chip grey">fallback = '+esc(ex.fallback_reason)
+          +'</span>':'');
+      $("expl-text").textContent=ex.text||"no explanation exported";
+      $("expl-note").textContent="— served to the user";
+      $("gen-list").innerHTML=genCards(A.local_model_explanations);
+
+      var rows=A.local_model_explanations||[];
+      if(rows.length){
+        $("ai-live-note").innerHTML='This run also exercised the same models live — see '
+          +'<b>Guarded generation, this run</b> in the LIVE REPLAY explanation panel.';
+      }
+    }else{
+      $("evt-card").innerHTML='<h2>Event summary</h2><p style="margin:0;font-size:13px;color:#48546a">'
+        +'No EVENT run in this replay. Nothing to explain.</p>';
+      $("lineage").textContent="—"; $("expl-text").textContent="—";
+    }
+
+    $("lims").innerHTML=(S.limitations||[]).map(function(t){return "<li>"+esc(t)+"</li>";}).join("");
+
+    $("btn-play").addEventListener("click",function(){setPlaying(!playing);});
+    $("btn-restart").addEventListener("click",function(){setPlaying(false);seek(0);});
+    $("btn-jump").addEventListener("click",function(){
+      if(A)seek(Math.max(0,A.opened_at_seconds-20));});
+    $("btn-present").addEventListener("click",function(){
+      document.body.classList.toggle("present");
+      this.classList.toggle("on",document.body.classList.contains("present"));
+      requestAnimationFrame(function(){buildStatic(true);renderFrame();});
+    });
+    ["tab-live","tab-ai"].forEach(function(id){
+      $(id).addEventListener("click",function(){
+        var live=id==="tab-live";
+        $("tab-live").setAttribute("aria-selected",live);
+        $("tab-ai").setAttribute("aria-selected",!live);
+        $("panel-live").hidden=!live; $("panel-ai").hidden=live;
+        if(live)requestAnimationFrame(function(){buildStatic(true);renderFrame();});
+      });
+    });
+    document.addEventListener("keydown",function(e){
+      if(e.target.closest("input,textarea"))return;
+      if(e.code==="Space"){e.preventDefault();setPlaying(!playing);}
+      else if(e.key==="j"||e.key==="J"){if(A)seek(Math.max(0,A.opened_at_seconds-20));}
+      else if(e.key==="r"||e.key==="R"){setPlaying(false);seek(0);}
+      else if(e.key==="1"||e.key==="2"||e.key==="3"){
+        speed=[30,60,120][Number(e.key)-1];
+        Array.prototype.forEach.call($("speeds").children,function(x){
+          x.classList.toggle("on",Number(x.dataset.speed)===speed);});
+      }
+    });
+    var rt=null;
+    window.addEventListener("resize",function(){
+      clearTimeout(rt); rt=setTimeout(function(){buildStatic();renderFrame();},120);
+    });
+
+    $("app").hidden=false;
+    buildStatic(true); seek(0); setPlaying(false);
+  }
+
+  fetch("./demo_snapshot.json")
+    .then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();})
+    .then(boot).catch(function(){fail();});
+})();
+</script>
+</body>
+</html>
