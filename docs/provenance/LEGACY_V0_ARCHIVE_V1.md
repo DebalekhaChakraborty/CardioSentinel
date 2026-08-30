@@ -87,3 +87,24 @@ git ls-tree -r -l refs/remotes/origin/legacy -- legacy/v0
 The first two object checks must return the commit and `legacy/v0/` tree IDs in
 §1. Individual file contents can be read with `git show` and compared with the
 SHA-256 table in §2.
+
+## 5. Active-tree removal verification
+
+The removal branch was verified after the archive-warning contract test was
+repointed from the removed README to this receipt:
+
+- the active `legacy/` path was absent;
+- the locked archive still contained all 13 files and resolved
+  `legacy/v0/` to `3e4936137d1bb102011ee3a81cd5d36e668fbd6d`;
+- the Markdown link scan covered 177 files and 49 local links with zero broken
+  targets;
+- `python -m ruff check .` passed;
+- the document-hierarchy and path-translation gates passed, 13 tests;
+- the complete suite passed: **3,578 passed, 1 skipped, 0 failed**, with 15
+  existing Python 3.12 fork warnings, in 1,124.22 seconds (18:44).
+
+The definitive suite ran from the isolated removal worktree. The repository's
+existing ignored evidence roots were exposed to that process as read-only bind
+mounts in a private mount namespace, so evidence-bearing tests ran while the
+source evidence and the concurrently edited primary checkout remained
+unchanged. No scientific artifact was generated, rescored or rewritten.
