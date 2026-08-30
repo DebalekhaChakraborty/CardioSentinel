@@ -187,20 +187,20 @@ body.present .lin{font-size:12.5px}
 body.present .clock{font-size:26px}
 body.present .grid{grid-template-columns:1fr 392px 424px}
 
-/* A media query adds no specificity, so `body.present .grid` (0,2,1) outranks a
-   bare `.grid` (0,1,0) inside one at every width. Each breakpoint must therefore
-   restate the presentation-mode selector, or presentation mode keeps three column
-   tracks while `.col.c3` has already moved to its own full-width row below —
-   leaving the third track empty as dead space down the right of the viewport. */
+/* Three columns are kept for as long as they fit, narrowing the two fixed tracks
+   rather than moving c3 out of the row: the event summary and explanation belong
+   beside the signals, not below them with the third track left empty.
+
+   A media query carries no specificity, so `body.present .grid` (0,2,1) outranks
+   a bare `.grid` (0,1,0) inside one at every width. Every breakpoint must
+   restate the presentation-mode selector or the rule above silently wins. */
 @media (max-width:1500px){
-  .grid{grid-template-columns:1fr 340px}
-  body.present .grid{grid-template-columns:1fr 372px}
-  .col.c3{grid-column:1/-1}
+  .grid{grid-template-columns:1fr 348px 360px}
+  body.present .grid{grid-template-columns:1fr 372px 380px}
   .ga{grid-template-columns:1fr}
 }
-@media (max-width:1100px){
+@media (max-width:1150px){
   .grid,body.present .grid{grid-template-columns:1fr}
-  .col.c2,.col.c3{grid-column:auto}
 }
 </style>
 </head>
