@@ -187,8 +187,15 @@ body.present .lin{font-size:12.5px}
 body.present .clock{font-size:26px}
 body.present .grid{grid-template-columns:1fr 392px 424px}
 
+/* The explanation spans every track on its own row: as a column it became a tall
+   ribbon of prose. Its two halves sit side by side so neither runs the full
+   width of the viewport. */
+.col.c4{grid-column:1/-1}
+.expl-wide{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:15px;
+  align-items:start}
+
 /* Three columns are kept for as long as they fit, narrowing the two fixed tracks
-   rather than moving c3 out of the row: the event summary and explanation belong
+   rather than moving c3 out of the row: the event summary and its lineage belong
    beside the signals, not below them with the third track left empty.
 
    A media query carries no specificity, so `body.present .grid` (0,2,1) outranks
@@ -201,6 +208,7 @@ body.present .grid{grid-template-columns:1fr 392px 424px}
 }
 @media (max-width:1150px){
   .grid,body.present .grid{grid-template-columns:1fr}
+  .expl-wide{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -351,11 +359,16 @@ body.present .grid{grid-template-columns:1fr 392px 424px}
           <div class="lin" id="lineage"></div>
         </div>
 
+      </div>
+
+      <div class="col c4">
         <div class="card">
           <h2>Explanation <span class="note" id="expl-note"></span></h2>
           <div class="meta-row" id="expl-meta"></div>
-          <p class="expl" id="expl-text" style="margin:0">—</p>
-          <div id="gen-list"></div>
+          <div class="expl-wide">
+            <p class="expl" id="expl-text" style="margin:0">—</p>
+            <div id="gen-list"></div>
+          </div>
         </div>
       </div>
     </div>
