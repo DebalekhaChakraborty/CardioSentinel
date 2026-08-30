@@ -87,10 +87,8 @@ ssh -L 8081:localhost:8081 <user>@<vm>
 Then open the same `localhost:8081` URL on the local machine.
 
 Once `demo_snapshot.json` exists the page works **offline**: no CDN, no external
-script, stylesheet or font, no analytics, no remote model call. The only request
-it makes is `fetch("./demo_snapshot.json")`, plus the tracked figure at
-`../../docs/paper/figures/F5_guarded_generation.png`, which is rendered in place
-and never copied or regenerated.
+script, stylesheet or font, no image, no analytics, no remote model call. The
+only request it makes is `fetch("./demo_snapshot.json")`.
 
 ---
 
@@ -119,9 +117,9 @@ source sample, rounded for transport only.
   The alert is a research output. No clinical utility is claimed.
 - **Not edge-hardware validation.** This is a stored-record replay on a general
   purpose machine. There is no sensor and no acquisition path.
-- **Not a live model call.** The GUARDED AI tab renders a frozen
-  explanation-evaluation result. No language model is invoked, locally or
-  remotely.
+- **Not a live model call.** The *Guarded generation* section under the
+  explanation renders a frozen explanation-evaluation result. No language model
+  is invoked by the page, locally or remotely.
 
 The `wall_seconds` and `real_time_factor` fields describe the replay execution
 that produced the snapshot on that host. They are labelled *"Snapshot generation

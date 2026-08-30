@@ -35,10 +35,6 @@ h1{margin:0;font-size:25px;letter-spacing:-.4px;font-weight:660}
 .ident b{color:var(--ink2);font-weight:600}
 
 .tabs{display:flex;gap:4px;margin:10px 0 9px;border-bottom:1px solid var(--line);align-items:flex-end}
-.tab{appearance:none;border:0;background:none;padding:8px 15px;cursor:pointer;font-family:inherit;
-  font-size:12.5px;font-weight:660;letter-spacing:.5px;color:var(--ink3);border-bottom:2px solid transparent}
-.tab[aria-selected="true"]{color:var(--blue);border-bottom-color:var(--blue)}
-.tab:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .spacer{margin-left:auto;display:flex;gap:7px;align-items:center;padding-bottom:5px}
 
 .arch{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:8px 13px;margin-bottom:9px}
@@ -128,25 +124,30 @@ kbd{font-family:inherit;font-size:10px;background:#f2f5f9;border:1px solid var(-
 .chip.good{background:#f1faf5;color:var(--pass);border-color:#bfe3cf}
 .meta-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
 
-.gen{border:1px solid var(--line);border-radius:8px;margin-top:7px;overflow:hidden}
-.gen>summary{cursor:pointer;list-style:none;padding:8px 10px;display:flex;gap:8px;align-items:center;
-  font-size:12px;background:#fafbfd}
-.gen>summary::-webkit-details-marker{display:none}
-.gen .name{font-weight:700}
-.gen .rev{font-size:10px;color:var(--ink3)}
-.gen .body{padding:9px 11px;border-top:1px solid var(--soft);font-size:12px;line-height:1.6}
-.gen.refused{border-left:3px solid var(--block)}
-.gen.served{border-left:3px solid var(--pass)}
-.gen .why{font-size:11.5px;color:var(--block);margin:0 0 7px;line-height:1.5}
-.gen.served .why{color:var(--pass)}
+.mc .why{font-size:11.5px;color:var(--block);margin:0 0 6px;line-height:1.5}
+.mc.served .why{color:var(--pass)}
 
 .ga{display:grid;grid-template-columns:1.1fr 1fr;gap:11px;align-items:start}
+.expl-wide{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:15px;
+  align-items:start}
+.gg-head{font-size:10.5px;letter-spacing:.9px;font-weight:700;color:var(--ink3);
+  text-transform:uppercase;margin:0 0 6px}
+.gg-head .gg-sub{text-transform:none;letter-spacing:0;font-weight:500}
 .ga img{width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fff}
-.mc{border:1px solid var(--line);border-radius:9px;padding:11px 13px;background:#fff}
+.mc{border:1px solid var(--line);border-radius:9px;background:#fff;overflow:hidden;
+  margin-top:6px}
+.mc>summary{cursor:pointer;list-style:none;padding:8px 10px;display:flex;gap:7px;
+  align-items:center;font-size:12.5px;background:#fafbfd}
+.mc>summary::-webkit-details-marker{display:none}
+.mc>summary::before{content:"\25b8";color:var(--ink3);font-size:10px}
+.mc[open]>summary::before{content:"\25be"}
+.mc[open]>summary{border-bottom:1px solid var(--soft)}
+.mc .name{font-weight:700}
+.mc .rev{font-size:10px;color:var(--ink3)}
+.mc .body{padding:10px 11px}
 .mc.refused{border-left:4px solid var(--block)}
 .mc.served{border-left:4px solid var(--pass)}
-.mc h3{margin:0 0 3px;font-size:14.5px}
-.mc .out{font-size:11.5px;font-weight:750;letter-spacing:.6px}
+.mc .out{font-size:11px;font-weight:750;letter-spacing:.5px}
 .mc.refused .out{color:var(--block)}.mc.served .out{color:var(--pass)}
 .mc table{width:100%;border-collapse:collapse;margin-top:7px;font-size:11.5px}
 .mc td{padding:3px 0;border-bottom:1px solid var(--soft);vertical-align:top}
@@ -182,7 +183,7 @@ body.present .gate .s{font-size:14px}
 body.present .auth .val{font-size:17px}
 body.present .evt .win{font-size:25px}
 body.present .peaks .pv{font-size:18px}
-body.present .expl,body.present .gen .body{font-size:14.5px;line-height:1.65}
+body.present .expl,body.present .mc .body{font-size:13.5px;line-height:1.6}
 body.present .lin{font-size:12.5px}
 body.present .clock{font-size:26px}
 body.present .grid{grid-template-columns:1fr 392px 424px}
@@ -191,8 +192,6 @@ body.present .grid{grid-template-columns:1fr 392px 424px}
    ribbon of prose. Its two halves sit side by side so neither runs the full
    width of the viewport. */
 .col.c4{grid-column:1/-1}
-.expl-wide{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:15px;
-  align-items:start}
 
 /* Three columns are kept for as long as they fit, narrowing the two fixed tracks
    rather than moving c3 out of the row: the event summary and its lineage belong
@@ -208,8 +207,7 @@ body.present .grid{grid-template-columns:1fr 392px 424px}
 }
 @media (max-width:1150px){
   .grid,body.present .grid{grid-template-columns:1fr}
-  .expl-wide{grid-template-columns:1fr}
-}
+  }
 </style>
 </head>
 <body>
@@ -245,9 +243,7 @@ body.present .grid{grid-template-columns:1fr 392px 424px}
     </div>
   </header>
 
-  <div class="tabs" role="tablist">
-    <button class="tab" id="tab-live" role="tab" aria-selected="true">LIVE REPLAY</button>
-    <button class="tab" id="tab-ai" role="tab" aria-selected="false">GUARDED AI</button>
+  <div class="tabs">
     <div class="spacer">
       <span class="hint secondary"><kbd>Space</kbd> play <kbd>J</kbd> event <kbd>R</kbd> restart</span>
       <button class="b" id="btn-present">PRESENTATION MODE</button>
@@ -363,65 +359,34 @@ body.present .grid{grid-template-columns:1fr 392px 424px}
 
       <div class="col c4">
         <div class="card">
-          <h2>Explanation <span class="note" id="expl-note"></span></h2>
-          <div class="meta-row" id="expl-meta"></div>
+          <h2>Explanation</h2>
           <div class="expl-wide">
-            <p class="expl" id="expl-text" style="margin:0">—</p>
-            <div id="gen-list"></div>
+            <div>
+              <p class="gg-head">Served to the user <span class="gg-sub" id="expl-note"></span></p>
+              <div class="meta-row" id="expl-meta"></div>
+              <p class="expl" id="expl-text" style="margin:0">—</p>
+            </div>
+            <div>
+              <p class="gg-head">Guarded generation
+                <span class="gg-sub">— evaluated once, and re-run in this replay</span></p>
+              <p class="hint" style="margin:0 0 6px">Your browser invokes no language model. Each
+                model was run through the <b>same</b> <span class="mono">PatientExplanationAgent</span>
+                the runtime uses, on a local CPU with no network access, against this one evidence
+                context. <span id="ai-live-note"></span></p>
+              <div class="gaterow" id="gen-gates"></div>
+              <div id="gen-list"></div>
+              <p class="hint" style="margin:8px 0 0">Two models, one context. <b>No failure rate or
+                scaling law is claimed.</b> The harness calls <span class="mono">provider.generate()</span>
+                directly, so no runtime gate ran during the evaluation — the recorded scores describe
+                raw model output, not what a user receives. The inversion reproduced on two
+                independent runs, before and after the reasoning-mode fix, on the same context.</p>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="panel-ai" hidden>
-    <div class="card" style="margin-bottom:9px">
-      <h2>Frozen explanation-evaluation result — not a live model call</h2>
-      <p style="margin:0;font-size:13px;color:#48546a;line-height:1.6">
-        Nothing on this tab invokes a language model. It renders the tracked figure and the
-        recorded outcome of an evaluation executed once, on <b>one</b> evidence context, on a
-        local CPU, with no network access. <span id="ai-live-note"></span>
-      </p>
-    </div>
-    <div class="ga">
-      <div class="card">
-        <h2>Guarded generation — tracked repository figure</h2>
-        <img src="../../docs/paper/figures/F5_guarded_generation.png"
-             alt="Guarded generation: a model output is admitted or refused against the recorded evidence.">
-        <p class="hint" style="margin:8px 0 0">
-          Source: <span class="mono">docs/paper/figures/F5_guarded_generation.png</span> — rendered in
-          place, not copied or regenerated.</p>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:9px">
-        <div class="mc refused">
-          <h3>Qwen3-1.7B</h3>
-          <div class="out">RUNTIME OUTCOME · REFUSED → DETERMINISTIC FALLBACK</div>
-          <table>
-            <tr><td>Evidence fidelity</td><td>1.000</td></tr>
-            <tr><td>Registered claim violations</td><td>0</td></tr>
-            <tr><td>Completeness</td><td>1.000</td></tr>
-            <tr><td>Categorical state inversion</td><td style="color:var(--block)">FOUND</td></tr>
-          </table>
-          <p style="font-size:11.5px;color:#48546a;margin:8px 0 3px">Actual recorded evidence:</p>
-          <div class="gaterow"><span class="p">G1 PASS</span><span class="p">G2 PASS</span><span class="p">G3 PASS</span><span class="b">G4 BLOCK</span><span class="b">G5 BLOCK</span><span class="p">G6 PASS</span></div>
-          <p style="font-size:11.5px;color:#48546a;margin:8px 0 0;line-height:1.55">
-            <b>Observed model error:</b> the generation stated that the G1–G6 range passed. Three
-            prior gates and four registered metrics passed it; the categorical-alignment guard
-            refused it and the deterministic explanation was served.</p>
-        </div>
-        <div class="mc served">
-          <h3>Qwen3-4B-Instruct-2507</h3>
-          <div class="out">RUNTIME OUTCOME · SERVED</div>
-          <p style="font-size:11.5px;color:#48546a;margin:7px 0 3px">Same contracted evidence context. Correctly represented:</p>
-          <div class="gaterow"><span class="p">G1 PASS</span><span class="p">G2 PASS</span><span class="p">G3 PASS</span><span class="b">G4 BLOCK</span><span class="b">G5 BLOCK</span><span class="p">G6 PASS</span></div>
-          <p style="font-size:11.5px;color:#48546a;margin:8px 0 0;line-height:1.55">No gate fired, and the generation was served.</p>
-        </div>
-        <div class="card" style="border-style:dashed">
-          <p style="margin:0;font-size:13px;font-weight:650">Two models, one context. No failure rate or scaling law is claimed.</p>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <footer>
     <div class="limbar">
@@ -666,48 +631,80 @@ body.present .grid{grid-template-columns:1fr 392px 424px}
   }
 
   /* ---------------- guarded generation cards ---------------- */
+  /* The recorded evaluation. These metrics are NOT in the snapshot -- they exist
+     only in the tracked evaluation record -- so they are stated here and are never
+     synthesised from the replay. The live outcome for the same model is merged in
+     below when the exporter ran with --with-local-models. */
+  var RECORDED=[
+    {label:"Qwen/Qwen3-1.7B", served:false,
+     outcome:"REFUSED \u2192 DETERMINISTIC FALLBACK",
+     metrics:[["Evidence fidelity","1.000",0],["Registered claim violations","0",0],
+              ["Completeness","1.000",0],["Categorical state inversion","FOUND",1]],
+     note:"the generation stated that the G1\u2013G6 range passed. Three prior gates and four "
+        + "registered metrics passed it; the categorical-alignment guard refused it and the "
+        + "deterministic explanation was served."},
+    {label:"Qwen/Qwen3-4B-Instruct-2507", served:true,
+     outcome:"SERVED", metrics:null,
+     note:"the same contracted evidence context, correctly represented. No gate fired, and the "
+        + "generation was served."}
+  ];
+
+  function genGates(){
+    if(!A||!A.opening_gate)return;
+    $("gen-gates").innerHTML=A.opening_gate.map(function(g){
+      return '<span class="'+(g.status==="PASS"?"p":"b")+'">'+esc(g.condition)+' '
+           + esc(g.status)+'</span>';
+    }).join("");
+  }
+
   function genCards(rows){
-    if(!rows||!rows.length)return "";
-    var out='<div style="font-size:10.5px;letter-spacing:.9px;font-weight:700;color:#78849a;'
-          + 'text-transform:uppercase;margin:11px 0 3px">Guarded generation, this run</div>';
-    rows.forEach(function(r){
-      if(r.unavailable_reason){
-        out+='<div class="gen"><summary style="display:flex"><span class="name">'+esc(r.label)
-           +'</span><span class="chip grey" style="margin-left:auto">UNAVAILABLE</span></summary></div>';
-        return;
+    var live={};
+    (rows||[]).forEach(function(r){ if(r&&r.label) live[r.label]=r; });
+    return RECORDED.map(function(m){
+      var r=live[m.label]||null, id=(r&&r.identity)||{};
+      var st=r?(r.served===true?"SERVED":"REFUSED"):(m.served?"SERVED":"REFUSED");
+      var out='<details class="mc '+(m.served?"served":"refused")+'">'
+            + '<summary><span class="name">'+esc(m.label.split("/").pop())+'</span>'
+            + (id.revision?'<span class="rev">'+esc(String(id.revision).slice(0,8))+'</span>':'')
+            + '<span class="chip '+(m.served?"good":"bad")+'" style="margin-left:auto">'+st
+            + '</span></summary><div class="body">'
+            + '<div class="out">RECORDED OUTCOME \u00b7 '+esc(m.outcome)+'</div>';
+      if(m.metrics){
+        out+='<table>'+m.metrics.map(function(kv){
+          return '<tr><td>'+esc(kv[0])+'</td><td'
+               + (kv[2]?' style="color:var(--block)"':'')+'>'+esc(kv[1])+'</td></tr>';
+        }).join("")+'</table>';
       }
-      var served=r.served===true;
-      var id=r.identity||{};
-      out+='<details class="gen '+(served?"served":"refused")+'">'
-         + '<summary><span class="name">'+esc(r.label)+'</span>'
-         + '<span class="rev">'+esc(String(id.revision||"").slice(0,8))+'</span>'
-         + '<span class="chip '+(served?"good":"bad")+'" style="margin-left:auto">'
-         + (served?"SERVED":"REFUSED")+'</span></summary>'
-         + '<div class="body">';
-      if(r.fallback_reason){
-        out+='<p class="why"><b>'+(served?"Note":"Guard fired")+':</b> '+esc(r.fallback_reason)+'</p>';
+      out+='<p style="font-size:11.5px;color:#48546a;margin:8px 0 0;line-height:1.55">'
+         + '<b>'+(m.served?"What it did":"Observed model error")+':</b> '+esc(m.note)+'</p>';
+
+      /* The same model, re-run in this replay. Reported only when it actually ran;
+         never inferred from the record above. A refused run's `text` IS the
+         deterministic explanation already shown beside this box, so it is named,
+         not repeated, and `fallback_reason` restates the registered violation, so
+         only one of the two is shown. */
+      if(r&&!r.unavailable_reason){
+        var served=r.served===true, v=(r.claim_violations||[])[0]||r.fallback_reason;
+        out+='<div class="sep">This run \u00b7 '+(served?"served":"refused")+'</div>';
+        if(!served){
+          if(v) out+='<p class="why">Guard: '+esc(v)+'</p>';
+          out+='<p class="hint" style="margin:0">Fell back to the deterministic explanation '
+             + 'shown beside this box'+(r.latency_seconds!==undefined
+                 ? ' \u00b7 '+num(r.latency_seconds,1)+' s on CPU':"")+'. The refused generation '
+             + 'itself is not retained by the runtime \u2014 only the reason it was refused.</p>';
+        }else{
+          out+='<p class="hint" style="margin:0 0 4px">Delivered to the user, in the model\u2019s '
+             + 'own words'+(r.latency_seconds!==undefined
+                 ? ' \u00b7 '+num(r.latency_seconds,1)+' s on CPU':"")+'</p>'
+             + '<p style="font-size:11.5px;line-height:1.55;margin:0">'
+             + esc(r.text||"(no text recorded)")+'</p>';
+        }
+      }else if(r&&r.unavailable_reason){
+        out+='<div class="sep">This run</div><p class="hint" style="margin:0">Not exercised: '
+           + esc(r.unavailable_reason)+'</p>';
       }
-      if(r.claim_violations&&r.claim_violations.length){
-        out+='<p class="why">'+r.claim_violations.length+' registered violation(s): '
-           + esc(r.claim_violations.join("; "))+'</p>';
-      }
-      out+='<div style="font-size:10px;letter-spacing:.7px;font-weight:700;color:#78849a;'
-         + 'text-transform:uppercase;margin:0 0 4px">Delivered to the user — '
-         + (served?"model generation":"deterministic fallback")+'</div>'
-         + '<p style="margin:0">'+esc(r.text||"(no text recorded)")+'</p>';
-      if(!served){
-        out+='<p class="hint" style="margin:7px 0 0">The refused generation itself is not '
-           + 'retained by the runtime — only the reason it was refused.</p>';
-      }
-      if(r.latency_seconds!==undefined){
-        out+='<p class="hint" style="margin:7px 0 0">generated in '+num(r.latency_seconds,1)
-           +' s on CPU · '+esc(id.runtime||"")+' · quantization '+esc(id.quantization||"n/a")+'</p>';
-      }
-      out+='</div></details>';
-    });
-    out+='<p class="hint" style="margin:7px 0 0">One evidence context. The outcome above is the '
-       + 'runtime’s decision, not a summary of it. No failure rate or scaling law is claimed.</p>';
-    return out;
+      return out+'</div></details>';
+    }).join("");
   }
 
   /* ---------------- boot ---------------- */
@@ -789,13 +786,14 @@ body.present .grid{grid-template-columns:1fr 392px 424px}
         +(ex.fallback_reason?'<span class="chip grey">fallback = '+esc(ex.fallback_reason)
           +'</span>':'');
       $("expl-text").textContent=ex.text||"no explanation exported";
-      $("expl-note").textContent="— served to the user";
+      $("expl-note").textContent="— deterministic, from the evidence graph";
+      genGates();
       $("gen-list").innerHTML=genCards(A.local_model_explanations);
 
       var rows=A.local_model_explanations||[];
       if(rows.length){
-        $("ai-live-note").innerHTML='This run also exercised the same models live — see '
-          +'<b>Guarded generation, this run</b> in the LIVE REPLAY explanation panel.';
+        $("ai-live-note").innerHTML='Each card carries the recorded evaluation and, beneath it, '
+          +'what the same model did when re-run in this replay.';
       }
     }else{
       $("evt-card").innerHTML='<h2>Event summary</h2><p style="margin:0;font-size:13px;color:#48546a">'
@@ -813,15 +811,6 @@ body.present .grid{grid-template-columns:1fr 392px 424px}
       document.body.classList.toggle("present");
       this.classList.toggle("on",document.body.classList.contains("present"));
       requestAnimationFrame(function(){buildStatic(true);renderFrame();});
-    });
-    ["tab-live","tab-ai"].forEach(function(id){
-      $(id).addEventListener("click",function(){
-        var live=id==="tab-live";
-        $("tab-live").setAttribute("aria-selected",live);
-        $("tab-ai").setAttribute("aria-selected",!live);
-        $("panel-live").hidden=!live; $("panel-ai").hidden=live;
-        if(live)requestAnimationFrame(function(){buildStatic(true);renderFrame();});
-      });
     });
     document.addEventListener("keydown",function(e){
       if(e.target.closest("input,textarea"))return;
