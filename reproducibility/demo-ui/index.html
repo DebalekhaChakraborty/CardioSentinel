@@ -187,8 +187,21 @@ body.present .lin{font-size:12.5px}
 body.present .clock{font-size:26px}
 body.present .grid{grid-template-columns:1fr 392px 424px}
 
-@media (max-width:1500px){.grid{grid-template-columns:1fr 340px}.col.c3{grid-column:1/-1}.ga{grid-template-columns:1fr}}
-@media (max-width:1100px){.grid{grid-template-columns:1fr}.col.c2,.col.c3{grid-column:auto}}
+/* A media query adds no specificity, so `body.present .grid` (0,2,1) outranks a
+   bare `.grid` (0,1,0) inside one at every width. Each breakpoint must therefore
+   restate the presentation-mode selector, or presentation mode keeps three column
+   tracks while `.col.c3` has already moved to its own full-width row below —
+   leaving the third track empty as dead space down the right of the viewport. */
+@media (max-width:1500px){
+  .grid{grid-template-columns:1fr 340px}
+  body.present .grid{grid-template-columns:1fr 372px}
+  .col.c3{grid-column:1/-1}
+  .ga{grid-template-columns:1fr}
+}
+@media (max-width:1100px){
+  .grid,body.present .grid{grid-template-columns:1fr}
+  .col.c2,.col.c3{grid-column:auto}
+}
 </style>
 </head>
 <body>
@@ -412,9 +425,13 @@ body.present .grid{grid-template-columns:1fr 392px 424px}
   var idx=0, playing=false, speed=60, lastT=0, simT=0, raf=0;
   var COL={NORMAL:"#9aa6ba",WATCH:"#e0a008",EVENT:"#eb6834",RECOVERY:"#7a5af5"};
   var GATES=["G1","G2","G3","G4","G5","G6"];
-  var MEAN={G1:"physical observation available",G2:"representation finite",
-    G3:"signal quality admissible",G4:"normal enough to learn from",
-    G5:"outside memory-update refractory",G6:"morphology computable"};
+  /* Why a gate BLOCKED. The static legend below the panel states the opposite
+     polarity — the condition each gate asserts when it PASSES — and must never
+     be reused here: naming a pass condition as the reason for a block states
+     the opposite of the recorded evidence. */
+  var WHY={G1:"no physical observation",G2:"representation not finite",
+    G3:"signal quality not admissible",G4:"not normal enough to learn from",
+    G5:"inside the memory-update refractory window",G6:"morphology not computable"};
   var layers={};                       /* cached static canvas layers */
 
   function $(id){return document.getElementById(id);}
@@ -580,11 +597,17 @@ body.present .grid{grid-template-columns:1fr 392px 424px}
       bind.className="binding";
       bind.innerHTML="<b>"+blockers.join(" + ")+"</b> "+(blockers.length>1?"are":"is")+
         " blocking the baseline update — "+
-        blockers.map(function(g){return MEAN[g];}).join("; ")+
+        blockers.map(function(g){return WHY[g];}).join("; ")+
         ". That is the contamination control working, not a fault.";
-    }else{
+    }else if(o.memory_update_admitted){
       bind.className="binding ok";
       bind.innerHTML="Every applicable condition passed; the baseline update was admitted.";
+    }else{
+      /* Admission is fail-closed: a gate that is N/A is not a PASS, so there can
+         be no blocker and still no update. Never report this as an admission. */
+      bind.className="binding";
+      bind.innerHTML="No condition is recorded as blocking, and the baseline update was "+
+        "still not admitted — admission requires an explicit pass on every gate.";
     }
 
     var scored=o.calibrated_probability!==null&&o.calibrated_probability!==undefined;
@@ -750,7 +773,8 @@ body.present .grid{grid-template-columns:1fr 392px 424px}
       var ex=A.explanation||{};
       $("expl-meta").innerHTML='<span class="chip">mode = '+esc(ex.explanation_mode||"n/a")+'</span>'
         +'<span class="chip grey">provider = '+esc(ex.provider||"none")+'</span>'
-        +(ex.fallback_reason?'<span class="chip grey">'+esc(ex.fallback_reason)+'</span>':'');
+        +(ex.fallback_reason?'<span class="chip grey">fallback = '+esc(ex.fallback_reason)
+          +'</span>':'');
       $("expl-text").textContent=ex.text||"no explanation exported";
       $("expl-note").textContent="— served to the user";
       $("gen-list").innerHTML=genCards(A.local_model_explanations);
