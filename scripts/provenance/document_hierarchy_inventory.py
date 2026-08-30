@@ -70,6 +70,13 @@ def _policy(old_path: str) -> tuple[str, str]:
     if path.parts[0] == "handbook":
         return "Y", "FROZEN_HANDBOOK"
     if path.parts[0] == "handoffs":
+        # The index is the one file in this tree that must grow: a new session
+        # writes a handoff and the index has to name it. Classifying it with the
+        # handoffs themselves was a directory-rule artifact, not a judgement --
+        # it froze a file whose whole purpose is to change. Reclassified
+        # 2026-08-30; see DOCUMENT_PATH_TRANSLATION_V2.md.
+        if old_path == "handoffs/README.md":
+            return "N", "LIVE_HANDOFF_INDEX"
         return "Y", "HISTORICAL_HANDOFF"
     if old_path in _FROZEN_PAPER_FILES:
         return "Y", "FROZEN_OR_HISTORICAL_PAPER"

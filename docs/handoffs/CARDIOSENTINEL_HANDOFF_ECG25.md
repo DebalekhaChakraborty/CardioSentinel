@@ -167,13 +167,12 @@ claimed**, and the UI says so on both surfaces.
 6. **`M1_STAGE1_ATTEMPT1_FAILURE.md` records the SHA-256 of the empty string.**
    A naive "is this file's digest quoted anywhere?" check reports a false pin for
    every file it cannot read.
-7. **Adding a handoff changes a census, and the index is frozen.**
+7. **Adding a handoff changes a census.**
    `tests/reproducibility/test_document_hierarchy_v2.py` asserted a fixed count
    of tracked handoffs; it now checks that every *receipt-listed* handoff is
-   still tracked, which is what it always meant. Separately,
-   **`docs/handoffs/README.md` is `content_frozen: Y` in the migration receipt**
-   and a test enforces its byte size — so the index cannot be updated to name a
-   new handoff. See §6.
+   still tracked, which is what it always meant. The index,
+   `docs/handoffs/README.md`, was `content_frozen: Y` and is now
+   `LIVE_HANDOFF_INDEX` — see §6. **The handoffs themselves remain frozen.**
 8. **Canvas sizing, if you touch the demo UI.** `mkLayer` reads `data-h`, never
    the `height` attribute — it *writes* that attribute as `height × dpr`, so
    reading it back made the ECG canvas double on every rebuild until it filled
@@ -212,13 +211,20 @@ artifact, attempt receipt, threshold or experiment identity was touched.
 5. **The evidence mirror will go stale again.** Defect 1 has been opened and
    closed three times in one week; re-verify with a date attached rather than
    inheriting 2026-08-29.
-6. **The handoff index cannot name ECG 24 or ECG 25, and that needs a human
-   decision.** `docs/handoffs/README.md` still reads *"Latest: ECG 23"*. The
-   V2 migration receipt classified it `content_frozen: Y`, role
-   `HISTORICAL_HANDOFF` — almost certainly by directory rule rather than
-   deliberate judgement, since an index is the one file in that tree that must
-   grow — and `test_frozen_and_historical_moved_files_retain_content_identity`
-   enforces its byte size. **This session edited it, the test caught it, and the
-   edit was reverted.** Either the receipt row is reclassified as living, with
-   that reasoning recorded, or the index stays permanently stale. Reclassifying
-   a receipt row is a governance change and was not made unilaterally.
+6. ~~**The handoff index cannot name ECG 24 or ECG 25.**~~ **Resolved
+   2026-08-30, on the owner's decision.** The V2 receipt had classified
+   `docs/handoffs/README.md` as `content_frozen: Y`, role `HISTORICAL_HANDOFF`,
+   and a test enforced its byte size — so the index sat claiming *"Latest:
+   ECG 23"* while ECG 24 and ECG 25 existed. This session edited it, the test
+   caught the edit, and the edit was reverted rather than forced.
+
+   The classification was a **directory-rule artifact**: `_policy()` in
+   `scripts/provenance/document_hierarchy_inventory.py` marked everything under
+   `handoffs/` historical, and the index was swept in with the sessions it
+   indexes — freezing the one file in that tree whose purpose is to change. The
+   row is now `content_frozen: N`, role `LIVE_HANDOFF_INDEX`; `_policy()` carries
+   the same exception, and it still agrees with all 68 receipt rows. The
+   migration-time `byte_size` and `sha256` are left as recorded, because they
+   state what the file was when it moved and that remains true. Reasoning is in
+   `docs/provenance/DOCUMENT_PATH_TRANSLATION_V2.md`. **The 23 handoffs
+   themselves are untouched and still frozen.**
