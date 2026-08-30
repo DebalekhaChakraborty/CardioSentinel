@@ -1,20 +1,18 @@
 # Contributing to CardioSentinel
 
-Keep changes small, reviewable, and tied to a documented research question.
-Read `AGENTS.md`, `docs/control-plane/RESEARCH_SCOPE.md`, and
-`docs/contracts/EXPERIMENT_CONTRACT.md` before changing research logic.
+`AGENTS.md` carries the standing rules — evidence, data partitions, provenance,
+what must never be committed, and `legacy/v0/`. They bind every change, made by
+hand or by an agent, and are **not restated here**. Read it first, with
+`docs/control-plane/RESEARCH_SCOPE.md` and
+`docs/contracts/EXPERIMENT_CONTRACT.md`, before changing research logic.
 
-Do not commit raw ECG, patient-derived data, credentials, checkpoints, or
-experiment outputs. Add or update tests for behavior changes, then run:
+Keep changes small, reviewable, and tied to a documented research question.
+Before opening a pull request:
 
 ```bash
 python -m ruff check .
 python -m pytest -q
 ```
-
-Document assumptions, data provenance, and unresolved decisions in the relevant
-configuration or documentation change. Do not modify `legacy/v0/`
-without an explicit archival task.
 
 ## Publication work belongs outside this repository
 
