@@ -23,10 +23,10 @@ from it. **Neither authorizes an experiment.**
 
 ---
 
-**As of:** working branch `chore/remove-legacy-from-master`
+**As of target post-merge state:** working branch `docs/post-legacy-state`
 based on GitHub `master` at
-`b51c25843efab6bdbf6d6ed4caa7dfc46a5a690e` (merge of PR #132), with
-**one open pull request (#133)**, 2026-08-30 · tags
+`238d54cf3c97b435523bcf01506f1292008cb6ac` (merge of PR #133), with
+**no other open pull request**, 2026-08-30 · tags
 `research-freeze-v1.0` · `ips-agentic-runtime-v1.0`
 **Refresh status:** living repository, pull-request, reporting, documentation,
 runtime, demo and legacy-archive state reconciled on 2026-08-30. Scientific
@@ -35,8 +35,9 @@ authoritative.
 **Working tree:** **clean at refresh**. The runtime trust-boundary work,
 document-hierarchy V2 migration, identifier mapping, research-artifact
 presentation and read-only replay dashboard are merged; `master` carries them.
-**Open PRs:** #133, the active-tree legacy removal. #128 through #132 are
-merged. *(Snapshot only — `gh pr list` is authoritative.)*
+**Open PRs:** none after this state-only reconciliation merges; #128 through
+#133 are merged. This reconciliation PR is the sole review-time exception.
+*(Snapshot only — `gh pr list` is authoritative.)*
 **Canonical T1 attempt:** **CONSUMED** — failed post-claim at stage 24
 **T1 measurement continuation:** **COMPLETED** — the single authorization is spent
 **T2 outer validation:** **CONSUMED and ANALYSED** — values published
@@ -87,12 +88,12 @@ rule, layout constraint or author metadata is inferred or tracked here.
 
 | | |
 |---|---|
-| `master` | `b51c25843efab6bdbf6d6ed4caa7dfc46a5a690e` — merge of PR #132 |
-| Working branch | `chore/remove-legacy-from-master`, created from `master` at `b51c258`; archival routing and active-tree removal only |
+| `master` | `238d54cf3c97b435523bcf01506f1292008cb6ac` — merge of PR #133 |
+| Working branch | `docs/post-legacy-state`, created from `master` at `238d54c`; post-merge state reconciliation only |
 | Tags | `research-freeze-v1.0` · `ips-agentic-runtime-v1.0` · `legacy/v0` · four `archive/*` tags, including `archive/legacy-v0-tree` |
 | Releases | none |
 | Working tree | **clean at refresh** — the archive receipt, removal and state reconciliation are committed |
-| Open PRs | **#133** — active-tree legacy removal; #128 through #132 are merged |
+| Open PRs | **none after this reconciliation merges** — #128 through #133 are merged; this state-only PR is the sole review-time exception |
 | Tracked Python | 318 files · 137,211 LOC |
 | Tests | 127 `test_*.py` files · 3,579 collected tests |
 | Documents | 174 tracked files in `docs/` (151 `.md`), including `docs/paper/` 31, `docs/handbook/` 10 and `docs/handoffs/` 24; ignored owner DOCX drafts also remain under `docs/paper/drafts/` |
@@ -925,10 +926,10 @@ human authorization.
 
 ---
 
-_Post-PR #132 living-state and legacy-archive refresh: 2026-08-30, on
-`chore/remove-legacy-from-master`, based on GitHub `master` `b51c25843efa`, with
-PR #133 open. The historical prototype is preserved on the locked `legacy`
-branch and `archive/legacy-v0-tree` tag and is absent from the proposed active
-tree. Scientific values were not recomputed; their frozen source records remain
+_Post-PR #133 living-state reconciliation: 2026-08-30, on
+`docs/post-legacy-state`, based on GitHub `master` `238d54cf3c97`, with no other
+open pull request. The historical prototype is preserved on the locked
+`legacy` branch and `archive/legacy-v0-tree` tag and is absent from `master`.
+Scientific values were not recomputed; their frozen source records remain
 authoritative. Evidence-mirror statements in §8 carry their own verification
 dates._
