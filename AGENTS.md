@@ -16,8 +16,8 @@ and `docs/contracts/EXPERIMENT_CONTRACT.md`.
    preserve run provenance including commit, configuration, seed, and data
    provenance.
 7. Add tests for new logic and run linting and tests before reporting completion.
-8. Prefer small, reviewable changes over broad rewrites. Preserve
-   `legacy/v0/` unchanged unless an explicit archival task says otherwise.
+8. Prefer small, reviewable changes over broad rewrites. Treat the protected
+   `legacy` branch and `archive/legacy-v0-tree` tag as immutable. Restoring
+   archived files to the active tree requires an explicit data-governance task.
 9. Do not add an LLM, dashboard, API, cloud service, or deployment infrastructure
    unless a later task explicitly requests it.
-

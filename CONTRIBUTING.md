@@ -13,8 +13,9 @@ python -m pytest -q
 ```
 
 Document assumptions, data provenance, and unresolved decisions in the relevant
-configuration or documentation change. Do not modify `legacy/v0/`
-without an explicit archival task.
+configuration or documentation change. Do not modify the locked `legacy`
+branch or `archive/legacy-v0-tree` tag, or restore their contents to the active
+tree, without an explicit archival and data-governance task.
 
 ## Publication work belongs outside this repository
 
@@ -44,4 +45,3 @@ including the historical long-form write-up under `docs/paper/` — stays in the
 tree and in history until a separate, explicitly authorized change removes it.
 Nothing in the repository depends on that material, and no scientific value is
 sourced from it.
-

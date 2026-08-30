@@ -485,14 +485,13 @@ protocols/     frozen split manifests
 scripts/       provenance generators, literature search, corpus audits
 reproducibility/  committed demo bundle, checksum manifest, environment lock
 recovery/      the single-use authorized T1 recovery record
-legacy/v0/     the 2020 origin, retained unchanged
 docs/
   control-plane/    current state, architecture, evidence map, catalogue, mapping
   contracts/        frozen dataset, experiment, signal and metrics contracts
   experiments/      b4 · m1 · m2 · p1 · t2 · u1 · w1 protocols, reports, decisions
   T1_*.md           episode-reasoning protocol, spec and reports (flat, see below)
   explanation/      evaluation protocol and report, local-model protocol, demo
-  provenance/       translations, incident record, runtime integrity sentinel
+  provenance/       translations, archive receipts, incident and integrity records
   external-validation/  the declined route and the strategy behind it
   literature/       the two frozen literature-search harvests
   baselines/        classical baseline results
@@ -592,12 +591,16 @@ claims enforced in code, fifteen spent one-shot budgets, and a headline
 architectural result whose confidence interval includes zero and says so in
 every document that quotes it.
 
-That original code is retained **unchanged** in
-[`legacy/v0/`](legacy/v0/README.md), tagged `legacy/v0`. It is not part of the
-pipeline, was never validated, and its fixed-threshold outputs are not clinical
-evidence — its sample CSVs carry a single `hart` column with no recorded source,
-patient, lead, unit or sampling metadata. It is kept because the honest version
-of this project's history includes where it started.
+That original code is preserved **unchanged outside the active tree** on the
+locked `legacy` branch and immutable `archive/legacy-v0-tree` tag. Its commit,
+tree and file identities are recorded in the
+[`Legacy V0 Archive Receipt`](docs/provenance/LEGACY_V0_ARCHIVE_V1.md). The
+older `legacy/v0` tag still identifies the original 2020 root layout. The
+prototype is not part of the pipeline, was never validated, and its
+fixed-threshold outputs are not clinical evidence — its sample CSVs carry a
+single `hart` column with no recorded source, patient, lead, unit or sampling
+metadata. It is retained because the honest version of this project's history
+includes where it started.
 
 ---
 
