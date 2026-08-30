@@ -8,7 +8,7 @@ reason recorded below.
 | Directory | Holds | Files |
 |---|---|--:|
 | `audits/` | verification records: runtime trust boundary, reproducibility, related-work verification, recovery and migration audits | 10 |
-| `docs/` | the complete document tree, except root audit and reproducibility records | 172 tracked |
+| `docs/` | the complete document tree, except root audit and reproducibility records | 174 tracked |
 
 ## Inside `docs/`
 
@@ -16,7 +16,7 @@ reason recorded below.
 |---|---|--:|
 | `docs/paper/` | historical long-form write-up and its drafts, plus the **evidence visualizations** in `figures/` and their generators | 31 tracked |
 | `docs/handbook/` | every handbook version, `.md` and `.docx` | 10 |
-| `docs/handoffs/` | the historical session handoff chain, ECG3–ECG24 | 23 |
+| `docs/handoffs/` | the historical session handoff chain, ECG3–ECG25 | 24 |
 | `docs/experiments/b4/` | the B4 encoder: protocol, selection, sealed-test authorization, and the E1–E13a investigations | 35 |
 | `docs/experiments/m1/` | patient-relative memory: protocols, failures, retention decision | 7 |
 | `docs/experiments/m2/` | the contamination-safe update gate | 8 |
@@ -26,7 +26,7 @@ reason recorded below.
 | `docs/experiments/p1/` | physiology fusion | 2 |
 | `docs/contracts/` | dataset, experiment and signal-processing contracts; split policy; metrics and annotation semantics; baseline and benchmark protocols | 8 |
 | `docs/control-plane/` | current state, experiment catalogue, evidence map, research scope, architecture, plans, roadmap, repo audit, experiment/component identifier mapping | 9 |
-| `docs/provenance/` | commit-pin and V1/V2 document-path translation, migration receipts, the provenance incident, cross-dataset provenance and runtime integrity | 8 |
+| `docs/provenance/` | commit-pin and V1/V2 document-path translation, migration and legacy-archive receipts, the provenance incident, cross-dataset provenance and runtime integrity | 9 |
 | `docs/explanation/` | explanation evaluation protocol and report, local-LLM protocol, Qwen run contract, demo scenario | 5 |
 | `docs/external-validation/` | the Route A decline and the strategy that preceded it | 2 |
 | `docs/literature/` | the two frozen literature-search harvests | 2 |

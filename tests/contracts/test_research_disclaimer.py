@@ -10,11 +10,12 @@ def test_readme_has_research_only_disclaimer() -> None:
     assert "does not provide diagnosis" in readme
 
 
-def test_legacy_archive_has_non_diagnostic_warning() -> None:
-    legacy_readme = (REPOSITORY_ROOT / "legacy" / "v0" / "README.md").read_text(
-        encoding="utf-8"
-    )
+def test_legacy_archive_receipt_has_non_diagnostic_warning() -> None:
+    archive_receipt = (
+        REPOSITORY_ROOT / "docs" / "provenance" / "LEGACY_V0_ARCHIVE_V1.md"
+    ).read_text(encoding="utf-8")
 
-    assert "historical traceability" in legacy_readme
-    assert "must not be interpreted as medical diagnoses" in legacy_readme
-
+    assert "not part of the modern CardioSentinel pipeline" in archive_receipt
+    assert "outputs are not clinical evidence" in archive_receipt
+    assert "3e4936137d1bb102011ee3a81cd5d36e668fbd6d" in archive_receipt
+    assert not (REPOSITORY_ROOT / "legacy").exists()

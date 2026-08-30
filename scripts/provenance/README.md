@@ -8,8 +8,7 @@ They are **archival**, not maintained code. Each file is byte-identical to the c
 that produced the merged document. That byte-identity is the point: it is what
 makes the reproduction check below meaningful. Reformatting them would trade a
 reproduction proof for a style convention, so this directory is listed in
-`extend-exclude` under `[tool.ruff]`, alongside the existing `legacy/v0`
-entry.
+`extend-exclude` under `[tool.ruff]`.
 
 ## Contents
 

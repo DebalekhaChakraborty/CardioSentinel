@@ -23,19 +23,20 @@ from it. **Neither authorizes an experiment.**
 
 ---
 
-**As of:** working branch `chore/post-merge-living-state`
+**As of:** working branch `chore/remove-legacy-from-master`
 based on GitHub `master` at
-`1bdc1b7b3d0182aae87332375c56062d35dcc143` (merge of PR #131), with
-**one open pull request (#132)**, 2026-08-29 · tags
+`b51c25843efab6bdbf6d6ed4caa7dfc46a5a690e` (merge of PR #132), with
+**one open pull request (#133)**, 2026-08-30 · tags
 `research-freeze-v1.0` · `ips-agentic-runtime-v1.0`
 **Refresh status:** living repository, pull-request, reporting, documentation,
-runtime and demo state reconciled on 2026-08-29. Scientific values below were
-not recomputed or re-scored; their frozen records remain authoritative.
-**Working tree:** one worktree, **clean**. The runtime trust-boundary work, the
-document-hierarchy V2 migration, the identifier mapping and the research-artifact
-presentation pass are all merged; `master` carries them.
-**Open PRs:** #132, the post-#131 living-state refresh. #128, #129, #130 and
-#131 are merged. *(Snapshot only — `gh pr list` is authoritative.)*
+runtime, demo and legacy-archive state reconciled on 2026-08-30. Scientific
+values below were not recomputed or re-scored; their frozen records remain
+authoritative.
+**Working tree:** **clean at refresh**. The runtime trust-boundary work,
+document-hierarchy V2 migration, identifier mapping, research-artifact
+presentation and read-only replay dashboard are merged; `master` carries them.
+**Open PRs:** #133, the active-tree legacy removal. #128 through #132 are
+merged. *(Snapshot only — `gh pr list` is authoritative.)*
 **Canonical T1 attempt:** **CONSUMED** — failed post-claim at stage 24
 **T1 measurement continuation:** **COMPLETED** — the single authorization is spent
 **T2 outer validation:** **CONSUMED and ANALYSED** — values published
@@ -86,20 +87,20 @@ rule, layout constraint or author metadata is inferred or tracked here.
 
 | | |
 |---|---|
-| `master` | `1bdc1b7b3d0182aae87332375c56062d35dcc143` — merge of PR #131 |
-| Working branch | `chore/post-merge-living-state`, created from `master` at `1bdc1b7`; living-state refresh only |
-| Tags | `research-freeze-v1.0` · `ips-agentic-runtime-v1.0` · `legacy/v0` · three `archive/*` tags |
+| `master` | `b51c25843efab6bdbf6d6ed4caa7dfc46a5a690e` — merge of PR #132 |
+| Working branch | `chore/remove-legacy-from-master`, created from `master` at `b51c258`; archival routing and active-tree removal only |
+| Tags | `research-freeze-v1.0` · `ips-agentic-runtime-v1.0` · `legacy/v0` · four `archive/*` tags, including `archive/legacy-v0-tree` |
 | Releases | none |
-| Working tree | one worktree, **clean** — the reconciliation work is committed, not pending |
-| Open PRs | **#132** — post-#131 living-state refresh; #128 through #131 are merged |
-| Tracked Python | 318 files · 136,707 LOC |
+| Working tree | **clean at refresh** — the archive receipt, removal and state reconciliation are committed |
+| Open PRs | **#133** — active-tree legacy removal; #128 through #132 are merged |
+| Tracked Python | 318 files · 137,211 LOC |
 | Tests | 127 `test_*.py` files · 3,579 collected tests |
-| Documents | 172 tracked files in `docs/` (149 `.md`), including `docs/paper/` 31, `docs/handbook/` 10 and `docs/handoffs/` 23; ignored owner DOCX drafts also remain under `docs/paper/drafts/` |
+| Documents | 174 tracked files in `docs/` (151 `.md`), including `docs/paper/` 31, `docs/handbook/` 10 and `docs/handoffs/` 24; ignored owner DOCX drafts also remain under `docs/paper/drafts/` |
 | Root documentation | `audits/` 10 Markdown audits, including the recovery and formal hierarchy-migration audits; `reproducibility/` remains separate |
 | Handbook | **v1.5**, with v1.2–v1.4 retained, superseded and unedited |
 | `neural/` | 96 Python files · 57,980 LOC — still where most research code lives |
 | `edge/` · `agents/` | 2,276 · 4,023 Python lines |
-| `reproducibility/` | 35 tracked files including the 1.63 MiB demo bundle |
+| `reproducibility/` | 39 tracked files totalling 1.72 MiB, including the read-only replay dashboard |
 | Evidence on disk | `cardiosentinel-runs` 3.4 GB · `cardiosentinel-data` 5.6 GB · `cardiosentinel-features` 16 GB (all gitignored) |
 
 ### Merged since the previous refresh (`544581e`, PR #97)
@@ -924,9 +925,10 @@ human authorization.
 
 ---
 
-_Post-PR #131 living-state refresh: 2026-08-29, on
-`chore/post-merge-living-state`, based on GitHub `master` `1bdc1b7b3d01`, with
-PR #132 open. The document-hierarchy V2 migration, the identifier mapping
-and the research-artifact presentation pass are merged. Scientific values were
-not recomputed; their frozen source records remain authoritative. Evidence-mirror
-statements in §8 carry their own verification dates._
+_Post-PR #132 living-state and legacy-archive refresh: 2026-08-30, on
+`chore/remove-legacy-from-master`, based on GitHub `master` `b51c25843efa`, with
+PR #133 open. The historical prototype is preserved on the locked `legacy`
+branch and `archive/legacy-v0-tree` tag and is absent from the proposed active
+tree. Scientific values were not recomputed; their frozen source records remain
+authoritative. Evidence-mirror statements in §8 carry their own verification
+dates._
