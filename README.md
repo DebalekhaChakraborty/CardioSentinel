@@ -325,7 +325,7 @@ a matter of course.**
 **This works from a clean clone.** The demo bundle — checkpoints, calibrators,
 thresholds, experiment locks, 1.63 MiB — is committed to this repository. You
 supply one ECG record from PhysioNet
-([`reproducibility/DATA_ACCESS.md`](reproducibility/DATA_ACCESS.md)).
+([`reproducibility/README.md`](reproducibility/README.md#data-access)).
 
 ```bash
 pip install -e ".[dev,data,signal,ml,neural]"
@@ -398,7 +398,7 @@ sha256sum t1_protocol.py t1_execution_spec.py t1_evidence_store.py \
 ```
 
 **This one also needs the PhysioNet record** from
-[`DATA_ACCESS.md`](reproducibility/DATA_ACCESS.md), since it replays a waveform:
+[`reproducibility/README.md`](reproducibility/README.md#data-access), since it replays a waveform:
 
 ```bash
 # trace any reported measurement back to its experiment lock
@@ -544,7 +544,7 @@ would shift every embedding silently
 plan-only unless `--execute` is supplied.
 
 Source data is LTSTDB from PhysioNet — obtain it yourself per
-[`reproducibility/DATA_ACCESS.md`](reproducibility/DATA_ACCESS.md). EDB is
+[`reproducibility/README.md`](reproducibility/README.md#data-access). EDB is
 contracted, audited and **deliberately never downloaded**; it is a *secondary*
 cohort, enforced in code, and may never be called external.
 

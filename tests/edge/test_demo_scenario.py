@@ -48,7 +48,7 @@ def test_the_console_limitations_match_the_contract():
     not SOURCE.is_file() and not (SOURCE / f"{RECORD}.hea").is_file(),
     reason=(
         f"{RECORD} absent from cardiosentinel-data. The ECG record is fetched "
-        "from PhysioNet per reproducibility/DATA_ACCESS.md."
+        "from PhysioNet per reproducibility/README.md, Data access."
     ),
 )
 class TestScenarioOutcome:
