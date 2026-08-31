@@ -16,7 +16,7 @@ reproduction proof for a style convention, so this directory is listed in
 |---|---|---|
 | `gen_t1_descriptive_report.py` | `docs/T1_DESCRIPTIVE_REPORT_V1.md` | #61, corrected §9.2 in #62 |
 | `gen_t1_post_hoc_analysis.py` | `docs/T1_POST_HOC_ANALYSIS_V1.md` | #62 |
-| `render_handbook_docx.py` | `docs/handbook/CardioSentinel_Research_Execution_Handbook_v1.2.docx` | #66 |
+| `render_handbook_docx.py` | `docs/handbook/v1/CardioSentinel_Research_Execution_Handbook_v1.2.docx` | #66 |
 | `gen_t2_arm_comparison_report.py` | `docs/experiments/t2/T2_ARM_COMPARISON_REPORT_V1.md` | this PR |
 
 Source digests, as tracked:
@@ -90,8 +90,8 @@ root. This asymmetry is preserved rather than fixed, for the reason above.
 
 ```bash
 $PY scripts/provenance/render_handbook_docx.py \
-    docs/handbook/CardioSentinel_Research_Execution_Handbook_v1.2.md \
-    docs/handbook/CardioSentinel_Research_Execution_Handbook_v1.1.docx \
+    docs/handbook/v1/CardioSentinel_Research_Execution_Handbook_v1.2.md \
+    docs/handbook/v1/CardioSentinel_Research_Execution_Handbook_v1.1.docx \
     /tmp/v12.docx
 ```
 
