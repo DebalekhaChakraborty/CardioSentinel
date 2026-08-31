@@ -37,14 +37,31 @@ def test_tracked_move_counts_match_the_receipt() -> None:
             "docs/paper",
             "docs/handbook",
             "docs/handoffs",
+            "docs/control-plane/figures",
+            "docs/experiments/w1/figures",
+            "docs/experiments/b4/figures",
+            "docs/explanation/figures",
         ],
         cwd=ROOT,
         check=True,
         capture_output=True,
         text=True,
     ).stdout.splitlines()
-    assert sum(path.startswith("docs/paper/") for path in tracked) == 31
+
+    # docs/paper/ was the V1 publication workspace and is retired: gitignored, and
+    # preserved outside this repository. A fixed count of 31 would now assert the
+    # opposite of what the tree records, so what is checked is the retirement --
+    # that nothing under it is tracked, and that the evidence figures it held are
+    # tracked at the locations they moved to.
+    assert sum(path.startswith("docs/paper/") for path in tracked) == 0
     assert sum(path.startswith("docs/handbook/") for path in tracked) == 10
+    relocated_figures = {
+        row["new_path"]
+        for row in _receipt_rows()
+        if "/figures/F" in row["new_path"] and row["tracked"] == "Y"
+    }
+    assert len(relocated_figures) == 10
+    assert relocated_figures <= set(tracked)
 
     # Handoffs accumulate: a session written after the migration is a new file,
     # not a moved one, so a fixed total would fail for the wrong reason. What the
@@ -60,7 +77,13 @@ def test_tracked_move_counts_match_the_receipt() -> None:
 
 
 def test_frozen_and_historical_moved_files_retain_content_identity() -> None:
-    protected = [row for row in _receipt_rows() if row["content_frozen"] == "Y"]
+    # A retired document keeps its recorded digest as history, but there is no file
+    # left in the tree to hash: identity is verified for what the tree still holds.
+    protected = [
+        row
+        for row in _receipt_rows()
+        if row["content_frozen"] == "Y" and row["tracked"] == "Y"
+    ]
     assert protected
     for row in protected:
         current = ROOT / row["new_path"]

@@ -1,13 +1,20 @@
 # Evidence visualizations — provenance and reproduction
 
+Each figure is stored beside the evidence it depicts, not in a manuscript
+directory: F1 and F2 under `docs/control-plane/figures/`, F3 under
+`docs/experiments/w1/figures/`, F4 under `docs/experiments/b4/figures/`, F5
+under `docs/explanation/figures/`. The two generators live with the other
+provenance generators in `scripts/provenance/` because each writes into more
+than one of those areas.
+
 **Assembly and plotting only. No figure computes a new scientific quantity.**
 Every value plotted traces to a frozen report or a promoted run artifact.
 
 Regenerate with:
 
 ```
-venvs/tactics/bin/python docs/paper/figures/make_f3_f4.py      # data figures
-venvs/tactics/bin/python docs/paper/figures/make_f1_f2_f5.py   # diagrams
+venvs/tactics/bin/python scripts/provenance/make_f3_f4.py      # data figures
+venvs/tactics/bin/python scripts/provenance/make_f1_f2_f5.py   # diagrams
 ```
 
 Outputs vector `.pdf` and `.png` at 200 dpi.

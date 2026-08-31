@@ -19,9 +19,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-REPO = pathlib.Path(__file__).resolve().parents[3]
+REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "src"))
-OUT = pathlib.Path(__file__).resolve().parent
+#: F3 is W1 evidence and F4 is B4 evidence; each is written beside its own
+#: experiment rather than into a shared manuscript directory.
+OUT_W1 = REPO / "docs" / "experiments" / "w1" / "figures"
+OUT_B4 = REPO / "docs" / "experiments" / "b4" / "figures"
 
 from cardiosentinel.neural.e11_data_binding import (  # noqa: E402
     E11Sources,
@@ -121,8 +124,8 @@ axr.set_title("(b)  Paired difference  ·  excludes zero  ·  one operating poin
               loc="left")
 
 fig.tight_layout()
-fig.savefig(OUT / "F3_episode_reasoning.pdf")
-fig.savefig(OUT / "F3_episode_reasoning.png", dpi=200)
+fig.savefig(OUT_W1 / "F3_episode_reasoning.pdf")
+fig.savefig(OUT_W1 / "F3_episode_reasoning.png", dpi=200)
 plt.close(fig)
 print("F3 written")
 
@@ -207,7 +210,7 @@ axr.grid(color=GRID, lw=0.5, zorder=0)
 axr.set_title("(b)  Held-out streams: direction vs magnitude", loc="left")
 axr.legend(loc="upper left", frameon=False)
 fig.tight_layout()
-fig.savefig(OUT/"F4_representation_geometry.pdf")
-fig.savefig(OUT/"F4_representation_geometry.png", dpi=200)
+fig.savefig(OUT_B4/"F4_representation_geometry.pdf")
+fig.savefig(OUT_B4/"F4_representation_geometry.png", dpi=200)
 plt.close(fig)
 print("F4 written")

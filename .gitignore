@@ -60,7 +60,11 @@ models/checkpoints/
 publication-local/
 submission-local/
 paper-drafts/
-docs/paper/drafts/
+# The V1 publication workspace. CONTRIBUTING.md places publication work outside
+# this computational research artifact; the evidence figures it used to hold were
+# relocated beside the evidence they depict. See
+# docs/provenance/V1_PUBLICATION_WORKSPACE_RETIREMENT_V1.md
+docs/paper/
 
 *_TACTiCS_*.docx
 *_TACTiCS_*.pdf

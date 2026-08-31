@@ -20,7 +20,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
-OUT = pathlib.Path(__file__).resolve().parent
+REPO = pathlib.Path(__file__).resolve().parents[2]
+#: Each figure is written beside the evidence it depicts, so an output path
+#: is per-figure and never the script's own directory.
+OUT_CONTROL = REPO / "docs" / "control-plane" / "figures"
+OUT_EXPLAIN = REPO / "docs" / "explanation" / "figures"
 BLUE, ORANGE = "#2a78d6", "#eb6834"
 GOOD, CRIT = "#0ca30c", "#d03b3b"
 INK, MUTED, SURFACE = "#1a1a1a", "#5a5a5a", "#fcfcfb"
@@ -109,8 +113,8 @@ panel(ax, 4, 0, 88, 13,
        T("physiology half (18-d) bit-exact, 0.000e+00 on 64 of 64 audited rows · "
          "embedding half (128-d) max 7.15e-07 = 6 ULP of float32", 6.8, MUTED)],
       fc=WARM, ec=ORANGE)
-fig.savefig(OUT/"F1_ips_architecture.pdf", bbox_inches="tight")
-fig.savefig(OUT/"F1_ips_architecture.png", dpi=200, bbox_inches="tight")
+fig.savefig(OUT_CONTROL/"F1_ips_architecture.pdf", bbox_inches="tight")
+fig.savefig(OUT_CONTROL/"F1_ips_architecture.png", dpi=200, bbox_inches="tight")
 plt.close(fig)
 print("F1 written")
 
@@ -148,8 +152,8 @@ panel(ax, 4, 0, 84, 15,
 arrow(ax, 92, 86, 92, 3, c=CRIT, lw=1.3)
 ax.text(96, 45, "one-way", fontsize=6.9, color=CRIT, style="italic",
         ha="center", va="center", rotation=90)
-fig.savefig(OUT/"F2_partition_authority.pdf", bbox_inches="tight")
-fig.savefig(OUT/"F2_partition_authority.png", dpi=200, bbox_inches="tight")
+fig.savefig(OUT_CONTROL/"F2_partition_authority.pdf", bbox_inches="tight")
+fig.savefig(OUT_CONTROL/"F2_partition_authority.png", dpi=200, bbox_inches="tight")
 plt.close(fig)
 print("F2 written")
 
@@ -198,7 +202,7 @@ panel(ax, 3, 2, 94, 25,
        T("•  The inversion reproduced on two independent runs, before and after the "
          "reasoning-mode fix, on the same context.", 6.8, MUTED)],
       fc=FAINT, ec=MUTED, ls=(0, (4, 3)))
-fig.savefig(OUT/"F5_guarded_generation.pdf", bbox_inches="tight")
-fig.savefig(OUT/"F5_guarded_generation.png", dpi=200, bbox_inches="tight")
+fig.savefig(OUT_EXPLAIN/"F5_guarded_generation.pdf", bbox_inches="tight")
+fig.savefig(OUT_EXPLAIN/"F5_guarded_generation.png", dpi=200, bbox_inches="tight")
 plt.close(fig)
 print("F5 written")
