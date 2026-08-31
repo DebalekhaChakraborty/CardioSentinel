@@ -559,7 +559,7 @@ Two of those three stubs describe research that is complete elsewhere.
 
 ---
 
-## 8. Data preservation — **three snapshots, all content-verified 2026-08-29**
+## 8. Data preservation — **three snapshots, re-verified 2026-08-31**
 
 ```
 s3://cardiosentinel-evidence-341181499761/
@@ -684,6 +684,58 @@ replay the manifest:
 ```bash
 while read -r sha size mtime path; do touch -d "@$mtime" "$path"; done < MANIFEST_SHA256.txt
 ```
+
+### 8.4 The 2026-08-31 coverage check — what is outside Git, and where it is
+
+Not a re-run of §8.0. That asked whether the mirror still holds what it claimed;
+this asks the different question of **whether everything the repository declines
+to track is held anywhere at all.**
+
+Every file on disk outside Git was diffed, by path, against the union of keys in
+all three prefixes — not compared by count, which agreeing totals can hide.
+
+| | |
+|---|---|
+| Local files outside Git | **994** |
+| Held in the evidence mirror | **983** |
+| Held nowhere | **11** — every file in `docs/paper/drafts/` |
+
+The three `cardiosentinel-*` trees are complete: 261 data, 158 features, 564
+runs, every path resolving to an object. The three prefixes still report
+**786 / 24,779,296,980**, **5 / 5,015,638** and **196 / 1,193,258,795** — exact
+match to §8.0, so defect 1 has not reopened as of 2026-08-31.
+
+#### 8.4.1 The eleven, and why they are not in the evidence bucket
+
+`docs/paper/drafts/` holds the manuscript, `v0.1` through `v0_11`, 4,033,945
+bytes. It is gitignored on purpose: `CONTRIBUTING.md` places DOCX manuscripts
+outside this repository, and that has not changed.
+
+**They are not in the evidence bucket, and should not be.** That bucket carries
+Object Lock GOVERNANCE with a 365-day default, which is right for sealed
+evidence and wrong for a document still being revised — `v0_11` was written on
+2026-08-29, every later version would lock for a year, and the store whose
+purpose is scientific evidence would fill with publication material.
+
+They are mirrored instead to a bucket that matches what they are:
+
+```
+s3://cardiosentinel-drafts-341181499761/docs/paper/drafts/
+  11 objects · 4,033,945 bytes · repo-relative keys
+Versioning enabled · NO Object Lock · SSE-S3 AES256 · all four public-access
+blocks true
+```
+
+Versioned so revisions accumulate, unlocked so a draft stays a draft. Verified
+on 2026-08-31 the way §8.0 verifies: **11/11 re-hashed after download from S3**,
+4,033,945 bytes, `sha256(sorted per-file digests)` =
+`b1c6bd8ad758418b7700b16421dc9f0e2591835fc2d46eec259d071196d598e8`.
+
+**This is a mirror, not an archive.** No Object Lock means these objects can be
+overwritten or deleted; versioning preserves prior versions but not against a
+deliberate purge. Item 4 of the ECG 25 open list — *"single-copy, one disk
+failure loses it"* — is closed. A second copy now exists. It is not immutable
+and is not claimed to be.
 
 ---
 
