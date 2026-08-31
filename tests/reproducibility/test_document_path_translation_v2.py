@@ -70,6 +70,9 @@ def test_translation_preserves_content_identity() -> None:
             row["old_path"]: row
             for row in csv.DictReader(stream, dialect="excel-tab")
         }
-    recorded = "paper/CARDIOSENTIN_TACTICS_SUBMISSION_CANDIDATE_V1_FORMAT_PENDING.md"
+    # Was a paper/ document until the V1 publication workspace was retired; the
+    # translation still resolves those recorded paths, but no file remains to hash,
+    # so identity is demonstrated on a document the tree still carries.
+    recorded = "handbook/CardioSentinel_Research_Execution_Handbook_v1.5.md"
     current = translation.resolve_current_path(recorded)
     assert hashlib.sha256(current.read_bytes()).hexdigest() == rows[recorded]["sha256"]

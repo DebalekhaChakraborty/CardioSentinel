@@ -14,7 +14,7 @@ reason recorded below.
 
 | Directory | Holds | Files |
 |---|---|--:|
-| `docs/paper/` | historical long-form write-up and its drafts, plus the **evidence visualizations** in `figures/` and their generators | 31 tracked |
+| `docs/paper/` | **retired.** The V1 publication workspace is gitignored and preserved outside this repository; its evidence figures moved beside the evidence they depict. See [`provenance/V1_PUBLICATION_WORKSPACE_RETIREMENT_V1.md`](provenance/V1_PUBLICATION_WORKSPACE_RETIREMENT_V1.md) | 0 tracked |
 | `docs/handbook/` | every handbook version, `.md` and `.docx` | 10 |
 | `docs/handoffs/` | the historical session handoff chain, ECG3–ECG25 | 24 |
 | `docs/experiments/b4/` | the B4 encoder: protocol, selection, sealed-test authorization, and the E1–E13a investigations | 35 |
