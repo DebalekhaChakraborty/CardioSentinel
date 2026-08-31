@@ -1,0 +1,203 @@
+{
+  "artifact_class": "cardiosentinel_demo_bundle_selection",
+  "purpose": "IPS demo reproduction",
+  "scope": "This bundle exists only to reproduce the CardioSentinel IPS demonstration. It is NOT the complete research artifact archive, is NOT sufficient to reproduce all experiments, and does NOT replace the locked experiment stores. Full scientific validation requires the research tier.",
+  "tier": "demo",
+  "layout": "mirrors the run root so existing loaders read it unchanged",
+  "test_accessed": false,
+  "sealed_test_state": "unopened",
+  "external_mirror_required": false,
+  "file_count": 27,
+  "total_bytes": 1706219,
+  "files": [
+    {
+      "path": "runs/phase3b2-architecture-v1/B4B_cnn_transformer_v1/model_selected.pt",
+      "source": "cardiosentinel-runs/phase3b2-architecture-v1/B4B_cnn_transformer_v1/model_selected.pt",
+      "sha256": "b1301723909c641a0014c31f6daa9549d47ab231f0b07483e0de729aff5591c9",
+      "bytes": 1261749,
+      "loader": "resource_benchmark.load_locked_model via p1_experiment.load_official_b4b_encoder"
+    },
+    {
+      "path": "runs/phase3b2-architecture-v1/B4B_cnn_transformer_v1/EXPERIMENT_LOCK.json",
+      "source": "cardiosentinel-runs/phase3b2-architecture-v1/B4B_cnn_transformer_v1/EXPERIMENT_LOCK.json",
+      "sha256": "5bf251780f469115164d61a3f3cef2eecfc9ef9765af3f544479e961da00e7bc",
+      "bytes": 35388,
+      "loader": "p1_experiment.load_official_b4b_encoder (lock + checkpoint digest check)"
+    },
+    {
+      "path": "runs/phase4-p1-physiology-v1/P1B_phys_fusion_v1/EXPERIMENT_LOCK.json",
+      "source": "cardiosentinel-runs/phase4-p1-physiology-v1/P1B_phys_fusion_v1/EXPERIMENT_LOCK.json",
+      "sha256": "fdde6475a02e0249e0238b89168e6b043b3ade1ec2bfd75922628127fb27d2ca",
+      "bytes": 34188,
+      "loader": "m1_experiment.load_frozen_physiology_transform (digest binding)"
+    },
+    {
+      "path": "runs/phase4-p1-physiology-v1/P1B_phys_fusion_v1/PHYSIOLOGY_TRANSFORM.json",
+      "source": "cardiosentinel-runs/phase4-p1-physiology-v1/P1B_phys_fusion_v1/PHYSIOLOGY_TRANSFORM.json",
+      "sha256": "b4fe6dd80c511fa6d9f2750f268f69a0ae9fe4a14181deb8398fe3ab0b5e32fc",
+      "bytes": 3060,
+      "loader": "m1_experiment.load_frozen_physiology_transform"
+    },
+    {
+      "path": "runs/phase7-u1-development-v1/u1-v1-development/U1_DEPLOYMENT_CALIBRATOR.json",
+      "source": "cardiosentinel-runs/phase7-u1-development-v1/u1-v1-development/U1_DEPLOYMENT_CALIBRATOR.json",
+      "sha256": "acec97c1ebd3bed459ad2d75204b6c82f274b248edbb1d779b844bd46c62fdc1",
+      "bytes": 4093,
+      "loader": "edge.artifacts.load_runtime_artifacts (U1Calibrator)"
+    },
+    {
+      "path": "runs/phase8-t2-development-v1/t2-v1-training/T2_S4D_BEST_CHECKPOINT.pt",
+      "source": "cardiosentinel-runs/phase8-t2-development-v1/t2-v1-training/T2_S4D_BEST_CHECKPOINT.pt",
+      "sha256": "63ccfbe00c209f94124610f1a22b25d84a2ad2b7e941ecaa3f0c8e9684a6722e",
+      "bytes": 191933,
+      "loader": "t2_training.restore_model_state"
+    },
+    {
+      "path": "features/m1-stream-memory-v2/M1_DISTANCE_STANDARDIZER.json",
+      "source": "cardiosentinel-features/m1-stream-memory-v2/M1_DISTANCE_STANDARDIZER.json",
+      "sha256": "2b0166a1a90a39ba15e11ea2771f782e40c63f7a818883b57d1b7ab3a2421a53",
+      "bytes": 12917,
+      "loader": "edge.artifacts.load_runtime_artifacts (M1DistanceStandardizer)"
+    },
+    {
+      "path": "runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/CHALLENGE_METRICS.json",
+      "source": "cardiosentinel-runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/CHALLENGE_METRICS.json",
+      "sha256": "31ababec3dc5e2af7e1ad857a7cffe2d7de602362dbe98f21aedf8e1ded8abb3",
+      "bytes": 2096,
+      "loader": "m2_scorer.load_frozen_m1l_scorer"
+    },
+    {
+      "path": "runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/EPOCH_HISTORY.json",
+      "source": "cardiosentinel-runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/EPOCH_HISTORY.json",
+      "sha256": "fa72cc60c19d7656c507dd9e6744cd2170209736a07a7b799787265016812fd8",
+      "bytes": 1615,
+      "loader": "m2_scorer.load_frozen_m1l_scorer"
+    },
+    {
+      "path": "runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/EXPERIMENT_LOCK.json",
+      "source": "cardiosentinel-runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/EXPERIMENT_LOCK.json",
+      "sha256": "6aa199ea5410dde860fd3fcce9ceef0194a364ed2ed5b01678e0648fea60a452",
+      "bytes": 44719,
+      "loader": "m2_scorer.load_frozen_m1l_scorer"
+    },
+    {
+      "path": "runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/MEMORY_FEATURES.json",
+      "source": "cardiosentinel-runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/MEMORY_FEATURES.json",
+      "sha256": "e63daf8a8ec37c37734b8a8038a7740973945814d0dac039adf83e95ba2602ae",
+      "bytes": 4564,
+      "loader": "m2_scorer.load_frozen_m1l_scorer"
+    },
+    {
+      "path": "runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/RUN_STATUS.json",
+      "source": "cardiosentinel-runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/RUN_STATUS.json",
+      "sha256": "a53d22dc099156b7058ddf1a0b7569535ef39e0869fa4742fd1845d5798ab816",
+      "bytes": 241,
+      "loader": "m2_scorer.load_frozen_m1l_scorer"
+    },
+    {
+      "path": "runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/VALIDATION_METRICS.json",
+      "source": "cardiosentinel-runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/VALIDATION_METRICS.json",
+      "sha256": "0748a9aaa3473dacc2147fe9a5ae079a402dc75b91f7292439135a3e3b96f7e6",
+      "bytes": 2302,
+      "loader": "m2_scorer.load_frozen_m1l_scorer"
+    },
+    {
+      "path": "runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/VALIDATION_THRESHOLD.json",
+      "source": "cardiosentinel-runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/VALIDATION_THRESHOLD.json",
+      "sha256": "49892cdc29f32469894d11da2f683f34b7cb3508dfdc7a23c5711f99a235714f",
+      "bytes": 288,
+      "loader": "m2_scorer.load_frozen_m1l_scorer"
+    },
+    {
+      "path": "runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/model_selected.pt",
+      "source": "cardiosentinel-runs/phase5-m1-dual-memory-v2/M1L_long_memory_v2/model_selected.pt",
+      "sha256": "a26b6a18db8c005a051054417156068174a166062a5498f32fd48e473ad58510",
+      "bytes": 40739,
+      "loader": "m2_scorer.load_frozen_m1l_scorer"
+    },
+    {
+      "path": "runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_00_SELECTION.json",
+      "source": "cardiosentinel-runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_00_SELECTION.json",
+      "sha256": "02ffccd4eb546a7d07017f7234aec9f3c3f189819f4f90ca5663e1d4cf11467c",
+      "bytes": 5527,
+      "loader": "edge.artifacts.resolve_t1_policy (leave-one-subject-out thresholds)"
+    },
+    {
+      "path": "runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_01_SELECTION.json",
+      "source": "cardiosentinel-runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_01_SELECTION.json",
+      "sha256": "f08799a205200c7b1d22a26f1d8354848149828c4eb6e68beb51c6eebde5a786",
+      "bytes": 5537,
+      "loader": "edge.artifacts.resolve_t1_policy (leave-one-subject-out thresholds)"
+    },
+    {
+      "path": "runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_02_SELECTION.json",
+      "source": "cardiosentinel-runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_02_SELECTION.json",
+      "sha256": "e5d4967a45eb891a11294d640ab6a5e5de77cffdb60cf0c1338be5ff8e3558a1",
+      "bytes": 5534,
+      "loader": "edge.artifacts.resolve_t1_policy (leave-one-subject-out thresholds)"
+    },
+    {
+      "path": "runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_03_SELECTION.json",
+      "source": "cardiosentinel-runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_03_SELECTION.json",
+      "sha256": "daa0e1def15d45cc826516b8478369c92755ec77634429014580161ed7d6d7ed",
+      "bytes": 5525,
+      "loader": "edge.artifacts.resolve_t1_policy (leave-one-subject-out thresholds)"
+    },
+    {
+      "path": "runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_04_SELECTION.json",
+      "source": "cardiosentinel-runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_04_SELECTION.json",
+      "sha256": "fa3cec3519513d7681100bb701f38d988af3bacb504cb9dc4702bd6432559dc0",
+      "bytes": 5507,
+      "loader": "edge.artifacts.resolve_t1_policy (leave-one-subject-out thresholds)"
+    },
+    {
+      "path": "runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_05_SELECTION.json",
+      "source": "cardiosentinel-runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_05_SELECTION.json",
+      "sha256": "6c07098b90548fe03eddf8437ac56bedccd3b1a39abdaa90aa077694b2fb0d0f",
+      "bytes": 5532,
+      "loader": "edge.artifacts.resolve_t1_policy (leave-one-subject-out thresholds)"
+    },
+    {
+      "path": "runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_06_SELECTION.json",
+      "source": "cardiosentinel-runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_06_SELECTION.json",
+      "sha256": "c9c1b0fb345693ff07f95073d92afb3cacaa72cfb05e290c36dd07ee2c5a6c9a",
+      "bytes": 5514,
+      "loader": "edge.artifacts.resolve_t1_policy (leave-one-subject-out thresholds)"
+    },
+    {
+      "path": "runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_07_SELECTION.json",
+      "source": "cardiosentinel-runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_07_SELECTION.json",
+      "sha256": "9a6ee4e4e33372e5208234c38c7830015ddccb23ee166140a1a78c83eb68a72d",
+      "bytes": 5523,
+      "loader": "edge.artifacts.resolve_t1_policy (leave-one-subject-out thresholds)"
+    },
+    {
+      "path": "runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_08_SELECTION.json",
+      "source": "cardiosentinel-runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_08_SELECTION.json",
+      "sha256": "602c9d1f09a3af4f46b234e483592ccb3eb56a9f78251f95f030ce150630a07e",
+      "bytes": 5528,
+      "loader": "edge.artifacts.resolve_t1_policy (leave-one-subject-out thresholds)"
+    },
+    {
+      "path": "runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_09_SELECTION.json",
+      "source": "cardiosentinel-runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_09_SELECTION.json",
+      "sha256": "31bca60e10377c7bfc77f9fb6a9c54340b6b91e9c048b006f8e198781df99961",
+      "bytes": 5533,
+      "loader": "edge.artifacts.resolve_t1_policy (leave-one-subject-out thresholds)"
+    },
+    {
+      "path": "runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_10_SELECTION.json",
+      "source": "cardiosentinel-runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_10_SELECTION.json",
+      "sha256": "696e99527caf33c9798721dffd92d12a5d98ef98720579f006c9a96aae4c26a8",
+      "bytes": 5530,
+      "loader": "edge.artifacts.resolve_t1_policy (leave-one-subject-out thresholds)"
+    },
+    {
+      "path": "runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_11_SELECTION.json",
+      "source": "cardiosentinel-runs/phase9-t1-development-v1/t1-v1-development/fold_selections/T1_FOLD_11_SELECTION.json",
+      "sha256": "3384a1261c7e069d8276eb5fe35a66dd7589c953fd37d3ae902ab0e496e03050",
+      "bytes": 5537,
+      "loader": "edge.artifacts.resolve_t1_policy (leave-one-subject-out thresholds)"
+    }
+  ]
+}

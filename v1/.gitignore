@@ -1,0 +1,77 @@
+# Python and virtual environments
+__pycache__/
+*.py[cod]
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+configs/local*.yaml
+secrets/
+
+# Data and experiment artefacts are intentionally external to Git.
+/data/*
+!/data/README.md
+/artifacts/*
+!/artifacts/README.md
+/cardiosentinel-data/
+/cardiosentinel-features/
+/cardiosentinel-runs/
+models/checkpoints/
+*.ckpt
+*.pt
+*.pth
+*.onnx
+
+# Notebook and editor state
+.ipynb_checkpoints/
+.vscode/
+.idea/
+
+# ---------------------------------------------------------------------------
+# Publication-workspace policy
+#
+# This repository is a computational research artifact. Venue-specific
+# preparation -- DOCX manuscripts, final PDFs, conference figure variants,
+# reviewer notes, submission metadata, templates and formatting experiments --
+# belongs in an external publication workspace (see CONTRIBUTING.md), not here.
+#
+# These patterns prevent FUTURE local publication artifacts from being tracked;
+# they do not remove files already tracked by Git.
+#
+# Deliberately narrow. No blanket *.docx / *.pdf / *.md rule: the research
+# handbook ships as .docx, the evidence visualizations ship as .pdf, and almost
+# every scientific record here is .md.
+# ---------------------------------------------------------------------------
+publication-local/
+submission-local/
+paper-drafts/
+docs/paper/drafts/
+
+*_TACTiCS_*.docx
+*_TACTiCS_*.pdf
+*.submission.docx
+*.submission.pdf
+*_review_notes.md
+*_review_report.md
+
+# The curated IPS demo reproduction bundle is committed deliberately: 1.63 MiB,
+# selected by scripts/provenance/select_demo_bundle.py and verified by
+# reproducibility/verify_reproducibility.py. It is the only place model
+# artifacts are tracked, and it exists so a reviewer can reproduce the
+# demonstration from a clone plus one public ECG record.
+!reproducibility/demo_bundle/**

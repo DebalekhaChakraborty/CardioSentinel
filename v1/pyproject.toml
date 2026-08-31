@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cardiosentinel"
+version = "0.1.0"
+description = "Research software foundation for transient ischemic ST-episode detection."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "CardioSentinel contributors" }]
+dependencies = [
+  "PyYAML>=6.0,<7",
+]
+
+[project.optional-dependencies]
+# Development dependencies are intentionally lightweight for Phase 0.
+dev = [
+  "pytest>=8.0,<9",
+  "ruff>=0.6,<1",
+]
+# Phase 3B uses only established classical machine-learning dependencies.
+ml = [
+  "numpy>=1.26,<3",
+  "scipy>=1.13,<2",
+  "scikit-learn>=1.5,<2",
+  "threadpoolctl>=3.1,<4",
+  "wfdb>=4.1,<5",
+]
+neural = [
+  "torch>=2.4,<3",
+]
+docs = []
+data = [
+  "numpy>=1.26,<3",
+  "wfdb>=4.1,<5",
+]
+signal = [
+  "numpy>=1.26,<3",
+  "scipy>=1.13,<2",
+  "wfdb>=4.1,<5",
+]
+# The local open-weight explanation provider. These are ALREADY present in the
+# frozen scientific environment; declaring them here documents the dependency
+# rather than adding one. Installing anything into that environment would void
+# its recorded digest, so this group must never grow a package the frozen set
+# does not already contain. See docs/explanation/LOCAL_LLM_EXPLANATION_PROTOCOL_V1.md 2.
+llm = [
+  "torch>=2.4,<3",
+  "transformers>=5,<6",
+  "huggingface-hub>=0.34",
+]
+
+[project.scripts]
+cardiosentinel = "cardiosentinel.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+extend-exclude = ["scripts/provenance"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+# `b4b_sealed_test` is deliberately two modules in one file, split by a comment
+# banner: the identity-verification half above, which reads development
+# artifacts only and must be able to refuse before anything sealed is resolved,
+# and the evaluation half below. The lower half's imports sit below that banner
+# on purpose, and several tests assert that source order rather than only the
+# behaviour, because a behavioural test passes whether the gate sits above or
+# below the attempt claim and only one of those refuses before writing a
+# receipt. Hoisting them to satisfy E402 would erase the separation the file
+# exists to make legible.
+"src/cardiosentinel/neural/b4b_sealed_test.py" = ["E402"]

@@ -1,0 +1,63 @@
+project:
+  name: CardioSentinel
+  profile: base
+  research_only: true
+
+paths:
+  dataset_root: ${CARDIOSENTINEL_DATA_ROOT:-data}
+  output_root: ${CARDIOSENTINEL_ARTIFACT_ROOT:-artifacts}
+
+data:
+  sampling_frequency_hz: null
+  require_record_metadata: true
+  subject_id_field: subject_id
+
+signal:
+  canonical_unit: mV
+
+preprocessing:
+  profile: raw
+  highpass:
+    enabled: false
+    cutoff_hz: null
+    order: null
+  lowpass:
+    enabled: false
+    cutoff_hz: null
+    order: null
+  notch:
+    enabled: false
+    frequency_hz: null
+    quality_factor: null
+
+windowing:
+  length_seconds: 10
+  stride_seconds: 5
+
+signal_quality:
+  enabled: true
+
+random_seed: 2026
+
+split:
+  strategy: subject_wise
+  train_fraction: 0.70
+  validation_fraction: 0.15
+  test_fraction: 0.15
+
+training:
+  enabled: false
+
+calibration:
+  method: null
+  routing_requires_calibrated_confidence: true
+
+personalization:
+  enabled: false
+
+episodes:
+  enabled: false
+
+edge:
+  benchmark_enabled: false
+  hardware_target: null
