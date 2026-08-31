@@ -11,7 +11,7 @@ source of truth; this file is a cache of it.**
 
 Read this file for *"where are we"*. Read the `_V1` documents for *"what did we
 decide and why"*. Read
-`docs/handbook/CardioSentinel_Research_Execution_Handbook_v1.5.md` for the programme's
+`docs/handbook/v1/CardioSentinel_Research_Execution_Handbook_v1.5.md` for the programme's
 governing account of itself, `docs/control-plane/ARCHITECTURE.md` for where the code actually
 lives, and `docs/control-plane/EXPERIMENT_CATALOGUE.md` for what has been spent.
 
