@@ -15,7 +15,8 @@ reason recorded below.
 | Directory | Holds | Files |
 |---|---|--:|
 | `docs/paper/` | **retired.** The V1 publication workspace is gitignored and preserved outside this repository; its evidence figures moved beside the evidence they depict. See [`provenance/V1_PUBLICATION_WORKSPACE_RETIREMENT_V1.md`](provenance/V1_PUBLICATION_WORKSPACE_RETIREMENT_V1.md) | 0 tracked |
-| `docs/handbook/` | every handbook version, `.md` and `.docx` | 10 |
+| `docs/handbook/v1/` | the V1 research-execution handbook, v1.0–v1.5, `.md` and `.docx` | 10 |
+| `docs/handbook/v2/` | the journal-extension handbook line. Does **not** supersede v1.5, which remains authoritative for what V1 measured | 2 |
 | `docs/handoffs/` | the historical session handoff chain, ECG3–ECG25 | 24 |
 | `docs/experiments/b4/` | the B4 encoder: protocol, selection, sealed-test authorization, and the E1–E13a investigations | 35 |
 | `docs/experiments/m1/` | patient-relative memory: protocols, failures, retention decision | 7 |

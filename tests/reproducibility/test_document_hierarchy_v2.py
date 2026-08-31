@@ -54,7 +54,12 @@ def test_tracked_move_counts_match_the_receipt() -> None:
     # that nothing under it is tracked, and that the evidence figures it held are
     # tracked at the locations they moved to.
     assert sum(path.startswith("docs/paper/") for path in tracked) == 0
-    assert sum(path.startswith("docs/handbook/") for path in tracked) == 10
+    # The handbook is split by research programme: the V1 line under v1/, the
+    # journal-extension line beginning at v2/. Counting them separately says which
+    # of the two moved, where a single total would not.
+    assert sum(path.startswith("docs/handbook/v1/") for path in tracked) == 10
+    assert sum(path.startswith("docs/handbook/v2/") for path in tracked) == 2
+    assert sum(path.startswith("docs/handbook/") for path in tracked) == 12
     relocated_figures = {
         row["new_path"]
         for row in _receipt_rows()
