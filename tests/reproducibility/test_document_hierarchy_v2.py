@@ -25,7 +25,21 @@ def _receipt_rows() -> list[dict[str, str]]:
 def test_only_the_three_authorized_trees_moved_under_docs() -> None:
     for name in ("paper", "handbook", "handoffs"):
         assert not (ROOT / name).exists()
+
+    # handbook/ and handoffs/ are still trees under docs/. paper/ is not: the V1
+    # publication workspace was retired and gitignored, so on a fresh clone the
+    # directory does not exist at all. Asserting it is a directory passed only
+    # where the ignored files happened to survive on disk.
+    for name in ("handbook", "handoffs"):
         assert (ROOT / "docs" / name).is_dir()
+    tracked_paper = subprocess.run(
+        ["git", "ls-files", "--", "docs/paper"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.split()
+    assert tracked_paper == []
 
 
 def test_tracked_move_counts_match_the_receipt() -> None:
