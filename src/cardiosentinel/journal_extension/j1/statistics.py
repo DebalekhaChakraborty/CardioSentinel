@@ -13,8 +13,12 @@ to it.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import numpy as np
+
+if TYPE_CHECKING:  # pragma: no cover - import cycle guard
+    from .capability_gate import J1CapabilityAttestation
 
 BOOTSTRAP_REPLICATES = 1000
 BOOTSTRAP_SEED = 2026
@@ -91,3 +95,29 @@ def paired_contrast(
         upper=float(np.percentile(valid, UPPER_PERCENTILE)),
         subjects=n,
     )
+
+
+class J1Bootstrap:
+    """The `bootstrap` collaborator the capability gate requires.
+
+    A thin adapter over `paired_contrast`, for the reason `J1FoldAllocator`
+    exists: the gate checks a named method on an object, and the frozen
+    interval construction is a module function.
+    """
+
+    def j1_execution_capability(self) -> "J1CapabilityAttestation":
+        from .capability_gate import J1CapabilityAttestation
+
+        return J1CapabilityAttestation(
+            collaborator="bootstrap",
+            execution_capable=True,
+            detail=(
+                f"paired percentile bootstrap, {BOOTSTRAP_REPLICATES} "
+                f"replicates, seed {BOOTSTRAP_SEED}"
+            ),
+        )
+
+    def resample(
+        self, stateful: dict[str, float], memoryless: dict[str, float]
+    ) -> PairedContrast:
+        return paired_contrast(stateful, memoryless)
