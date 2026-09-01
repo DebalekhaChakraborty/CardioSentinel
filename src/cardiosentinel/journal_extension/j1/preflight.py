@@ -7,7 +7,8 @@ claimed**:
 
     freeze binding
     -> authorization verification
-    -> git / environment verification
+    -> git identity verification
+    -> environment authority verification
     -> negative-capability proof
     -> execution-capability proof
     -> provenance sink validation
@@ -33,6 +34,10 @@ from typing import Any
 
 from .authorization import AuthorizationError, J1Authorization, verify_authorization
 from .capability_gate import require_execution_capability
+from .environment_authority import (
+    EnvironmentAuthorityError,
+    verify_runtime_matches,
+)
 from .freeze_binding import verify_freeze_binding
 from .negative_capability import (
     ForbiddenCounters,
@@ -57,6 +62,7 @@ class PreflightResult:
     authorization: J1Authorization
     stages_passed: tuple[str, ...]
     counters: dict[str, int]
+    environment_authority_verified: bool
 
 
 def _git(args: list[str], *, repository_root: Path) -> str:
@@ -75,6 +81,8 @@ def run_preflight(
     authorization_document: Any | None,
     collaborators: dict[str, Any] | None = None,
     provenance_sink: object | None = None,
+    environment_authority: Any | None = None,
+    observed_dependency_digest: str | None = None,
     repository_root: Path | None = None,
     visibility: ScientificVisibility | None = None,
 ) -> PreflightResult:
@@ -106,9 +114,32 @@ def run_preflight(
         raise PreflightError(
             "the worktree is dirty; a scientific attempt requires a clean tree."
         )
-    passed.append("git_environment")
+    passed.append("git_identity")
 
-    # 4. negative capability, layers 1 and 2a.
+    # 4. environment authority. The digest must name an approved runtime, not
+    #    whatever happened to exist. There is no bypass parameter.
+    if environment_authority is None:
+        raise PreflightError(
+            "environment authority absent. J1 requires a qualified environment "
+            "authority record whose digest the authorization names; a developer "
+            "machine is not a scientific authority."
+        )
+    if environment_authority.environment_sha256 != authorization.environment_sha256:
+        raise PreflightError(
+            "environment digest mismatch: the authorization names "
+            f"{authorization.environment_sha256}, the supplied authority is "
+            f"{environment_authority.environment_sha256}."
+        )
+    try:
+        environment_proof = verify_runtime_matches(
+            environment_authority,
+            dependency_digest=observed_dependency_digest or "",
+        )
+    except EnvironmentAuthorityError as error:
+        raise PreflightError(str(error)) from error
+    passed.append("environment_authority")
+
+    # 5. negative capability, layers 1 and 2a.
     counters = ForbiddenCounters()
     try:
         structural_proof(J1_PACKAGE_ROOT)
@@ -117,15 +148,15 @@ def run_preflight(
         raise PreflightError(str(error)) from error
     passed.append("negative_capability")
 
-    # 5. execution capability -- can the graph finish?
+    # 6. execution capability -- can the graph finish?
     require_execution_capability(collaborators or {})
     passed.append("capability")
 
-    # 6. provenance sink.
+    # 7. provenance sink.
     require_sink(provenance_sink)
     passed.append("provenance_sink")
 
-    # 7. attempt budget. Absence is refusal; zero is never read as one.
+    # 8. attempt budget. Absence is refusal; zero is never read as one.
     if authorization.attempt_budget < 1:
         raise PreflightError("attempt budget absent or non-positive.")
     passed.append("attempt_budget")
@@ -134,6 +165,9 @@ def run_preflight(
         authorization=authorization,
         stages_passed=tuple(passed),
         counters=counters.require_all_zero(),
+        environment_authority_verified=bool(
+            environment_proof["environment_authority_verified"]
+        ),
     )
 
 
