@@ -1,6 +1,20 @@
 # J1 — Pre-Registration V1
 
-# **FREEZE CANDIDATE — NOT AUTHORIZED**
+# **PRE-REGISTERED — NOT AUTHORIZED**
+
+| | |
+|---|---|
+| Protocol | **frozen** |
+| Pre-registration | **frozen** |
+| TRAIN data authority | **none** |
+| Attempt budget | **NOT ESTABLISHED** — no budget has been set; this is *not* an established zero-attempt budget |
+| Execution authorization | **none** |
+| Fold manifest | **not generated** |
+| Scientific result | **none exists** |
+
+**This is `PRE-REGISTERED`. It is not `EXECUTABLE`.** Pre-registration is not
+authorization: no real-data access may occur until a separate authorization names
+the frozen digests, the data authority and the attempt budget.
 
 **Every result-affecting design choice is closed.** None was made by inspecting an
 outcome, a fold, or an annotation count.
