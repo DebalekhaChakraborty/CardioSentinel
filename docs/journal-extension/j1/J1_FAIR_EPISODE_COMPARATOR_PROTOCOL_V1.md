@@ -16,13 +16,27 @@ Planning authority:
 > Does T1-like stateful episode reasoning retain an advantage when the memoryless
 > comparator receives its own independently selected development operating point?
 
-**Estimand:** the paired, subject-level difference in subject-macro episode F1
-between a stateful episode-decision policy and an independently tuned memoryless
-episode-decision policy, both consuming identical cross-fitted upstream evidence
-rows, over the V1-TRAIN development population.
+**Estimand.** The paired subject-level difference in episode F1 between
+independently tuned stateful and memoryless episode-decision policies,
+**conditional on the same inherited fixed B4 / P1 / M1 / M2 / T2 upstream
+mechanisms** and prospectively cross-fitted J1 calibration and operating-point
+machinery, over the V1-TRAIN development population.
+
+**This is not fully cross-fitted upstream system performance, and must never be
+described as such.**
+
+- **B4 is historically fitted on the TRAIN population** — the same 56 subjects J1
+  measures on (README §1, verified from the experiment lock).
+- **T2 is historically developed on the TRAIN population**, and its arm identity
+  was selected on outer VALIDATION (README §2).
+- J1 is therefore **`V2_DEVELOPMENT`** evidence.
+- **J1 cannot support external or generalization claims.** J5 remains the future
+  fresh external test.
+- Using one fixed upstream for both arms removes upstream model identity as an
+  intentional arm difference. It does **not** prove that upstream in-sampleness
+  has zero interaction with policy behaviour.
 
 **The only intended experimental contrast in J1 is the episode-decision policy.**
-Every other component is either common to both arms by construction or excluded.
 
 V1's T1/W1 result motivates this question. It is `V1_HISTORICAL` and cannot serve
 as J1 confirmation.
@@ -57,7 +71,7 @@ J1-W has, and must be constructed so that it *cannot* have:
 - no dependence on any earlier or later row's decision.
 
 **The structural guarantee.** J1-W's inputs are drawn from the common evidence
-row minus its state-derived fields (§3.2). It is required to be implementable as
+arm-neutral row of §3.1, which does not contain `elapsed_state_seconds`. It is required to be implementable as
 a pure function `row → bool` with no carried state of any kind. Any candidate
 rule that cannot be written that way is out of the J1-W search space by
 definition, not by review.
@@ -66,44 +80,54 @@ Post-hoc smoothing, merging or morphological closing of J1-W's output is
 **prohibited**: it would reintroduce persistence and make J1-W a second state
 machine wearing a different name.
 
-## 3. The common-upstream invariant
+## 3. The arm-neutral upstream evidence row
 
-**J1-S and J1-W consume identical evidence rows.** The rows are produced once per
-outer fold and handed to both arms unchanged.
+### 3.1 Definition
 
-### 3.1 The boundary is repository-derived, not assumed
+The **arm-neutral upstream evidence row** is generated once per outer fold and
+provided **identically** to J1-S and J1-W:
 
-The boundary is `T1_ALLOWED_ROW_INPUTS`, the nine-entry allow list enforced at
-[`src/cardiosentinel/neural/t1_protocol.py`](../../../src/cardiosentinel/neural/t1_protocol.py),
-paired with the fifteen-entry `T1_FORBIDDEN_TRANSITION_INPUTS` deny list. That
-allow list is already the authoritative statement of what an episode decision may
-see, and J1 adopts it rather than inventing a boundary.
+| Field |
+|---|
+| `stable_id` |
+| `m2g_detector_score` |
+| `detector_decision_d_t` |
+| `oof_calibrated_probability_p_t` |
+| `decision_error_uncertainty_u_t` |
+| `s4d_temporal_evidence_s_t` |
+| `score_present` |
+| `elapsed_stream_seconds` |
 
-| Field | J1-S | J1-W | Note |
-|---|---|---|---|
-| `stable_id` | ✓ | ✓ | identity only |
-| `m2g_detector_score` | ✓ | ✓ | |
-| `detector_decision_d_t` | ✓ | ✓ | |
-| `oof_calibrated_probability_p_t` | ✓ | ✓ | out-of-fold by contract |
-| `decision_error_uncertainty_u_t` | ✓ | ✓ | |
-| `s4d_temporal_evidence_s_t` | ✓ | ✓ | a bounded score, not a probability |
-| `score_present` | ✓ | ✓ | |
-| `elapsed_stream_seconds` | ✓ | ✓ | time since stream start; not state-derived |
-| `elapsed_state_seconds` | ✓ | **✗** | **state-derived — see §3.2** |
+Eight fields. Both arms receive all eight, unchanged. The treatment contrast is:
 
-### 3.2 One allowed field is state-derived, and J1-W must not receive it
+> identical arm-neutral evidence **+ stateful policy machinery**
+> versus
+> identical arm-neutral evidence **+ memoryless decision rule**.
 
-`elapsed_state_seconds` is time since entry to the current episode state. It
-exists *because* there is a state machine. Handing it to J1-W would give the
-memoryless arm a summary of the very memory it is defined not to have, and the
-comparison would no longer isolate statefulness.
+### 3.2 `elapsed_state_seconds` is not an upstream feature
 
-**J1-W's input row is the common row minus `elapsed_state_seconds`.** This is the
-single asymmetry in input access, it is in the memoryless arm's disfavour, and it
-is required for the arm to mean what it is called. It is disclosed as a design
-decision, not buried as an implementation detail.
+The retained implementation's `T1_ALLOWED_ROW_INPUTS`
+([`neural/t1_protocol.py`](../../../src/cardiosentinel/neural/t1_protocol.py))
+carries nine entries; the ninth is `elapsed_state_seconds`, time since entry to
+the current episode state.
 
-`s4d_temporal_evidence_s_t` is *not* treated as state-derived. It is a frozen
+**For the J1 estimand it is not upstream evidence at all.** It is an endogenous
+internal quantity of the state machine — it exists only because J1-S has states,
+and it is a function of J1-S's own prior decisions. It belongs to J1-S, not to the
+shared scaffold.
+
+**This is constitutive of the memoryless comparator's definition, not a
+disadvantage imposed on it.** A rule that consumed a summary of episode-state
+history would not be memoryless; excluding it is what makes J1-W the thing its
+name says. Describing the exclusion as a handicap would misstate the design.
+
+**Implementation note, separate from the science.** Because the retained T1 row
+schema technically carries the field, the J1 adapter must **derive and supply
+`elapsed_state_seconds` from J1-S's own state**, never read it from the
+arm-neutral row. The arm-neutral row does not contain it. J1-W is never offered
+it, and cannot be, because it is not in the row.
+
+`s4d_temporal_evidence_s_t` is **not** treated as endogenous. It is a frozen
 upstream quantity that V1 supplied identically to both arms, and W1's report
 records that holding it fixed is what makes the ablation an episode-policy
 ablation. Both arms receive it.
@@ -112,8 +136,7 @@ ablation. Both arms receive it.
 
 If any scientifically unavoidable upstream difference between the arms is
 discovered during implementation, **execution stops and the protocol returns for
-human review.** J1 would no longer isolate stateful episode reasoning, and a
-result produced anyway would not answer the registered question.
+human review.**
 
 ## 4. Development population and data authority
 
@@ -135,88 +158,131 @@ J1 will require a separately governed research evaluation path that accepts
 explicitly supplied V2 cross-fitted artifacts. That path is not implemented and
 not designed here beyond the requirement that it exist.
 
-## 5. Prospective cross-fitting geometry
+## 5. Prospective cross-fitting geometry — FROZEN
 
-A **nested, subject-disjoint** structure over the 56 TRAIN subjects.
+Nested and subject-disjoint over the 56 TRAIN subjects.
+
+| Level | Folds | Subjects per fold | Pool |
+|---|---|---|---|
+| **Outer** | **7** | **8 assessment** / 48 development | all 56 |
+| **Inner** | **6** | **8** | the 48 outer-development subjects |
 
 ```
-OUTER fold k:
-  outer-train subjects  ─┬─> fit fold-specific upstream nuisance artifacts
-                         │     (U1 calibration; T2 if cross-fit required)
-                         └─> INNER split of the same subjects
-                               ├─ arm-specific operating-point selection, J1-S
-                               └─ arm-specific operating-point selection, J1-W
-  outer-held-out subjects ──> apply the frozen fold artifacts
-                               produce ONE set of (d_t, p_t, s_t) rows
-                               evaluate frozen J1-S   ─┐  identical rows
-                               evaluate frozen J1-W   ─┘
+OUTER fold k (7 of them):
+  48 outer-development subjects ─┬─> fit fold-specific U1 calibration
+                                 └─> INNER 6 x 8 split
+                                       ├─ J1-S operating-point selection
+                                       └─ J1-W operating-point selection
+   8 outer-assessment subjects  ───> apply the frozen fold artifacts
+                                     produce ONE arm-neutral row set
+                                     evaluate frozen J1-S  ─┐ identical rows
+                                     evaluate frozen J1-W  ─┘
 ```
 
-**The firewall.** No information from an outer-held-out subject may influence the
-calibration fitted for that subject, the policy tuning, the stateful parameter
-selection, or the memoryless threshold selection. Nesting is what makes the
-operating point out-of-sample for the subject it is applied to — the property V1's
-LOSO geometry provided and that J1 must reproduce prospectively.
+**Rationale, fixed before any J1 outcome is observed.** 56 = 7 × 8 exactly, so
+every subject receives exactly one outer assessment and all folds hold equal
+subject counts; each outer analysis retains 48 development subjects; and 48 = 6 × 8
+gives six equal inner folds for operating-point selection. The geometry follows
+from the frozen population size and the subject-level inferential unit, not from
+observed performance.
 
-**Why nested rather than flat K-fold.** J1's whole purpose is independent
-operating-point selection. A flat K-fold would select the operating point on the
-same subjects that assess it, which is the defect J1 exists to remove, transposed.
-Nesting is not a preference here; it is entailed by the question.
+**Why nested rather than flat.** A flat K-fold would select the operating point on
+the same subjects that assess it — the defect J1 exists to remove, transposed.
 
-### 5.1 What is not decided here
+**The firewall.** No information from an outer-assessment subject may influence the
+calibration fitted for its rows, the policy tuning, the stateful parameter
+selection, or the memoryless threshold selection.
 
-The following are **not** established by existing authority and are **not**
-invented by this protocol. They are listed in §12 as human decisions:
+### 5.1 Fold assignment — FROZEN
 
-- outer K, and inner structure;
-- fold-assignment seed;
-- whether folds are balanced on episode burden, and by what statistic;
-- any subject-exclusion rule;
-- whether subjects with zero reference episodes are eligible for the *tuning*
-  portion.
+**Seed: `2026`.** One deterministic procedure, applied identically to outer and
+inner levels, producing the same assignments for both arms.
 
-V1's split generator used deterministic greedy subject-level burden balancing at
-seed 2026 with SHA-256 tie-breaking; that is a precedent worth considering but it
-governs a 70/15/15 partition, not a J1 fold geometry, and it is not adopted by
-default.
+Balancing uses **reference-episode burden only**. No model-performance quantity of
+any kind participates.
+
+1. Stratify on **whether a subject has at least one reference episode**.
+2. Within stratum, order by **reference-episode count**.
+3. Deterministically allocate across folds to equalise both, in fold-index order.
+4. Break every remaining tie by `sha256(f"2026:{subject}")` ascending, then by
+   subject identity — following the identity-hash precedent already used by V1's
+   split generator and T2's internal split.
+
+**No fold may be regenerated because its eventual performance looks unusual.**
+Fold assignment is frozen at generation and recorded with its seed.
+
+*This protocol specifies the algorithm. It does not generate the folds.*
+
+### 5.2 Subject exclusions — FROZEN
+
+**Primary population: all 56 subjects of the frozen V1 TRAIN partition. No
+post-hoc exclusion is permitted.**
+
+A subject may be technically unevaluable only where an **already-existing, pre-J1
+dataset-integrity rule** makes evaluation impossible. Such a case must be
+identified **by that rule, never by observed J1 performance**, must be recorded,
+must remain visible in the denominator accounting, and must never be silently
+dropped. **No new exclusion criterion may be invented during execution.**
 
 ## 6. Independent operating-point selection
 
 This is the core of J1.
 
-### 6.1 J1-S selection space
+### 6.1 J1-S selection space — FROZEN, NO EXPANSION
 
-The retained policy's selection space, as V1 defines it:
+Exactly the **12** registered candidates of the retained policy:
 
-- quantile levels `Q_WATCH ∈ {0.90, 0.95}` × `Q_EVENT ∈ {0.99, 0.995}`;
-- one of three frozen persistence profiles, each fixing `watch_clear_windows`,
+- quantile levels `Q_WATCH ∈ {0.90, 0.95}` × `Q_EVENT ∈ {0.99, 0.995}` — 4 combinations;
+- one of the **3 frozen persistence profiles**, each fixing `watch_clear_windows`,
   `event_confirm_windows`, `event_release_windows`, `re_event_confirm_windows`,
   `recovery_clear_windows`, `cold_event_confirm_windows`.
 
-**Candidate count: 4 × 3 = 12.** Whether J1 should widen this space beyond V1's
-frozen profiles is a human decision (§12); widening it changes the retained
-policy's identity.
+**Candidate count: 4 × 3 = 12.**
 
-### 6.2 J1-W selection space
+**J1-S is not widened.** J1 asks whether *the retained T1-like policy* survives a
+fair comparator. Widening the stateful space would change the object under test
+and create a rescue path for a negative result. Human decision 9 is closed as
+**`NO EXPANSION`**.
 
-J1-W must be a **credible** memoryless comparator, not a weakened one.
+### 6.2 J1-W candidate registry — FROZEN
 
-Its space is a per-row decision rule over the common row minus
-`elapsed_state_seconds`. At minimum it must be permitted:
+J1-W is a pure memoryless `row → bool` mapping over the arm-neutral row of §3.1.
+It uses **no** state, history, run length, persistence, hysteresis, confirmation
+window, smoothing or cross-row post-processing.
 
-- a threshold on `p_t` over a grid at least as fine as J1-S's quantile levels;
-- a threshold on `s_t`;
-- a threshold on `m2g_detector_score`;
-- use of `detector_decision_d_t`;
-- conjunctions and disjunctions of the above.
+**Threshold levels**, quantiles derived from **inner-development subjects only**:
+`{0.90, 0.95, 0.975, 0.99, 0.995}` — 5 levels.
 
-**J1-W is not restricted to reproducing V1's W1 rule.** V1's W1 was a fixed rule
-at an inherited operating point; that is the thing J1 exists to stop doing.
+**Candidate signals:** `p_t` (calibrated), `s_t` (S4D evidence), `m2g_detector_score`
+(3 continuous), and the binary `d_t`.
 
-**Candidate count: not fixed here.** The grid resolution is a human decision
-(§12). Both arms' final candidate counts must be **recorded and disclosed** in the
-report so the eventual paper states the dimensionality asymmetry rather than
-hiding it.
+| Family | Construction | Count |
+|---|---|---|
+| W-A | single continuous signal ≥ threshold | 3 × 5 = **15** |
+| W-B | `d_t` alone | **1** |
+| W-C | pairwise conjunction, independent levels | 3 pairs × 5 × 5 = **75** |
+| W-D | pairwise disjunction, independent levels | 3 pairs × 5 × 5 = **75** |
+| W-E | continuous ∧ `d_t` | 3 × 5 = **15** |
+| W-F | continuous ∨ `d_t` | 3 × 5 = **15** |
+| W-G | triple conjunction, matched level | **5** |
+| W-H | triple disjunction, matched level | **5** |
+| | **Total** | **206** |
+
+**Rule IDs** are stable and assigned at enumeration: `W-<family>-<signals>-<levels>`,
+e.g. `W-C-pt.st-0.99.0.95`. **Ties in the selection argmax are broken by ascending
+rule ID**, deterministically and before any data is seen.
+
+**Semantic reduction, applied before data access and never by performance.** The
+triple families are restricted to a matched threshold level; admitting independent
+levels there would add 240 further rules that are near-duplicates of the pairwise
+families under any realistic score distribution. No rule was removed by looking at
+an outcome, because no outcome exists.
+
+**206 against J1-S's 12.** The asymmetry is deliberate: J1-W must be a *credible*
+memoryless comparator, not one constrained to resemble V1's W1 or to match a
+parameter count. **Both counts are a disclosure obligation in the report**, and the
+larger search space is itself a reviewer-visible risk — recorded in the
+pre-registration's attack audit rather than argued away.
 
 ### 6.3 Fairness constraints — binding
 
@@ -227,7 +293,7 @@ hiding it.
   broken by a prospectively fixed deterministic rule;
 - **identical information access**, except the `elapsed_state_seconds` exclusion
   of §3.2, which is disclosed and in J1-W's disfavour;
-- **no manual tuning after viewing any outer-held-out outcome**;
+- **no manual tuning after viewing any outer-assessment outcome**;
 - **no borrowing J1-S's promoted threshold for J1-W** — the V1 defect, prohibited
   by name;
 - **no arm selected on more information than the other.**
@@ -259,19 +325,63 @@ inference is computed on pooled rows.
 
 | Specification | Value | Authority |
 |---|---|---|
-| Subject denominator | every eligible outer-held-out subject, all folds | this protocol |
-| Aggregation | `(1/N) · Σ_i (F1_S,i − F1_W,i)` — the mean of paired per-subject differences | follows V1's subject-macro form |
+| Subject denominator | every eligible outer-assessment subject, all 7 folds | this protocol |
+| Aggregation | `(1/N) · Σ_i (F1_S,i − F1_W,i)` | follows V1's subject-macro form |
 | Bootstrap unit | subject | V1 T1 analysis plan |
+| Resampling | **paired** — `(F1_S,i, F1_W,i)` resampled together | this protocol |
 | Replicates | 1000 | V1 T1 analysis plan |
 | Seed | 2026 | V1 T1 analysis plan |
-| Reselection inside replicates | none | V1 T1 analysis plan |
-| Interval level | **HUMAN DECISION** (§12) | not established |
-| Undefined per-subject F1 | **HUMAN DECISION** (§12) | not established for the paired form |
+| Reselection of candidates inside replicates | **none** | V1 T1 analysis plan |
+| Interval level | **95%** | frozen here |
+| Undefined per-subject F1 in the paired form | **OPEN — see §7.1.1** | conflict, not chosen |
 
-V1's convention — subject-macro mean `episode_f1` with a 1000-replicate subject
-bootstrap at seed 2026, no reselection — is adopted because it is already
-governed, not because it is convenient. Its warning that a data-dependent subset
-"is not a subject-macro average, whatever it is labelled" applies here too.
+Interval construction reuses V1's method where it is explicitly defined and valid
+for a paired contrast. **The method is not changed after results are seen.**
+
+#### 7.1.1 `STOP` — the zero-reference convention does not extend to the paired form
+
+V1's convention was traced in code, not assumed. Both implementations agree:
+
+```
+episode_f1 = 2·matched / (predicted + reference)     # None when denominator == 0
+```
+
+- [`neural/t1_development_run.py`](../../../src/cardiosentinel/neural/t1_development_run.py) — `2TP/(2TP+FP+FN)`, "Undefined when the denominator is zero"
+- [`neural/t1_continuation_results.py`](../../../src/cardiosentinel/neural/t1_continuation_results.py) — returns `None` when `predicted + reference == 0`
+
+So for a single arm: zero reference **and** zero predicted → **undefined**; zero
+reference with ≥1 predicted → **0.0**; reference with zero predicted → **0.0**.
+V1's prose agrees and records that `episode_f1` was *"defined for all twelve"* —
+**the undefined case never arose**, and V1 computed a single-arm mean, not a
+paired difference.
+
+**Why this does not settle J1.** Definedness depends on `predicted`, which is
+**arm output**. A subject with zero reference episodes can therefore be defined for
+one arm and undefined for the other:
+
+| Subject | reference | J1-S predicted | J1-W predicted | `F1_S` | `F1_W` | paired difference |
+|---|---|---|---|---|---|---|
+| example | 0 | 0 | 0 | undefined | undefined | undefined |
+| example | 0 | 0 | ≥1 | **undefined** | **0.0** | **ambiguous** |
+| example | 0 | ≥1 | 0 | **0.0** | **undefined** | **ambiguous** |
+
+The set of subjects entering the paired mean would then be **arm-dependent and
+outcome-dependent** — precisely what V1's own analysis plan warns is *"a statistic
+over a data-dependent subset — not a subject-macro average, whatever it is
+labelled."*
+
+Worse, it is **directionally biased**: dropping such a subject removes a `0.0`
+from whichever arm predicted runs while the quieter arm contributes nothing, so
+the convention would systematically favour the arm that predicts fewer runs on
+zero-episode subjects. That is a thumb on the scale in the primary estimand.
+
+**Per the task's instruction, this is reported rather than chosen.** No convention
+is invented here. Resolving it requires a human decision with a known directional
+consequence, and it is the reason this protocol is not a freeze candidate.
+
+**Independent of the resolution**, zero-reference subjects remain included in false
+alarms per hour, predicted-event count, predicted-event duration, and the
+subject-level descriptives.
 
 ### 7.2 Secondary — descriptive, never confirmatory
 
@@ -295,39 +405,40 @@ not what they looked like.
   contrast. Were more added, adjustment would become mandatory — which is a reason
   not to add them.
 
-## 9. Gate A
+## 9. Gate A — FROZEN
+
+Primary contrast:
+
+```
+Δ = subject-macro episode F1(J1-S) − subject-macro episode F1(J1-W)
+```
+
+with the paired subject bootstrap of §7.1.
 
 | Outcome | Condition |
 |---|---|
-| **PASS** | Stateful policy retains a practically meaningful advantage under independently tuned operating points, and the uncertainty interval supports the direction. |
-| **MIXED** | Point estimate favours stateful reasoning but uncertainty is wide or highly subject-dependent. |
-| **FAIL / NEGATIVE** | The fair memoryless policy matches or beats it. |
+| **PASS** | `Δ > 0` **and** the lower bound of the pre-registered **95%** bootstrap interval is **> 0** |
+| **MIXED** | `Δ > 0` **but** the 95% interval includes `0` |
+| **FAIL / NEGATIVE** | `Δ <= 0` |
 
-### 9.1 `HUMAN_DECISION_REQUIRED: J1 practical-effect criterion`
+**No minimum practically or clinically meaningful margin is imposed.** The
+programme has no justified utility function, alert-cost model or minimum important
+difference from which one could be derived. W1's report already declines to rank
+the arms in monitoring terms for exactly that reason. Inventing a margin would be
+choosing the bar without justification; adding one after results is the failure
+pre-registration exists to prevent.
 
-**"Practically meaningful advantage" has no existing authority in this
-repository.** The audit searched the V1 statistical and governance documents; the
-only effect-size mention is descriptive, in a B4 memory-mechanism plan. No
-superiority margin, minimum detectable effect or clinical threshold is defined
-anywhere.
+**Magnitude is always reported alongside** false alarms per hour, episode
+sensitivity, episode precision, fragmentation, and subject-level heterogeneity.
 
-**No numerical margin is invented here.** Inventing one would be choosing the
-answer's bar without justification, and adding one after results is the failure
-this pre-registration exists to prevent.
+**The phrase "practically meaningful improvement" must not be used merely because
+Gate A passes.** Gate A establishes direction and interval support, nothing about
+practical importance.
 
-**Proposed alternative, for human review.** Gate A PASS could require only:
-
-> a positive paired subject-level contrast whose pre-registered uncertainty
-> interval supports the direction, with the **magnitude reported separately** and
-> no threshold imposed on it.
-
-This is honest about what the programme can currently justify: it has no
-alerting-cost model, and W1's report already declines to rank the arms in
-monitoring terms for exactly that reason. It moves the practical-significance
-judgement to the reader, with the number in front of them.
-
-**This is a proposal. The blueprint's Gate A wording is not modified by this
-protocol.** The human decides.
+**Blueprint reconciliation.** The blueprint's Gate A wording contains the phrase
+"practically meaningful advantage". This protocol does **not** silently rewrite it.
+If its formal wording must be reconciled, that happens under the blueprint's own
+change-control procedure, as a separate reviewed act.
 
 ## 10. Claim map — written before results
 
@@ -372,24 +483,28 @@ The later authorization must resolve: the attempt budget; the data authority for
 the 56 TRAIN subjects; who may declare `APPARATUS_AFTER_VISIBILITY`; and the
 provenance sink for J1 artifacts.
 
-## 12. Human decisions required before freeze
+## 12. Decision register
 
-| # | Decision | Why it is not made here |
+| # | Decision | Status |
 |---|---|---|
-| 1 | **J1 practical-effect criterion** (§9.1) | No existing authority. Proposal offered. |
-| 2 | Outer K and inner structure | Not established; convenience is not a justification |
-| 3 | Fold-assignment seed | Not established for J1 |
-| 4 | Episode-burden balancing across folds, and its statistic | Not established; V1's split precedent governs a different object |
-| 5 | Subject-exclusion rules | Not established |
-| 6 | Handling of subjects with no reference episodes — in tuning, and in the paired difference | V1 handled undefined F1 for a single-arm mean; the paired form is a new case |
-| 7 | Bootstrap interval level | V1 fixed replicates and seed but the level is not established for this contrast |
-| 8 | J1-W grid resolution and final candidate count | Must be credible; the number is a disclosure obligation |
-| 9 | Whether J1-S's space may widen beyond V1's three frozen profiles | Widening changes the retained policy's identity |
-| 10 | B4 encoder fitting partition (README verification 1) | Changes what in-sampleness must be disclosed |
-| 11 | T2 S4D reusability (README verification 2) | Changes what must be cross-fitted |
+| 1 | Gate A criterion | **CLOSED** — §9. Direction + 95% lower bound > 0. No margin invented. |
+| 2 | Outer K and inner structure | **CLOSED** — §5. Outer 7 × 8, inner 6 × 8 over 48. |
+| 3 | Fold-assignment seed | **CLOSED** — §5.1. `2026`. |
+| 4 | Fold balancing and statistic | **CLOSED** — §5.1. Reference-episode presence, then count, sha256 identity tie-break. Burden only. |
+| 5 | Subject exclusions | **CLOSED** — §5.2. None post-hoc; pre-existing integrity rules only, always visible in the denominator. |
+| 6 | **Zero-reference-subject handling in the paired form** | **OPEN — `STOP` recorded at §7.1.1.** V1's convention exists and is internally consistent, but does not determine the paired case, and every resolution has a known directional consequence. Reported, not chosen. |
+| 7 | Bootstrap interval level | **CLOSED** — §7.1. 95%, paired, 1000 replicates, seed 2026. |
+| 8 | J1-W registry and count | **CLOSED** — §6.2. 206 enumerated candidates, stable IDs, deterministic tie-break. |
+| 9 | J1-S expansion | **CLOSED** — §6.1. `NO EXPANSION`; 12 candidates. |
+| 10 | B4 fitting population | **CLOSED** — README §1. TRAIN, 56 subjects, lock `58e44a09…`. |
+| 11 | T2 S4D classification | **CLOSED** — README §2. `FROZEN_REUSED`. |
 
-**Items 1–9 are scientific. Items 10–11 are read-only code-tracing tasks that
-require no data access and could be closed before the others.**
+**Ten of eleven closed. One remains open, and it is a `STOP` reported for human
+resolution rather than a gap left unnoticed.**
+
+Decision 6 alone prevents this protocol from being a freeze candidate. It is not a
+formatting detail: it determines which subjects enter the primary estimand, and
+the choice is directionally consequential.
 
 ## 13. Implementation audit — read-only
 
