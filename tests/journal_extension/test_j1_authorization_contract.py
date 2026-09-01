@@ -14,7 +14,11 @@ from pathlib import Path
 
 import pytest
 
-from cardiosentinel.journal_extension.j1 import authorization, preflight
+from cardiosentinel.journal_extension.j1 import (
+    authorization,
+    freeze_binding,
+    preflight,
+)
 from cardiosentinel.journal_extension.j1.authorization_contract import (
     CONTRACT_FIELDS,
     DECISION_AUTHORITY_FIELDS,
@@ -34,8 +38,8 @@ CONTRACT_MODULE = (
 def _contract(**overrides: object) -> dict[str, object]:
     """A complete, admissible, entirely fabricated draft. Nobody signed it."""
     document: dict[str, object] = {
-        "protocol_sha256": "a" * 64,
-        "preregistration_sha256": "b" * 64,
+        "protocol_sha256": freeze_binding.FROZEN_PROTOCOL_SHA256,
+        "preregistration_sha256": freeze_binding.FROZEN_PRE_REGISTRATION_SHA256,
         "freeze_receipt_sha256": "c" * 64,
         "execution_instrument_commit": "1" * 40,
         "collaborator_implementation_commit": "2" * 40,
@@ -100,10 +104,27 @@ def test_no_code_path_in_the_package_produces_an_authorized_state() -> None:
                 and node.value.id == "AuthorizationState"
             ):
                 offenders.append(f"{path.name}:{node.lineno}")
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Name)
+                and node.func.id == "AuthorizationState"
+            ):
+                offenders.append(f"{path.name}:{node.lineno} (by value)")
     assert not offenders, (
         "AuthorizationState.AUTHORIZED is referenced in the package at "
         f"{offenders}; no code path may promote itself to authorized"
     )
+
+
+def test_a_contract_object_cannot_hold_an_authorized_state() -> None:
+    """The enum is a `str` subclass, so `AuthorizationState("AUTHORIZED")`
+    constructs that member from a value. A structural proof about attribute
+    access does not cover a state that arrives as data, so the boundary is
+    enforced again where the state would have to land to mean anything."""
+    assert AuthorizationState("AUTHORIZED") is AuthorizationState.AUTHORIZED
+    for state in (AuthorizationState.AUTHORIZED, AuthorizationState.ABSENT):
+        with pytest.raises(AuthorizationContractError, match="may only be DRAFT"):
+            J1AuthorizationContract(fields=_contract(), state=state)
 
 
 def test_verify_contract_has_no_bypass_parameter() -> None:
@@ -201,6 +222,33 @@ def test_a_field_the_contract_does_not_define_is_refused() -> None:
 def test_an_abbreviated_digest_is_not_an_immutable_identifier(field: str) -> None:
     with pytest.raises(AuthorizationContractError, match="SHA-256"):
         verify_contract(_contract(**{field: "a" * 12}))
+
+
+# -- the frozen science the contract claims to be over ----------------------
+
+
+@pytest.mark.parametrize(
+    "field", ["protocol_sha256", "preregistration_sha256"]
+)
+def test_a_declared_digest_mismatch_refuses(field: str) -> None:
+    """A well-formed digest of the right length is not the right digest.
+
+    Shape alone would let a contract name science that does not exist, which
+    is the only thing the frozen-identity section is for.
+    """
+    with pytest.raises(AuthorizationContractError, match="does not match the frozen"):
+        verify_contract(_contract(**{field: "a" * 64}))
+
+
+def test_the_declared_digests_are_the_recomputed_ones() -> None:
+    """Recomputed from the documents on disk, not read from the receipt."""
+    binding = freeze_binding.verify_freeze_binding()
+    contract = verify_contract(_contract())
+    assert contract.fields["protocol_sha256"] == binding.protocol_sha256
+    assert (
+        contract.fields["preregistration_sha256"]
+        == binding.pre_registration_sha256
+    )
 
 
 @pytest.mark.parametrize(

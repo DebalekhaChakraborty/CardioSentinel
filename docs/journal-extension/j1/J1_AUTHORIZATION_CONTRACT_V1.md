@@ -9,7 +9,7 @@ that a separate human authorization action will later populate.
 **Date:** 2026-09-01
 **Verified against:** `master` at `10e31f6823d535c7190eb0716eac7609c2af9dec`
 **Implemented by:** `src/cardiosentinel/journal_extension/j1/authorization_contract.py`
-**Qualified by:** `tests/journal_extension/test_j1_authorization_contract.py` — 112 tests
+**Qualified by:** `tests/journal_extension/test_j1_authorization_contract.py` — 116 tests
 
 ---
 
@@ -68,13 +68,29 @@ prefix names a set of them.
 
 | Field | Form | Rule |
 |---|---|---|
-| `protocol_sha256` | 64 lowercase hex | must equal the frozen protocol digest |
-| `preregistration_sha256` | 64 lowercase hex | must equal the frozen pre-registration digest |
-| `freeze_receipt_sha256` | 64 lowercase hex | binds the two above |
+| `protocol_sha256` | 64 lowercase hex | **recomputed from disk and compared**; a declared mismatch refuses |
+| `preregistration_sha256` | 64 lowercase hex | **recomputed from disk and compared**; a declared mismatch refuses |
+| `freeze_receipt_sha256` | 64 lowercase hex | binds the two above; shape only — no compiled constant exists to bind it to |
 | `execution_instrument_commit` | 40 hex | the commit whose instrument was qualified |
 | `collaborator_implementation_commit` | 40 hex | the commit whose collaborators were reviewed |
 | `authorized_execution_git_sha` | 40 hex | the exact commit permitted to execute |
 | `evidence_class` | literal | must be `V2_DEVELOPMENT` |
+
+**Shape is not identity.** A well-formed digest of the right length and alphabet
+is not the right digest, and checking shape alone would let a contract name
+science that does not exist — which is the only thing this section is for. So
+`verify_contract` calls `verify_freeze_binding`, which **recomputes both digests
+from the documents on disk**, and then holds the contract to the recomputed
+values.
+
+Two failures, kept distinct because they mean different things:
+
+- the documents on disk no longer hash to the compiled constants — **the science
+  has drifted**, and no contract over it is meaningful;
+- they hash correctly but the contract declares something else — **the contract
+  is wrong** and refuses.
+
+A mismatch is never adopted as a new baseline.
 
 ---
 
@@ -209,7 +225,15 @@ ABSENT  ──►  DRAFT  ──►  AUTHORIZED
 - **no `DEV_MODE`, `FORCE` or `SKIP` bypass** — `verify_contract` has no
   `dev_mode`, `force`, `skip_checks`, `state` or `authorized` parameter;
 - a field the contract does not define is refused outright, so a bypass cannot
-  be smuggled in as unrecognised data.
+  be smuggled in as unrecognised data;
+- **`J1AuthorizationContract` refuses to hold any state but `DRAFT`.**
+
+**Why the state machine is guarded twice.** `AuthorizationState` is a `str`
+subclass, so `AuthorizationState("AUTHORIZED")` constructs that member *from a
+value*. The AST proof shows no package path reads the attribute, but a
+structural proof about attribute access does not cover a state that arrives as
+data. The second guard sits where such a state would have to land to mean
+anything: the contract object's own constructor.
 
 ---
 
@@ -218,6 +242,8 @@ ABSENT  ──►  DRAFT  ──►  AUTHORIZED
 | Proven | How |
 |---|---|
 | Execution cannot start without authorization | preflight refuses at the authorization stage, before git, environment, capability or budget |
+| A declared digest mismatch refuses | both frozen digests recomputed from disk, then compared to the declared values |
+| `AUTHORIZED` cannot arrive as data | the contract constructor refuses any state but `DRAFT`, covering value construction the AST proof does not |
 | A draft contract is not an execution authorization | handing one to `verify_authorization` fails rather than quietly satisfying it |
 | Authorization cannot be synthesized by the runtime | AST walk: no package path reads `AuthorizationState.AUTHORIZED`; the contract module calls no `gethostname`, `getlogin`, `getuser`, `expanduser` or filesystem walk |
 | The attempt budget cannot default | absence refuses in its own words; `True`, `"1"`, `1.0`, `None` and negatives all refuse |

@@ -39,6 +39,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Final, Mapping
 
+from .freeze_binding import FreezeBindingError, verify_freeze_binding
 from .partition_authority import V1_TRAIN_ONLY
 
 #: Section 1. What science this authorization is over. All immutable.
@@ -279,6 +280,45 @@ def _check_identity(document: Mapping[str, Any]) -> None:
             f"J1 produces {REQUIRED_EVIDENCE_CLASS} evidence; this contract "
             f"names {document['evidence_class']!r}."
         )
+    _bind_to_frozen_science(document)
+
+
+def _bind_to_frozen_science(document: Mapping[str, Any]) -> None:
+    """Recompute the frozen digests from disk, then hold the contract to them.
+
+    A well-formed digest of the right length and alphabet is not the right
+    digest. Checking shape alone would let a contract name science that does
+    not exist, which is the only thing the frozen-identity section is for.
+
+    Two failures, kept distinct because they mean different things. If the
+    documents on disk no longer hash to the compiled constants, the *science*
+    has drifted and no contract over it is meaningful. If they still hash
+    correctly but the contract declares something else, the *contract* is wrong
+    and refuses.
+    """
+    try:
+        binding = verify_freeze_binding()
+    except FreezeBindingError as error:
+        raise AuthorizationContractError(
+            "the frozen scientific documents have drifted, so no contract over "
+            f"them can be admitted.\n{error}"
+        ) from error
+    for name, frozen, label in (
+        ("protocol_sha256", binding.protocol_sha256, "protocol"),
+        (
+            "preregistration_sha256",
+            binding.pre_registration_sha256,
+            "pre-registration",
+        ),
+    ):
+        if document[name] != frozen:
+            raise AuthorizationContractError(
+                f"declared {label} digest does not match the frozen {label}.\n"
+                f"  declared:   {document[name]}\n"
+                f"  recomputed: {frozen}\n"
+                "An authorization names the science that was reviewed. A "
+                "mismatch is refused; it is never adopted as a new baseline."
+            )
 
 
 def _check_environment(document: Mapping[str, Any]) -> None:
@@ -393,6 +433,24 @@ class J1AuthorizationContract:
 
     fields: Mapping[str, Any]
     state: AuthorizationState
+
+    def __post_init__(self) -> None:
+        """A contract object can hold no state but `DRAFT`.
+
+        The AST proof shows no package path *reads*
+        `AuthorizationState.AUTHORIZED`, but the enum is a `str` subclass and
+        `AuthorizationState("AUTHORIZED")` constructs that member from a value.
+        A structural proof about attribute access does not cover a value that
+        arrives as data, so the boundary is also enforced here, where the state
+        would have to land to mean anything.
+        """
+        if self.state is not AuthorizationState.DRAFT:
+            raise AuthorizationContractError(
+                f"a contract may only be {AuthorizationState.DRAFT.value}; this "
+                f"one carries {self.state.value}. Signing is a human act "
+                "performed outside this package, and no object here may "
+                "represent its result."
+            )
 
     @property
     def attempt_budget(self) -> int:
