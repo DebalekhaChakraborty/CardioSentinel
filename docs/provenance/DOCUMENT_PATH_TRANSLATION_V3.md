@@ -37,7 +37,26 @@ That is the intended behaviour and it is now asserted directly. The previous
 assertion — that such a path still resolves — passed only where the gitignored
 directory happened to survive on disk, and would have failed on a fresh clone.
 
-## 3. What this record does not do
+## 3. Blueprint authority map
+
+The journal-extension blueprint arrived named as a handbook revision. For a short
+window the same 1500-line document was staged at two paths. It was never carried
+at both on `master`: the duplicate was resolved before either landed.
+
+| | Before | After |
+|---|---|---|
+| Canonical blueprint | *(none on `master`)* | `docs/journal-extension/CARDIOSENTINEL_TOP_JOURNAL_RESEARCH_MASTER_BLUEPRINT_V2_1.md` |
+| Handbook V2 line | `docs/handbook/v2/…_Handbook_v2.0.md` — full copy | `docs/handbook/v2/…_Handbook_v2.1.md` — **pointer, no independent authority** |
+| Handbook V2 `.docx` | `…_Handbook_v2.0.docx` | `…_Handbook_v2.1.docx` — rendered copy, authority disclaimed by the pointer beside it |
+| Filename vs header | filename `v2.0`, header `Version 2.1` | both **2.1**; the header was not downgraded |
+
+Content digest of the blueprint, identical at both paths while both existed:
+`1b2f715cd1952a01f788d391197e9e6446ac59e33433c0c5ab1fde5701c668de`.
+
+**Nothing was deleted.** The full text remains in the history of
+`docs/handbook/v2/CardioSentinel_Research_Execution_Handbook_v2.0.md`.
+
+## 4. What this record does not do
 
 It does not rewrite any recorded path, alter any digest, or change what any
 historical document says. The ten handbook files moved byte-identical; their
