@@ -20,9 +20,16 @@ J1 asks the question that leaves open:
 | File | Status |
 |---|---|
 | [`J1_FAIR_EPISODE_COMPARATOR_PROTOCOL_V1.md`](J1_FAIR_EPISODE_COMPARATOR_PROTOCOL_V1.md) | PROPOSED / NOT AUTHORIZED |
-| [`J1_PRE_REGISTRATION_V1.md`](J1_PRE_REGISTRATION_V1.md) | **NOT READY TO FREEZE** — unresolved human decisions |
+| [`J1_PRE_REGISTRATION_V1.md`](J1_PRE_REGISTRATION_V1.md) | **FREEZE CANDIDATE — NOT AUTHORIZED** |
+
+**All result-affecting design choices are closed.** Human freeze review is
+pending. **J1 remains `PLANNED / NOT AUTHORIZED`.**
+
+**No protocol digest or pre-registration digest has yet been promoted as frozen
+authority** — freezing is a subsequent human act, and authorization a further one.
 
 No authorization document exists. No report, result or decision document exists.
+No attempt budget is set and no data authority is granted.
 
 ## The population finding that shaped this design
 

@@ -62,7 +62,8 @@ A per-row decision function of the common evidence row alone. It emits a binary
 event indication for row `t` computed **only** from quantities carried by that
 row.
 
-J1-W has, and must be constructed so that it *cannot* have:
+J1-W consumes the eight-field arm-neutral row of §3.1 in full. It has, and must be
+constructed so that it *cannot* have:
 
 - no prior episode state;
 - no event-persistence state;
@@ -116,10 +117,11 @@ internal quantity of the state machine — it exists only because J1-S has state
 and it is a function of J1-S's own prior decisions. It belongs to J1-S, not to the
 shared scaffold.
 
-**This is constitutive of the memoryless comparator's definition, not a
-disadvantage imposed on it.** A rule that consumed a summary of episode-state
-history would not be memoryless; excluding it is what makes J1-W the thing its
-name says. Describing the exclusion as a handicap would misstate the design.
+**This is constitutive of the definition of a memoryless policy.** A rule that
+consumed a summary of episode-state history would not be memoryless. The quantity
+is not upstream evidence that J1-W is denied — it is J1-S's own internal state,
+which only exists once a state machine exists. **It must never be described as
+information withheld from J1-W.**
 
 **Implementation note, separate from the science.** Because the retained T1 row
 schema technically carries the field, the J1 adapter must **derive and supply
@@ -222,25 +224,76 @@ the same subjects that assess it — the defect J1 exists to remove, transposed.
 calibration fitted for its rows, the policy tuning, the stateful parameter
 selection, or the memoryless threshold selection.
 
-### 5.1 Fold assignment — FROZEN
+### 5.1 Fold assignment — FROZEN, algorithmically unique
 
-**Seed: `2026`.** One deterministic procedure, applied identically to outer and
-inner levels, producing the same assignments for both arms.
+**Seed `2026`.** Balancing uses **reference-episode burden only**; no model score,
+no J1 result and no performance quantity participates. The same assignments are
+used for both arms.
 
-Balancing uses **reference-episode burden only**. No model-performance quantity of
-any kind participates.
+The construction below is specified so that **two independent implementers produce
+byte-identical assignments from the same subject metadata.**
 
-1. Stratify on **whether a subject has at least one reference episode**.
-2. Within stratum, order by **reference-episode count**.
-3. Deterministically allocate across folds to equalise both, in fold-index order.
-4. Break every remaining tie by `sha256(f"2026:{subject}")` ascending, then by
-   subject identity — following the identity-hash precedent already used by V1's
-   split generator and T2's internal split.
+**Per-subject inputs — the only ones permitted:**
+
+```
+subject_id
+reference_episode_count
+reference_positive = reference_episode_count > 0
+identity_hash      = sha256(f"2026:{subject_id}")
+```
+
+**Preconditions.** For a pool of `N` subjects and `K` folds, require `N % K == 0`
+and set `capacity = N // K`.
+
+**Step 1 — reference-positive subjects.** Sort by
+
+1. `reference_episode_count` **descending**;
+2. `identity_hash` **ascending**;
+3. `subject_id` **ascending**.
+
+Initialise every fold with `positive_count = 0`, `episode_burden = 0`,
+`total_count = 0`. For each subject in that order, consider **only folds with
+`total_count < capacity`**, and assign to the fold minimising, lexicographically:
+
+```
+(positive_count, episode_burden, total_count, fold_index)
+```
+
+Then update that fold's `positive_count += 1`, `episode_burden += reference_episode_count`,
+`total_count += 1`.
+
+**Step 2 — zero-reference subjects.** Sort by
+
+1. `identity_hash` **ascending**;
+2. `subject_id` **ascending**.
+
+For each, consider only folds with `total_count < capacity`, and assign to the
+fold minimising, lexicographically:
+
+```
+(zero_reference_count, total_count, fold_index)
+```
+
+Then update `zero_reference_count += 1`, `total_count += 1`.
+
+**Postcondition.** Every fold contains exactly `capacity` subjects; assert it.
+
+**Applied twice, independently:**
+
+| Application | Pool | `N` | `K` | `capacity` |
+|---|---|---|---|---|
+| Outer | all TRAIN subjects | 56 | 7 | 8 |
+| Inner (per outer fold) | that fold's outer-development pool | 48 | 6 | 8 |
 
 **No fold may be regenerated because its eventual performance looks unusual.**
-Fold assignment is frozen at generation and recorded with its seed.
 
-*This protocol specifies the algorithm. It does not generate the folds.*
+**The fold manifest must record:** algorithm identifier and version; the seed; the
+input subject identities; the reference-burden metadata used; the assignments; and
+the **SHA-256 digest of the canonical manifest**.
+
+*This protocol specifies the algorithm. It does not generate the folds, and no
+subject metadata was read to write it.* Synthetic-only tests of the allocator are
+permitted later.
 
 ### 5.2 Subject exclusions — FROZEN
 
@@ -323,8 +376,9 @@ pre-registration's attack audit rather than argued away.
   according to that arm's predictions;
 - the **same selection discipline** — argmax over the space on inner data, with
   the shared lexicographic order of §6.5 and its deterministic tie-break;
-- **identical information access**, except the `elapsed_state_seconds` exclusion
-  of §3.2, which is disclosed and in J1-W's disfavour;
+- **identical information access** — both arms receive the same eight arm-neutral
+  fields of §3.1, in full. There is no upstream quantity that one arm sees and the
+  other does not;
 - **no manual tuning after viewing any outer-assessment outcome**;
 - **no borrowing J1-S's promoted threshold for J1-W** — the V1 defect, prohibited
   by name;
@@ -397,8 +451,36 @@ inference is computed on pooled rows.
 | Interval level | **95%** | frozen here |
 | Undefined per-subject F1 in the paired form | **cannot arise** — see §7.1.1 | §4.2 |
 
-Interval construction reuses V1's method where it is explicitly defined and valid
-for a paired contrast. **The method is not changed after results are seen.**
+#### 7.1.0 Exact interval construction — FROZEN
+
+| Element | Frozen value |
+|---|---|
+| Resampling unit | subject |
+| Resampled quantity | the **pair** `(F1_S,i, F1_W,i)` — drawn together |
+| Sampling | **with replacement** from the complete frozen `PRIMARY_F1_ELIGIBLE` set |
+| Statistic per replicate | **mean paired difference** over the resampled subjects |
+| Replicates | **1000** |
+| Seed | **2026** |
+| Candidate reselection or refitting inside a replicate | **none** |
+| Interval construction | **percentile bootstrap** |
+| Lower endpoint | empirical **2.5th percentile** of valid replicate statistics |
+| Upper endpoint | empirical **97.5th percentile** |
+| Nominal interval | **95%** |
+
+**Quantile convention — inherited, not invented.** The repository already fixes
+it: `baseline/metrics.py` computes its subject-bootstrap bounds as
+`np.percentile(values, 2.5)` and `np.percentile(values, 97.5)`. J1 uses the same
+call, therefore **`numpy.percentile` with its default `method="linear"`**, over the
+**valid** replicate statistics — following the same precedent of counting
+successful and undefined replicates separately.
+
+**Interpretation.** This is a **percentile bootstrap interval over the frozen
+subject set**. It is **not** described as a population confidence interval, and no
+significance or p-value language is used, unless a later statistical authority
+explicitly changes that interpretation.
+
+**Gate A uses the frozen lower percentile endpoint** (§9). The method is fixed
+before results exist and is not changed after they are seen.
 
 #### 7.1.1 Why no undefined-F1 convention is needed
 
@@ -592,13 +674,15 @@ provenance sink for J1 artifacts.
 | 5 | Subject exclusions | **CLOSED** — §5.2. None post-hoc; pre-existing integrity rules only, always visible in the denominator. |
 | 6 | Zero-reference-subject handling in the paired form | **CLOSED** — §4.2, §7.1.1. Primary-F1 eligibility is `reference_episode_count > 0`, defined from reference truth alone. The undefined branch becomes unreachable in the primary cohort, so no imputation convention is needed and V1's function is unmodified. |
 | 12 | Selection order and tie-breaking | **CLOSED** — §6.5. V1's frozen `policy_sort_key` preserved; terms 1–4 identical for both arms, arm-specific final term only. |
+| 13 | Bootstrap interval construction | **CLOSED** — §7.1.0. Percentile bootstrap, 2.5/97.5, `numpy.percentile` default `method="linear"`, inherited from `baseline/metrics.py`. |
+| 14 | Fold allocator determinism | **CLOSED** — §5.1. Lexicographic minimisation with capacity constraint; two implementers produce byte-identical assignments. |
 | 7 | Bootstrap interval level | **CLOSED** — §7.1. 95%, paired, 1000 replicates, seed 2026. |
 | 8 | J1-W registry and count | **CLOSED** — §6.2. 206 enumerated candidates, stable IDs, deterministic tie-break. |
 | 9 | J1-S expansion | **CLOSED** — §6.1. `NO EXPANSION`; 12 candidates. |
 | 10 | B4 fitting population | **CLOSED** — README §1. TRAIN, 56 subjects, lock `58e44a09…`. |
 | 11 | T2 S4D classification | **CLOSED** — README §2. `FROZEN_REUSED`. |
 
-**All twelve closed.** Every result-affecting choice is fixed prospectively, and
+**All fourteen closed.** Every result-affecting choice is fixed prospectively, and
 none was made by inspecting an outcome, a fold, or an annotation count.
 
 The decision that blocked the previous revision — how a zero-reference subject
@@ -621,9 +705,16 @@ created the bias cannot arise.
    supplied V2 cross-fitted artifacts; a nested fold generator; a TRAIN-side
    calibration fitter; two arm-specific selection harnesses; a paired subject
    bootstrap. **None is written in this task.**
-4. **Can both arms consume one canonical row schema?** Yes —
-   `T1_ALLOWED_ROW_INPUTS`, with J1-W's `elapsed_state_seconds` exclusion applied
-   at the arm boundary, not upstream.
+4. **Can both arms consume one canonical row schema?** Yes. **J1 defines its own
+   canonical arm-neutral evidence schema as the eight fields frozen in §3.1.**
+   Both arms consume that schema identically. The **J1-S adapter** may
+   additionally derive `elapsed_state_seconds` **solely from J1-S's internal
+   current state** when invoking the retained T1 implementation; that derived
+   quantity is never loaded from upstream evidence and never exposed to J1-W.
+
+   `T1_ALLOWED_ROW_INPUTS` remains relevant **only** as the repository authority
+   from which the J1 boundary was audited. It is **not** the final shared J1 row
+   schema, because it contains one endogenous state-machine field.
 5. **What risks exposing V1 VALIDATION or TEST?** The V1 runtime resolves
    operating points by validation-subject identity. A J1 path that reused it
    without care could bind a J1 subject to a VALIDATION artifact. The runtime's

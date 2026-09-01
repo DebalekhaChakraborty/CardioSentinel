@@ -46,12 +46,12 @@ result.
 | 3 | Arm-neutral upstream row | **FROZEN** — 8 fields, protocol §3.1. `elapsed_state_seconds` is endogenous to J1-S and is not in the row |
 | 4 | Study population | **FROZEN** — all 56 V1 TRAIN subjects |
 | 4a | Primary-F1 cohort | **FROZEN** — `reference_episode_count > 0`, from reference truth alone, identical for both arms |
-| 5 | Fold-generation procedure | **FROZEN** — outer 7 × 8, inner 6 × 8 over 48; seed 2026; burden balancing; sha256 identity tie-break |
+| 5 | Fold-generation procedure | **FROZEN** — outer 7 × 8, inner 6 × 8 over 48; seed 2026; deterministic lexicographic allocator (protocol §5.1) yielding byte-identical assignments across implementers |
 | 6 | Tuning spaces | **FROZEN** — J1-S 12 (`NO EXPANSION`); J1-W 206 enumerated with stable IDs |
 | 7 | Selection objective | **FROZEN** — subject-macro episode F1 on inner data, both arms |
 | 8 | Primary metric | **FROZEN** — paired subject-level difference `Δ = J1-S − J1-W` |
 | 9 | Inferential unit | **FROZEN** — the subject |
-| 10 | Bootstrap procedure | **FROZEN** — paired, subject unit, 1000 replicates, seed 2026, no reselection, **95%** |
+| 10 | Bootstrap procedure | **FROZEN** — paired, subject unit, with replacement, mean paired difference per replicate, 1000 replicates, seed 2026, no reselection, **percentile** interval at 2.5/97.5 via `numpy.percentile` default `linear` |
 | 11 | Undefined-subject handling in the paired form | **FROZEN** — unreachable in the primary cohort; V1's `episode_f1` unmodified; no imputation |
 | 12 | Secondary metrics | **FROZEN** — protocol §7.2, all descriptive |
 | 13 | Gate A interpretation | **FROZEN** — `Δ > 0` and 95% lower bound `> 0`; no margin invented |
@@ -61,7 +61,7 @@ result.
 | 17 | Selection order and tie-break | **FROZEN** — V1's `policy_sort_key` preserved, protocol §6.5 |
 | 18 | Zero-reference operational reporting | **FROZEN** — mandatory, protocol §7.3 |
 
-**All eighteen frozen. None open.**
+**All eighteen frozen. None open.** Two were made *algorithmically unique* in this reconciliation: the bootstrap quantile convention and the fold allocator.
 
 ## 3. Prohibited after freeze
 
@@ -123,7 +123,7 @@ deferred to the report.
 |---|---|
 | **Is J1-W genuinely competitive?** | **206 enumerated rules** over `p_t`, `s_t`, `m2g_detector_score` and `d_t` at five threshold levels, including pairwise conjunctions and disjunctions at independent levels. Far stronger than V1's single fixed rule at an inherited operating point. |
 | **Are tuning budgets symmetrical?** | Not in parameter count, deliberately — J1-S is stateful and J1-W is not. *Opportunity* is equalised: same inner subjects, endpoint, discipline, access. Both candidate counts are disclosed. |
-| **Is the comparison isolated to statefulness?** | Both arms take the identical 8-field arm-neutral row. `elapsed_state_seconds` is not in that row at all: it is endogenous to J1-S and derived from J1-S's own state. Its absence from J1-W is **constitutive of the memoryless definition**, not an imposed handicap. |
+| **Is the comparison isolated to statefulness?** | Both arms take the identical 8-field arm-neutral row. `elapsed_state_seconds` is not in that row at all: it is endogenous to J1-S and derived from J1-S's own state. Its absence from J1-W is **constitutive of the definition of a memoryless policy** — J1-S's own internal state, not upstream evidence J1-W is denied. |
 | **Is a subject used in both tuning and evaluation?** | No. Nesting exists for this; outer-assessment subjects contribute to no fitting, calibration or selection of their own rows. |
 | **Is cross-fitting truly subject-disjoint?** | At the J1 levels, yes — outer-assessment subjects contribute to no calibration, tuning or selection of their own rows. **Verified limitation:** the B4 encoder **was** trained on all 56 TRAIN subjects, and T2 was developed on them too. A J1 outer assessment fold is therefore **not held out from all historical upstream model development**. J1 estimates a conditional episode-policy contrast given the inherited scaffold. Using one fixed upstream for both arms removes upstream identity as an intentional arm difference; it does **not** prove upstream in-sampleness has zero interaction with policy behaviour. Absolute values are development evidence only. |
 | **Are subjects without episodes handled transparently?** | Yes. They stay in the 56-subject study population and carry the false-alerting evidence (protocol §7.3). They are outside the *primary episode-F1 endpoint* because that endpoint is undefined without a reference episode — endpoint-specific evaluability, not exclusion. |
