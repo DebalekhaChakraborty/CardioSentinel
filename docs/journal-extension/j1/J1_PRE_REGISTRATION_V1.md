@@ -7,7 +7,7 @@
 | Protocol | **frozen** |
 | Pre-registration | **frozen** |
 | TRAIN data authority | **none** |
-| Attempt budget | **none** |
+| Attempt budget | **NOT ESTABLISHED** — no budget has been set; this is *not* an established zero-attempt budget |
 | Execution authorization | **none** |
 | Fold manifest | **not generated** |
 | Scientific result | **none exists** |
