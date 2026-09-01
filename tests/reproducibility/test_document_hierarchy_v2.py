@@ -25,7 +25,21 @@ def _receipt_rows() -> list[dict[str, str]]:
 def test_only_the_three_authorized_trees_moved_under_docs() -> None:
     for name in ("paper", "handbook", "handoffs"):
         assert not (ROOT / name).exists()
+
+    # handbook/ and handoffs/ are still trees under docs/. paper/ is not: the V1
+    # publication workspace was retired and gitignored, so on a fresh clone the
+    # directory does not exist at all. Asserting it is a directory passed only
+    # where the ignored files happened to survive on disk.
+    for name in ("handbook", "handoffs"):
         assert (ROOT / "docs" / name).is_dir()
+    tracked_paper = subprocess.run(
+        ["git", "ls-files", "--", "docs/paper"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.split()
+    assert tracked_paper == []
 
 
 def test_tracked_move_counts_match_the_receipt() -> None:
@@ -54,7 +68,12 @@ def test_tracked_move_counts_match_the_receipt() -> None:
     # that nothing under it is tracked, and that the evidence figures it held are
     # tracked at the locations they moved to.
     assert sum(path.startswith("docs/paper/") for path in tracked) == 0
-    assert sum(path.startswith("docs/handbook/") for path in tracked) == 10
+    # The handbook is split by research programme: the V1 line under v1/, the
+    # journal-extension line beginning at v2/. Counting them separately says which
+    # of the two moved, where a single total would not.
+    assert sum(path.startswith("docs/handbook/v1/") for path in tracked) == 10
+    assert sum(path.startswith("docs/handbook/v2/") for path in tracked) == 2
+    assert sum(path.startswith("docs/handbook/") for path in tracked) == 12
     relocated_figures = {
         row["new_path"]
         for row in _receipt_rows()

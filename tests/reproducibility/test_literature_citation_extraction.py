@@ -172,15 +172,25 @@ def test_g_text_that_is_not_a_citation_is_not_extracted() -> None:
 # -- the live section -------------------------------------------------------
 
 
+#: The three shared brackets that carried the defect, copied verbatim from
+#: `PAPER_S2_RELATED_WORK_DRAFT.md` before the V1 publication workspace was
+#: retired, plus the single-bracket keys the guard also names. The defect was in
+#: `citation_keys`, not in the document, so the guard is kept and its dependency
+#: on a retired file removed -- reading that file passed only where the gitignored
+#: directory survived on disk.
+_SHARED_BRACKET_SECTION = """
+Calibration is discussed in [arxiv:1706.04599, arxiv:2106.07998].
+Episode reasoning draws on [doi:10.1109/cic.2008.4749058, pmid:20130344].
+Representation work spans [arxiv:2006.01862, arxiv:2202.03673, arxiv:2310.14774].
+Reporting guidance is in [doi:10.1016/j.patter.2023.100804] and [arxiv:2207.07048].
+Provenance practice follows [doi:10.2172/826602].
+Calibration again, reusing a key: [arxiv:1706.04599].
+"""
+
+
 def test_the_live_section_has_no_hidden_keys() -> None:
-    """Regression against the exact defect, on the file that carried it."""
-    draft = (
-        pathlib.Path(__file__).resolve().parents[2]
-        / "docs"
-        / "paper"
-        / "PAPER_S2_RELATED_WORK_DRAFT.md"
-    )
-    keys = citation_keys(draft.read_text(encoding="utf-8"))
+    """Regression against the exact defect: a shared bracket hiding keys."""
+    keys = citation_keys(_SHARED_BRACKET_SECTION)
     shared_bracket_keys = {
         "doi:10.1109/cic.2008.4749058",
         "pmid:20130344",
@@ -193,6 +203,7 @@ def test_the_live_section_has_no_hidden_keys() -> None:
     }
     assert shared_bracket_keys <= set(keys)
     assert len(keys) > len(set(keys)), "the section does reuse keys"
+    assert len(keys) == 11, "every key in every bracket is extracted"
 
 
 # -- resolution across more than one harvest --------------------------------
