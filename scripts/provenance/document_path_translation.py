@@ -1,4 +1,4 @@
-"""Resolve recorded document paths through translations V1 and V2.
+"""Resolve recorded document paths through translations V1, V2 and V3.
 
 The recorded value is never mutated. Resolution returns a separate current
 path and fails closed when no explicit translation leads to an existing file.
@@ -27,6 +27,16 @@ _V2_PREFIXES = (
     ("paper/", "docs/paper/"),
     ("handbook/", "docs/handbook/"),
     ("handoffs/", "docs/handoffs/"),
+)
+#: V3, 2026-08-31. The handbook was split by research programme: the V1 line moved
+#: under `v1/` and the journal-extension line begins at `v2/`. Recorded paths are
+#: never rewritten, so this is a third translation applied after V2 rather than an
+#: edit of the V2 table above.
+_V3_PREFIXES = (
+    (
+        "docs/handbook/CardioSentinel_Research_Execution_Handbook_v1.",
+        "docs/handbook/v1/CardioSentinel_Research_Execution_Handbook_v1.",
+    ),
 )
 
 
@@ -74,6 +84,12 @@ def translate_v2(v1_current_path: str | PurePosixPath) -> PurePosixPath:
     return PurePosixPath(_replace_prefix(_normalise(v1_current_path), _V2_PREFIXES))
 
 
+def translate_v3(v2_current_path: str | PurePosixPath) -> PurePosixPath:
+    """Apply the V3 handbook-by-programme split."""
+
+    return PurePosixPath(_replace_prefix(_normalise(v2_current_path), _V3_PREFIXES))
+
+
 def resolve_current_path(
     recorded_path: str | PurePosixPath,
     *,
@@ -81,7 +97,7 @@ def resolve_current_path(
 ) -> Path:
     """Return the current file without changing the recorded path value."""
 
-    current = translate_v2(translate_v1(recorded_path))
+    current = translate_v3(translate_v2(translate_v1(recorded_path)))
     resolved = repository_root / current
     if not resolved.is_file():
         raise UnknownDocumentPathError(
