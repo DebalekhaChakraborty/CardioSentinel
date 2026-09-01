@@ -46,7 +46,9 @@ result.
 | 3 | Arm-neutral upstream row | **FROZEN** — 8 fields, protocol §3.1. `elapsed_state_seconds` is endogenous to J1-S and is not in the row |
 | 4 | Study population | **FROZEN** — all 56 V1 TRAIN subjects |
 | 4a | Primary-F1 cohort | **FROZEN** — `reference_episode_count > 0`, from reference truth alone, identical for both arms |
-| 5 | Fold-generation procedure | **FROZEN** — outer 7 × 8, inner 6 × 8 over 48; seed 2026; deterministic lexicographic allocator (protocol §5.1) yielding byte-identical assignments across implementers |
+| 5 | Fold-generation procedure | **FROZEN** — outer 7 × 8, inner 6 × 8 over 48; seed 2026; deterministic lexicographic allocator (protocol §5.1) |
+| 5a | Inner OOF choreography | **FROZEN** — protocol §5.3–5.9. 40-subject inner fit, 8-subject inner OOF, complete 48-subject assembly, ID promotion, then outer nuisance refit |
+| 5b | Fit vs OOF terminology | **FROZEN** — protocol §5.10. Fit-side values are never persisted as `oof_calibrated_probability_p_t` |
 | 6 | Tuning spaces | **FROZEN** — J1-S 12 (`NO EXPANSION`); J1-W 206 enumerated with stable IDs |
 | 7 | Selection objective | **FROZEN** — subject-macro episode F1 on inner data, both arms |
 | 8 | Primary metric | **FROZEN** — paired subject-level difference `Δ = J1-S − J1-W` |
@@ -61,7 +63,7 @@ result.
 | 17 | Selection order and tie-break | **FROZEN** — V1's `policy_sort_key` preserved, protocol §6.5 |
 | 18 | Zero-reference operational reporting | **FROZEN** — mandatory, protocol §7.3 |
 
-**All eighteen frozen. None open.** Two were made *algorithmically unique* in this reconciliation: the bootstrap quantile convention and the fold allocator.
+**All twenty frozen. None open.** Two were made *algorithmically unique* in this reconciliation: the bootstrap quantile convention and the fold allocator.
 
 ## 3. Prohibited after freeze
 
@@ -87,23 +89,39 @@ rescued:
 ## 4. Analysis, stated in advance
 
 1. Generate nested subject-disjoint folds over the 56 TRAIN subjects, by the
-   frozen procedure and seed.
-2. Per outer fold: fit fold-specific U1 calibration on the 48 outer-development
-   subjects only; select J1-S's and J1-W's operating points independently on inner
-   data, same subjects, same endpoint, same discipline.
-3. Per outer fold: produce **one** arm-neutral row set for the 8 outer-assessment subjects
-   and hand the identical rows to both frozen arms.
-4. Compute per-subject episode F1 for each arm, over the **primary-F1-eligible**
+   frozen allocator and seed (protocol §5.1).
+2. **Per outer fold, per inner fold `j`:** fit the U1 calibrator on the 40
+   `INNER_FIT_j` subjects only; derive every candidate's numeric thresholds from
+   that fit population; apply the calibrator to the 8 `INNER_HELDOUT_j` subjects
+   to obtain **inner OOF** `p_t`; evaluate **every** candidate ID of both arms on
+   those 8 subjects.
+3. **Combine the six inner-held-out evaluations** into a complete 48-subject
+   inner-OOF assembly — exactly one held-out evaluation per subject per candidate,
+   asserted. Score candidates **only** from this assembly, never from fit-side
+   predictions (protocol §5.5–5.6).
+4. **Select and freeze one J1-S ID and one J1-W ID** for the outer fold, from that
+   assembly alone, **before any outer-assessment result is visible** (§5.7).
+5. **Refit nuisance only:** fit the final outer U1 calibrator on all 48
+   outer-development subjects and derive the two frozen IDs' numeric thresholds
+   from that population. **The identities do not change** (§5.8).
+6. Apply those artifacts to the 8 outer-assessment subjects, producing **one**
+   eight-field arm-neutral row set with **outer OOF** `p_t`, handed identically to
+   both frozen arms (§5.9).
+7. Compute per-subject episode F1 for each arm, over the **primary-F1-eligible**
    subjects (`reference_episode_count > 0`) — the same set for both arms.
-5. Compute the paired per-subject difference and its subject-macro mean.
-6. Compute the subject bootstrap: 1000 replicates, seed 2026, no reselection.
-7. Report the zero-reference and all-56 operational analyses of protocol §7.3,
-   with the full cohort accounting.
-8. Report secondary and per-subject descriptives.
-9. Read Gate A against the frozen criterion, scoped as protocol §9.1 requires.
+8. Compute the paired per-subject difference and its subject-macro mean.
+9. Compute the percentile paired subject bootstrap: 1000 replicates, seed 2026,
+   2.5/97.5, no reselection.
+10. Report the zero-reference and all-56 operational analyses of protocol §7.3,
+    with the full cohort accounting.
+11. Report secondary and per-subject descriptives.
+12. Read Gate A against the frozen criterion, scoped as protocol §9.1 requires.
 
-**Outcomes are inspected only at step 4, and only after steps 1–3 are complete for
-every fold.** No operating point is revised after any outer-assessment outcome is seen.
+**The six inner-fold predictions are selection evidence. The seven
+outer-assessment folds produce the primary J1 evidence.**
+
+**No outer-assessment outcome is inspected before step 7, and no candidate identity
+is revised after any outer-assessment outcome is seen.**
 
 ## 5. What would falsify H1
 

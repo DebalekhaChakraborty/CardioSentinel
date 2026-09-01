@@ -196,26 +196,41 @@ Nested and subject-disjoint over the 56 TRAIN subjects.
 | Level | Folds | Subjects per fold | Pool |
 |---|---|---|---|
 | **Outer** | **7** | **8 assessment** / 48 development | all 56 |
-| **Inner** | **6** | **8** | the 48 outer-development subjects |
+| **Inner** | **6** | **8 held-out** / 40 fit | the 48 outer-development subjects |
 
 ```
-OUTER fold k (7 of them):
-  48 outer-development subjects ─┬─> fit fold-specific U1 calibration
-                                 └─> INNER 6 x 8 split
-                                       ├─ J1-S operating-point selection
-                                       └─ J1-W operating-point selection
-   8 outer-assessment subjects  ───> apply the frozen fold artifacts
-                                     produce ONE arm-neutral row set
-                                     evaluate frozen J1-S  ─┐ identical rows
-                                     evaluate frozen J1-W  ─┘
+OUTER fold o  (7 of them)
+│
+├─ OUTER DEVELOPMENT 48
+│  │
+│  ├─ INNER FOLD j  (6 of them)
+│  │    40 inner-fit ──> fit inner U1 calibrator
+│  │                 ──> derive candidate numeric thresholds
+│  │     8 inner-held-out ──> inner OOF p_t  (calibrator never saw them)
+│  │                      ──> evaluate EVERY candidate ID, both arms
+│  │
+│  ├─ combine the six inner-held-out evaluations
+│  │      ──> 48-subject inner-OOF candidate evidence
+│  │      ──> independently select ONE J1-S candidate ID
+│  │      ──> independently select ONE J1-W candidate ID
+│  │      ──> the two IDs are now FROZEN for this outer fold
+│  │
+│  └─ all 48 outer-development ──> fit FINAL outer U1 calibrator
+│                              ──> derive numeric thresholds for the two frozen IDs
+│
+└─ OUTER ASSESSMENT 8 ──> outer OOF arm-neutral rows (8 fields)
+                      ──> evaluate the frozen J1-S  ─┐ identical rows
+                      ──> evaluate the frozen J1-W  ─┘
 ```
+
+**The six inner-fold predictions are selection evidence, not J1 evidence.** The
+**seven outer-assessment folds produce the primary J1 evidence** — 56 subject
+assessments, one per subject.
 
 **Rationale, fixed before any J1 outcome is observed.** 56 = 7 × 8 exactly, so
-every subject receives exactly one outer assessment and all folds hold equal
-subject counts; each outer analysis retains 48 development subjects; and 48 = 6 × 8
-gives six equal inner folds for operating-point selection. The geometry follows
-from the frozen population size and the subject-level inferential unit, not from
-observed performance.
+every subject receives exactly one outer assessment; 48 = 6 × 8 gives six equal
+inner folds; 40 = 48 − 8 is each inner fit population. The geometry follows from
+the frozen population size and the subject-level inferential unit.
 
 **Why nested rather than flat.** A flat K-fold would select the operating point on
 the same subjects that assess it — the defect J1 exists to remove, transposed.
@@ -305,6 +320,146 @@ dataset-integrity rule** makes evaluation impossible. Such a case must be
 identified **by that rule, never by observed J1 performance**, must be recorded,
 must remain visible in the denominator accounting, and must never be silently
 dropped. **No new exclusion criterion may be invented during execution.**
+
+### 5.3 Inner choreography — FROZEN
+
+The inherited U1 contract requires an evaluated subject's OOF calibrated
+probability to come from a calibrator that saw **no row of that subject**. A single
+calibrator fitted on all 48 and then used during inner selection would violate
+that. The nesting below is what makes `oof_calibrated_probability_p_t` mean what
+its name says at both levels.
+
+For every outer fold `o`, partition the 48 outer-development subjects by the frozen
+six-fold inner assignment. For each inner fold `j`: `INNER_FIT_j` = 40 subjects,
+`INNER_HELDOUT_j` = 8 subjects.
+
+`INNER_HELDOUT_j` contributes **nothing** to the U1 calibrator for that inner fold,
+to threshold derivation, to candidate definition, or to policy selection inputs for
+that fold.
+
+**5.3.1 Fit.** Fit the inherited Platt procedure using **only** `INNER_FIT_j`, and
+only the population the inherited U1/J1 calibration contract permits. **No row
+belonging to `INNER_HELDOUT_j` may enter that fit.**
+
+**5.3.2 Fit-side values.** The inner calibrator may be applied to `INNER_FIT_j`
+scores **solely** to derive candidate operating thresholds and construct the
+FIT-side threshold population. These are **fit-side calibrated values**. They are
+**not** `oof_calibrated_probability_p_t`, are not held-out evidence, and must never
+be persisted or labelled as such (§5.10).
+
+**5.3.3 Inner OOF.** Apply that same calibrator to the eight `INNER_HELDOUT_j`
+subjects. Those values **are** valid inner-selection
+`oof_calibrated_probability_p_t`, because the calibrator never saw those subjects.
+`u_t` is computed from the inherited frozen definition using those OOF
+probabilities. The frozen T2 `s_t`, the M2 score and the detector decision remain
+inherited and are **not refitted**.
+
+### 5.4 Threshold derivation — FROZEN
+
+Every numeric operating threshold used to evaluate a candidate on
+`INNER_HELDOUT_j` is derived **only** from `INNER_FIT_j`, using the inherited T1
+threshold-population principle: **PRIMARY, background-negative, scored rows from
+the fit subjects only.** **No inner-held-out row contributes to its own threshold.**
+
+- **J1-S** — derive the candidate's numeric `p_watch`, `s_watch`, `p_event`,
+  `s_event` from the 40-subject inner-fit threshold population at the candidate's
+  frozen quantile levels, preserving the inherited empirical-order-statistic method
+  where applicable.
+- **J1-W** — derive every continuous-signal threshold the candidate's rule ID names,
+  from the same inner-fit population: calibrated `p_t`, frozen `s_t`,
+  `m2g_detector_score`. `d_t` is the inherited binary detector decision and needs no
+  new quantile threshold.
+
+**A candidate ID fixes the rule structure and quantile level(s); its numeric
+thresholds are fold-specific FIT-derived quantities.**
+
+### 5.5 Complete inner OOF assembly — FROZEN
+
+For each frozen candidate ID in each arm:
+
+1. derive its fold-specific numeric thresholds from `INNER_FIT_j`;
+2. apply it **once** to `INNER_HELDOUT_j`;
+3. preserve the per-subject held-out result;
+4. repeat across all six inner folds.
+
+**Postcondition, asserted.** Every one of the 48 outer-development subjects has
+**exactly one** inner-held-out evaluation for that candidate. No subject may have
+zero, more than one, or an evaluation using a calibrator fitted on that subject.
+
+**The inner candidate score is computed only from this complete 48-subject OOF
+assembly. A candidate is never scored on its 40-subject fit predictions.**
+
+### 5.6 Inner candidate aggregation — FROZEN
+
+Per candidate ID, after six-fold OOF assembly, using the §6.5 lexicographic order:
+
+| Rank | Term | Computed from |
+|---|---|---|
+| 1 | **subject-macro mean episode F1** across the eligible inner-OOF assembly — **not** pooled across subjects | each subject's inner-held-out prediction, over `PRIMARY_F1_ELIGIBLE` subjects only |
+| 2 | `window_mcc`, inherited V1 pooled semantics | the complete inner-OOF PRIMARY rows from the six held-out evaluations |
+| 3 | `false_onsets_per_hour`, inherited definition | the complete inner-OOF held-out predictions across the 48 |
+| 4 | `event_exposure_fraction`, inherited definition | the complete inner-OOF held-out predictions |
+
+Then the already-frozen arm-specific deterministic final tie-break (§6.5).
+
+**No metric from an `INNER_FIT` prediction enters candidate selection**, except
+indirectly through the fitted calibrator and the derived thresholds.
+
+### 5.7 Candidate promotion — FROZEN
+
+After all six inner folds complete, select **exactly one J1-S candidate ID** and
+**exactly one J1-W candidate ID** for that outer fold, solely from the complete
+inner-OOF evidence above. **Both IDs are frozen before any outer-assessment result
+is visible. Outer-assessment subjects never influence which IDs are selected.**
+
+### 5.8 Outer nuisance refit — FROZEN
+
+Once the two candidate identities are fixed for outer fold `o`:
+
+1. fit **one** outer-fold U1 Platt calibrator using the 48 outer-development subjects;
+2. derive the selected **J1-S** candidate's numeric thresholds from the 48-subject FIT threshold population;
+3. derive the selected **J1-W** candidate's numeric thresholds from the same population;
+4. freeze those artifacts;
+5. **only then** apply them to the eight outer-assessment subjects.
+
+**The selected candidate identity does not change in this step.** It estimates the
+candidate's fold-specific nuisance quantities using the full permitted
+outer-development population.
+
+### 5.9 Outer-assessment OOF requirement — FROZEN
+
+For each of the eight outer-assessment subjects, `oof_calibrated_probability_p_t`
+comes from the outer-fold U1 calibrator fitted **only on the other 48 subjects**.
+No outer-assessment subject contributes to calibration, threshold generation, or
+policy identity selection.
+
+**Both arms receive the exact same resulting eight-field arm-neutral row for that
+subject. This is the scientific assessment row.**
+
+### 5.10 Artifact terminology — FROZEN
+
+The implementation must not be able to blur fit and assessment quantities.
+
+| Name | Meaning | May it be persisted as J1 evidence? |
+|---|---|---|
+| `inner_fit_calibrated_probability` | internal; fit-side threshold derivation only | **No** |
+| `inner_oof_calibrated_probability_p_t` | inner-held-out candidate-selection evidence | selection evidence only |
+| `outer_fit_calibrated_probability` | internal; final outer-fold threshold derivation | **No** |
+| `outer_oof_calibrated_probability_p_t` | outer-assessment evidence | **Yes** — the assessment row |
+
+**The persisted arm-neutral J1 assessment row carries an OOF probability only.** A
+fit-side calibrated quantity must never be persisted or labelled
+`oof_calibrated_probability_p_t`.
+
+### 5.11 Calibration provenance — REQUIRED
+
+Every calibrated assessment row must be bound to: the outer fold index; the inner
+fold index where applicable; the calibrator's fit-subject IDs and digest; the
+held-out subject IDs and digest; the calibrator artifact digest; the calibration
+protocol identity; and the source score artifact identity.
+
+**Structural proof required: `fit_subjects ∩ heldout_subjects == ∅`. No runtime
+flag may bypass it.**
 
 ## 6. Independent operating-point selection
 
