@@ -41,7 +41,7 @@ authorization, never in advance.
 | Protocol path | `j1/J1_FAIR_EPISODE_COMPARATOR_PROTOCOL_V1.md` | — | — | — | — | — | — |
 | Protocol digest | `cedb152eef187fd5…` | — | — | — | — | — | — |
 | Pre-registration path | `j1/J1_PRE_REGISTRATION_V1.md` | — | — | — | — | — | — |
-| Pre-registration digest | `88dadd88e0593641…` | — | — | — | — | — | — |
+| Pre-registration digest | `1b6eb6645bf2449e…` | — | — | — | — | — | — |
 | Authorization path | — | — | — | — | — | — | — |
 | Attempt budget | — | — | — | — | — | — | — |
 | Attempts used | — | — | — | — | — | — | — |

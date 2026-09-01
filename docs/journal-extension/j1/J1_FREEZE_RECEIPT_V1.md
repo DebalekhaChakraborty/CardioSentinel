@@ -38,11 +38,11 @@ between what was reviewed and what is bound here.
 | | |
 |---|---|
 | Path | `docs/journal-extension/j1/J1_PRE_REGISTRATION_V1.md` |
-| **SHA-256** | `88dadd88e059364194e6f248fb1bcbd23415cae257bdbf08b7f9c5096fd182e2` |
-| Byte count | 13,570 |
+| **SHA-256** | `1b6eb6645bf2449e4b76fb40b5ee7e44250474bd08c4a1c42ba79c00dc45fcd1` |
+| Byte count | 13,658 |
 | Line count | 188 |
-| Git blob | `8f2e3ca06b02…` |
-| Commit containing the frozen bytes | `52066be2fdf8c5c8b3fded315dd738ff03a559ce` |
+| Git blob | `ce347da84f08…` |
+| Commit containing the frozen bytes | `d75ac9b075233ffa1404378a719e4d0e477d5d3e` |
 | State | `PRE-REGISTERED — NOT AUTHORIZED` |
 
 **Digest method.** `SHA-256` over the **raw committed bytes**. No canonicalisation,
@@ -52,6 +52,29 @@ agreed.
 
 **Neither document contains its own digest.** A self-referential digest cannot be
 satisfied; the binding lives here instead.
+
+### Amendment 1 — 2026-09-01, governance metadata only
+
+The pre-registration's status table read `Attempt budget | none`, which asserts an
+established budget of zero. No budget has been set at all; setting one belongs to
+the later authorization. Corrected to **`NOT ESTABLISHED`**, matching this
+receipt's own non-authority table and the ledger's dash.
+
+**One table cell changed. No scientific content was touched**, and the frozen
+protocol is byte-unchanged at `cedb152e…`. The pre-registration was re-hashed
+because it is digest-bound:
+
+| | Before | After |
+|---|---|---|
+| SHA-256 | `88dadd88e0593641…` | `1b6eb6645bf2449e…` |
+| Bytes | 13,570 | 13,658 |
+| Lines | 188 | 188 |
+| Commit | `52066be…` | `d75ac9b…` |
+
+This amendment is recorded rather than applied silently: the superseded digest
+stays visible so the binding history is auditable. **The immutability rule below
+governs *scientific* byte changes, which this is not** — it changed a governance
+state label that was stronger than the governing documents allowed.
 
 ## Evidence class
 
