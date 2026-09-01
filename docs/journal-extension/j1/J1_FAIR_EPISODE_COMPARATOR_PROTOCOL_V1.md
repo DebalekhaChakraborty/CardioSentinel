@@ -1,8 +1,13 @@
 # J1 — Fair Stateful vs Memoryless Episode Comparator, Protocol V1
 
-**Status: `PROPOSED / NOT AUTHORIZED`.**
+# `FROZEN PROSPECTIVE PROTOCOL — NOT AUTHORIZED`
+
 **Evidence class: `V2_DEVELOPMENT`.**
 **Attempt budget: `NOT YET AUTHORIZED`.**
+
+> Scientific content frozen by the J1 freeze receipt. Any byte-changing scientific
+> amendment requires a new versioned protocol and a new human review; this document
+> itself grants no data or execution authority.
 
 Governing authority:
 [`../CARDIOSENTINEL_V2_EVIDENCE_AUTHORITY_V1.md`](../CARDIOSENTINEL_V2_EVIDENCE_AUTHORITY_V1.md).
