@@ -9,6 +9,8 @@ NON-SCIENTIFIC QUALIFICATION FIXTURE.
 
 from __future__ import annotations
 
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -208,9 +210,48 @@ def test_structural_proof_finds_no_forbidden_reach() -> None:
     ) == {}
 
 
-def test_sealed_test_module_is_absent_from_the_process() -> None:
-    assert "cardiosentinel.neural.b4b_sealed_test" not in sys.modules
-    assert negative_capability.runtime_absence_proof()
+def test_sealed_test_module_is_absent_from_a_j1_execution_process() -> None:
+    """Layer 2a is a property of a *dedicated* J1 process, so prove it in one.
+
+    Asserting absence from `sys.modules` inside the shared pytest interpreter
+    would test something J1 does not control: the full suite imports
+    `b4b_sealed_test` for V1's own tests, and that says nothing about whether
+    J1 can reach it. A subprocess importing only the J1 package is what a real
+    execution process looks like, and that is where the claim has meaning.
+    """
+    program = (
+        "import sys;"
+        "from cardiosentinel.journal_extension.j1 import negative_capability as n;"
+        "n.runtime_absence_proof();"
+        "assert 'cardiosentinel.neural.b4b_sealed_test' not in sys.modules;"
+        "print('absent')"
+    )
+    completed = subprocess.run(
+        [sys.executable, "-c", program],
+        cwd=ROOT,
+        env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stderr
+    assert "absent" in completed.stdout
+
+
+def test_in_process_absence_is_deliberately_not_asserted() -> None:
+    """Importing J1 must not itself pull the sealed-test module in.
+
+    This is the in-process claim J1 *can* make: whatever else the interpreter
+    has loaded, the J1 package's own import graph does not reach it. Layer 1
+    proves that structurally; this checks the loaded package agrees.
+    """
+    j1_modules = [
+        name
+        for name in sys.modules
+        if name.startswith("cardiosentinel.journal_extension")
+    ]
+    assert j1_modules, "the J1 package is imported by this test module"
+    assert negative_capability.structural_proof(Path(preflight.J1_PACKAGE_ROOT)) == {}
 
 
 def test_a_forbidden_call_is_recorded_and_refused() -> None:
