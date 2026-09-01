@@ -27,13 +27,14 @@ open one.
 
 | | |
 |---|---|
-| **Latest** | **ECG 26** — the one to read |
-| Covers | the V1 publication workspace retired and its evidence figures relocated; the handbook split by research programme; the V2 journal-extension control plane; and J1 designed, frozen, pre-registered and given an execution instrument that refuses to run |
+| **Latest** | **ECG 27** — the one to read |
+| Covers | one PR reviewed and merged: the J1 environment authority. A digest collision in the canonical serialization found and closed before anything was hashed, two more holes on the same seam, and two corrections to the qualification receipt |
 
 ## Index, newest first
 
 | Session | Date | The danger it named for the session after it |
 |---|---|---|
+| **ECG 27** | 2026-09-01 | reviewing the question the author raised instead of the code they wrote |
 | **ECG 26** | 2026-09-01 | verifying a scoped test run and calling it verified — twice |
 | **ECG 25** | 2026-08-30 | a presentation layer quietly acquiring authority the runtime never gave it |
 | **ECG 24** | 2026-08-29 | breaking a working repository to tidy a directory |
