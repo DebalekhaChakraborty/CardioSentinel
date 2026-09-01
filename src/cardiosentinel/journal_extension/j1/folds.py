@@ -12,6 +12,10 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # pragma: no cover - import cycle guard
+    from .capability_gate import J1CapabilityAttestation
 
 FOLD_SEED = "2026"
 
@@ -97,3 +101,27 @@ def allocate_folds(
                 f"fold {index} holds {len(fold)} subjects, expected {capacity}."
             )
     return tuple(tuple(fold) for fold in assigned)
+
+
+class J1FoldAllocator:
+    """The `fold_allocator` collaborator the capability gate requires.
+
+    A thin adapter over `allocate_folds`, not a second allocator. The gate
+    checks a named method and a positive attestation on an object; the frozen
+    algorithm is a module function, and wrapping it here is cheaper and safer
+    than teaching the gate to accept two shapes.
+    """
+
+    def j1_execution_capability(self) -> "J1CapabilityAttestation":
+        from .capability_gate import J1CapabilityAttestation
+
+        return J1CapabilityAttestation(
+            collaborator="fold_allocator",
+            execution_capable=True,
+            detail="frozen deterministic allocator, reference burden only",
+        )
+
+    def allocate(
+        self, subjects: list[SubjectBurden], *, folds: int
+    ) -> tuple[tuple[str, ...], ...]:
+        return allocate_folds(subjects, folds=folds)

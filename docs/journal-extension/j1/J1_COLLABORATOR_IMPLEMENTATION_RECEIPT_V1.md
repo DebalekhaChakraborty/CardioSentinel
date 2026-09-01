@@ -11,20 +11,26 @@
 ## What this records
 
 The execution instrument named seven collaborators in its pre-claim capability
-gate and shipped all of them as qualification fixtures. **Three are now real**,
-implemented against the frozen protocol. **No environment is authorized, no
+gate and shipped all of them as qualification fixtures. **All seven now satisfy
+the gate**, implemented against the frozen protocol. **No environment is authorized, no
 authorization document exists, no attempt is claimed, and nothing here can
 run** — the preflight gate refuses before any of this is reached.
 
 | Collaborator | Gate methods | State |
 |---|---|---|
-| `fold_allocator` | `allocate` | real — `folds.py`, protocol §5.1 |
-| **`calibration_fitter`** | `fit_inner`, `fit_outer` | **real — `calibration.py`, §5.3.1, §5.9, §5.10, §5.11** |
-| **`threshold_deriver`** | `derive` | **real — `thresholds.py`, §5.4** |
-| **`selection_ranker`** | `rank` | **real — `selection.py`, §6.5** |
-| `candidate_evaluator` | `evaluate_inner`, `evaluate_outer` | **fixture — the remaining blocker** |
-| `bootstrap` | `resample` | real — `statistics.py`, §7.1.0 |
+| **`fold_allocator`** | `allocate` | **real — `folds.py`, §5.1; gate adapter added** |
+| `calibration_fitter` | `fit_inner`, `fit_outer` | real — `calibration.py`, §5.3.1, §5.9, §5.10, §5.11 |
+| `threshold_deriver` | `derive` | real — `thresholds.py`, §5.4 |
+| `selection_ranker` | `rank` | real — `selection.py`, §6.5 |
+| **`candidate_evaluator`** | `evaluate_inner`, `evaluate_outer` | **real — `evaluation.py`, §2.1, §2.2, §5.5, §5.6, §5.9** |
+| **`bootstrap`** | `resample` | **real — `statistics.py`, §7.1.0; gate adapter added** |
 | `provenance_sink` | `open_attempt`, `promote` | interface; its value comes from the authorization |
+
+**Two collaborators were listed as real and were not gate-shaped.** `folds.py`
+and `statistics.py` held the frozen algorithms as module functions, so no object
+exposed `allocate` or `resample` with an attestation and the gate could never
+have passed. Thin adapters now do, over the same functions — not second
+implementations.
 
 ## 1. Calibration fitter — the population boundary is the whole point
 
@@ -90,35 +96,73 @@ candidates and nothing downstream would look wrong. `selection.py` imports
 profile `MED`, V1 calls it `BALANCED`, and they are the same profile — and a
 test asserts the two orders are opposites so the trap cannot quietly reappear.
 
-## 4. What is still a fixture
+## 4. The evaluator, and the line between inherited and re-stated
 
-**`candidate_evaluator` — `evaluate_inner` and `evaluate_outer`.** It needs two
-things this task did not build:
+`evaluation.py` closes the last fixture. The line it draws is the one this
+programme keeps having to draw, so it is worth stating exactly.
 
-1. **The J1-S episode state machine.** §2.1 specifies it completely — four
-   states, the three evidence predicates, state never crossing a record, channel
-   or subject boundary, every stream starting in `NORMAL` — and `next_state` is
-   a forbidden entry point, so the same re-statement doctrine applies as for §5.4
-   and §6.5.
-2. **V1's episode-matching convention**, which produces the `matched`,
-   `predicted` and `reference` counts `statistics.episode_f1` already consumes.
-   §7.1.1 fixes the F1 formula and preserves it unchanged, but the matching that
-   yields those counts is an inherited definition in `neural/t1_development_run.py`
-   and `neural/t1_continuation_results.py` and has to be traced before it is
-   re-stated.
+**Inherited, because they are not operating-point functions.**
+`group_reference_episodes` and `match_runs_to_episodes` live in `t1_protocol`
+but are **not** among J1's forbidden entry points, and they are not that kind of
+function: they are measurement conventions over reference truth, they resolve no
+operating point, and §7.1.1 says V1's convention is *preserved unchanged*. They
+are imported. Re-stating them where re-statement is not required would be a
+second opinion about a frozen measurement.
 
-Neither module loads `b4b_sealed_test`, checked in a fresh interpreter, so
-importing from them does not endanger the layer-2a absence proof.
+**Re-stated, because `next_state` is forbidden.** The §2.1 state machine —
+`NORMAL → WATCH → EVENT → RECOVERY`, the three evidence predicates, the streak
+counters, escalation priority, and state held across an unavailable row — is
+implemented inside J1 and **pinned to the inherited implementation across every
+state, profile, streak shape and row in a sweep of over 3,000 comparisons**.
+
+### The reading of §2.1 that would have changed the policy under test
+
+§2.1 gives EVENT evidence as `d_t AND p_t ≥ p_event AND s_t ≥ s_event`. The
+retained implementation **relaxes the S4D term before `T1_COLD_START_SECONDS`**,
+because T2 recorded zero thresholded sensitivity in the first five minutes and
+demanding it there makes early EVENT unreachable by construction. §2.1 also says
+the retained state semantics are **not modified**.
+
+Read together, §2.1's line is the *mature-stream* form and the cold-start
+relaxation is part of what is retained. **Implementing §2.1's prose literally
+would silently change the policy J1 exists to test** — a fair comparator built
+against a subtly different stateful arm answers a different question. A test
+pins both the cold and mature branches to the inherited predicate.
+
+### Boundaries the evaluator holds
+
+- a subject outside the held-out population is refused — a candidate is never
+  applied to the population its thresholds came from;
+- exactly one evaluation per stream, per §5.5's postcondition;
+- **state never crosses a stream**: the evaluator resets per stream rather than
+  trusting a caller to hand them over one at a time;
+- an unavailable row is decided positive by **neither** arm — J1-S holds state
+  and resets streaks, J1-W emits `False`, and neither manufactures evidence;
+- a population with no primary-F1-eligible subject **refuses rather than
+  imputes**; §7.1.1 proves an undefined F1 unreachable inside the primary
+  cohort, so encountering one is an apparatus fault, not a result.
+
+## 5. The graph can finish. J1 still may not start.
+
+`require_execution_capability` now passes over all seven collaborators with a
+synthetic provenance sink — the first time the canonical graph has been provable
+end to end.
+
+**This proves capability, never permission.** The gate reads no data and
+consults no authorization, and a capability attestation never implies one. The
+same test file asserts that preflight still refuses with
+`authorization absent`.
 
 ## Verification
 
 | | |
 |---|---|
-| New tests | `test_j1_calibration_and_thresholds.py` **38**, `test_j1_selection_order.py` **17** |
-| Instrument tests | `tests/journal_extension/` — **167 passed** |
+| Evaluator tests | `test_j1_candidate_evaluator.py` — **23 passed** |
+| Earlier collaborator tests | `test_j1_calibration_and_thresholds.py` **38**, `test_j1_selection_order.py` **17** |
+| Instrument tests | `tests/journal_extension/` — **306 passed** |
 | Governance tests | `tests/reproducibility/` — **52 passed** |
 | Sealed-test identity | `tests/neural/test_b4b_sealed_test_identity.py` — **23 passed** |
-| Shared-interpreter condition | all three together — **242 passed** |
+| Shared-interpreter condition | all three together — **381 passed** |
 | Lint | `ruff check .` — clean |
 
 Every threshold derivation is exercised against **all 12 J1-S and all 206 J1-W
@@ -129,7 +173,7 @@ fold.
 
 | | |
 |---|---|
-| Collaborators | **3 of 7 promoted from fixture; 1 fixture remains** |
+| Collaborators | **7 of 7 satisfy the capability gate; no fixture remains** |
 | Environment | **NONE SUBMITTED** |
 | Authorization | **ABSENT** |
 | J1 | **`PRE-REGISTERED — NOT AUTHORIZED`** |
