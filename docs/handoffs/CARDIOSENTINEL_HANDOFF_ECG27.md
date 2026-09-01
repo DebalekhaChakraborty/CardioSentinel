@@ -13,7 +13,7 @@ Remember to use ONLY the tactics venv, not any other venv."
 | **Scientific interpreter (use this)** | `/home/AI_POC/venvs/tactics/bin/python` |
 | Application interpreter (do **not** use) | `/home/AI_POC/venvs/debalekha/bin/python` |
 | Repository | `/home/AI_POC/tactics/CardioSentinel` |
-| Branch | `master` at `c737250`, **green**. **No open PRs.** |
+| Branch | `master` at `8b91408`, **green**. **No open PRs.** |
 
 `tactics` holds 335 packages, Python 3.12.6. **Never install, upgrade or
 downgrade anything in it.** **The Bash working directory silently resets** — put
@@ -80,67 +80,86 @@ document drifts.
 
 ## 2. WHAT THIS SESSION DID
 
-**Reviewed and merged #143. That is all of it.** One PR in, one commit of my
-own, no new work started.
+**Four PRs merged: #143, #144, #145, #146.** The session began expecting to
+review one PR and ended with the execution apparatus complete.
 
-**The judgement call #143 raised was right, and I kept it.** The qualification
-receipt names no `environment_sha256`, recording `NOT YET SUBMITTED`, because
-the task defined the authority mechanism but was scoped not to select an
-environment. A receipt carrying a plausible digest is exactly what a later
-reader — or a later piece of code — mistakes for authority. A real environment
-gets a **V2 receipt**, never an edit to V1.
+### #143 — environment authority (reviewed, fixed, merged)
 
-**The defect was somewhere else: the canonical serialization §3.1 freezes had a
-digest collision.** Two different environments hashed identically and **both
-reached `QUALIFIED`**:
+The judgement call it raised was right and I kept it: the qualification receipt
+names no `environment_sha256`. **The defect was elsewhere — the canonical
+serialization §3.1 freezes had a digest collision.** Two different environments
+hashed identically and both reached `QUALIFIED`:
 
 ```text
 runtime_dependencies={"numpy": "2.3.2", "scipy": "1.0.0"}
 runtime_dependencies={"numpy": "2.3.2,scipy=1.0.0"}
 ```
 
-Both serialize to `runtime_dependencies=numpy=2.3.2,scipy=1.0.0` and share
-`d87ecdb29ccdb87537436c9dddee599c2c0b6a809cbaaf6b8b5e3d4accc1802b`. It is the
-failure the padded-value rule already names — *two records that differ silently
-merging into one* — reached through the separator instead of the padding. A
-`\n` in a scalar field value is the same defect one level up: it adds or
-displaces a field line, so the record hashed is not the record described.
+Both serialize to `runtime_dependencies=numpy=2.3.2,scipy=1.0.0`. Separators are
+now refused as content, never escaped. `reject_mutable_local_state` also skipped
+`runtime_dependencies`, and preflight accepted any object carrying an
+`environment_sha256` attribute — `verify_runtime_matches` compares against that
+object's *own* record, so a duck-typed stand-in verified itself.
 
-**Fixed at `5556e0c`, before merge, because that was the last free moment.** The
-form freezes on merge and no environment has been built, so no digest anywhere
-depended on it. Separators are now **refused as content, never escaped** —
-`\n`/`\r` in any field value, `\n`/`\r`/`,`/`=` in any dependency name or
-version. Escaping would close it too, but an escaping scheme is a second thing
-two independent implementations must agree on byte for byte, and this form
-exists so that they need not.
+### #144 — three collaborators promoted from fixture
 
-**No admissible record changed digest.** A well-formed record still hashes to
-`d87ecdb2`; what changed is that inadmissible records are refused instead of
-silently accepted.
+`calibration.py`, `thresholds.py`, `selection.py`. The doctrine this settled:
+**three frozen sections say J1 "preserves" a V1 rule whose function is a
+forbidden entry point.** Read together, the constraints admit exactly one
+implementation — the same arithmetic, computed inside J1, pinned by test to the
+inherited version. The U1 Platt fit is the exception: not forbidden, so it is
+called, not copied.
 
-**Two more holes on the same seam.** `reject_mutable_local_state` iterated
-`ENVIRONMENT_RECORD_FIELDS` only, so a dependency pinned to
-`file:///home/dev/cs.whl` qualified — §5.1 refuses home paths, but the one
-mapping that reaches the digest was exempt. And `run_preflight` accepted any
-object carrying an `environment_sha256` attribute; `verify_runtime_matches`
-compares the runtime against *that object's own* record, so a duck-typed
-stand-in declaring the digest the authorization names was checking itself
-against itself. It now requires a `VerifiedEnvironmentAuthority`, asserted by
-AST over `run_preflight` rather than by text scan.
+The trap it found: **J1's registry enumerates profiles `("FAST","MED","SLOW")`
+and V1's frozen tie-break is `T1_PERSISTENCE_PROFILES`, most cautious first.
+They are exact opposites, both accept `.index()`, and §6.5 names V1's.**
 
-**Two corrections to the qualification receipt.** Its table read
-`tests/reproducibility — 75 passed`; that suite is **52**, and the 75 was
-reproducibility plus the **23** of `tests/neural/test_b4b_sealed_test_identity.py`.
-And its heading read `QUALIFIED — NOT AUTHORIZED`, borrowing a word that names a
-state of a **record** in the ladder the package itself defines. No record has
-reached it. It now reads **`MECHANISM QUALIFIED — NO ENVIRONMENT SUBMITTED`**.
-That last is a wording call I made on my own — if a later session disagrees,
-it is one line in the receipt and one row in `docs/journal-extension/j1/README.md`.
+### #145 — the authorization contract
 
-**Verification.** `tests/journal_extension` **112**, `tests/reproducibility`
-**52**, `tests/neural/test_b4b_sealed_test_identity.py` **23**, and all three in
-one interpreter — **187 passed**. `ruff check .` clean. 16 new regression tests.
-Re-run on merged `master`, not only on the branch.
+`ABSENT → DRAFT → AUTHORIZED`, no transition function to `AUTHORIZED`.
+`attempt_budget = 0` is a valid *contract* value and an invalid *execution*
+value, deliberately: zero and absent are different states.
+
+**Review of my own PR found two governance defects.** The contract said
+`protocol_sha256` "must equal the frozen protocol digest" and the code checked
+only shape — a contract declaring `"a"*64` was accepted, **and my own fixture
+used exactly that**, so 112 tests proved a check that was not the one the
+document described. It now recomputes both digests from disk and refuses a
+mismatch. Second, the AST proof covered attribute reads, but
+`AuthorizationState("AUTHORIZED")` constructs the member from a *value*; the
+contract object now refuses any state but `DRAFT`.
+
+### #146 — the candidate evaluator, and the last fixture closed
+
+The §2.1 state machine is re-stated (because `next_state` is forbidden) and
+pinned to the inherited implementation across **3,000+ comparisons**.
+`group_reference_episodes` and `match_runs_to_episodes` are *imported*: the
+forbidden four are all operating-point functions, and those two are measurement
+conventions over reference truth that §7.1.1 preserves unchanged.
+
+**The reading that would have changed the science.** §2.1 gives EVENT evidence
+as `d_t AND p_t ≥ p_event AND s_t ≥ s_event`. The retained implementation
+**relaxes the S4D term before `T1_COLD_START_SECONDS`**, and §2.1 also says the
+retained semantics are not modified. §2.1's line is the *mature-stream* form.
+Implementing the prose literally builds a fair comparator against a subtly
+different stateful arm — a different question, with nothing looking wrong. Both
+branches are pinned by test. **This is the one judgement in the apparatus that
+no test can catch, because both readings pass a self-consistent suite.**
+
+It also corrected my own receipt: `fold_allocator` and `bootstrap` were listed
+as real and were **not gate-shaped** — module functions with no `allocate` or
+`resample` and no attestation, so `require_execution_capability` could never
+have passed. Thin adapters now exist and **the whole seven-collaborator graph is
+provable end to end** for the first time.
+
+**Capability is not permission.** The gate reads no data and consults no
+authorization; preflight still refuses with `authorization absent`.
+
+### Verification at the end of the session
+
+`tests/reproducibility` **52**, `tests/journal_extension` **306**,
+`tests/neural/test_b4b_sealed_test_identity.py` **23**, all three in one
+interpreter — **381 passed**. `ruff check .` clean.
 
 ---
 
@@ -210,38 +229,42 @@ and absolute values are development evidence only.
 
 ## 5. WHAT IS OPEN
 
-1. **No environment has been built or submitted.** The mechanism is qualified;
-   nothing has passed through it. Building one needs a reproducible, immutably
-   located artifact — a container image addressed by digest — and this machine
-   cannot authoritatively produce one, which is the package's own point: a local
-   machine may generate a candidate, it cannot promote itself. **This is the
-   next real task and it is an infrastructure decision, not a coding one.**
-2. **Then `J1_AUTHORIZATION_V1`** naming: frozen protocol digest, frozen
-   pre-registration digest, execution Git SHA, environment authority digest,
-   `V1_TRAIN_ONLY`, provenance sink, attempt budget, post-visibility decision
-   authority, human approval. **Authorization is a human act — do not perform it
-   autonomously.**
-3. **J1 collaborators are qualification fixtures.** The real fold evaluator,
-   calibration fitter and threshold deriver are unwritten.
-4. **The provenance sink is an interface**; its value comes from the
-   authorization. The **TRAIN manifest is supplied by** the authorization, never
-   discovered by the instrument.
-5. **The S3 mirror re-check is still owed and is now blocked.** ECG26 asked for
-   a dated re-verification rather than inheriting 2026-08-31. I could not run
-   it: `aws sts get-caller-identity` returns
-   `Your session has expired. Please reauthenticate using 'aws login'.`
-   **Reauthenticate first, then verify** — evidence bucket, Object Lock to 2027;
-   drafts bucket, versioned, no lock; 994 files checked by path at the last
-   count. Evidence retention expires **2027-08-22**, the first date those
-   objects become movable.
-6. **Three frozen records name the retired `docs/paper/` files in prose** —
-   handoff ECG16 and two audits. Historical, not edited to follow a path.
-   Expected, not drift.
-7. **The symlink question is still open** (§0): rename the directory back, or a
-   controlled reinstall. It went missing between ECG26 and this session, which
-   is an argument for settling it.
+The agreed order, and it is an order, not a menu:
 
----
+```text
+candidate evaluator  ✅ done (#146)
+        v
+qualified environment record   <- BLOCKED, and blocked outside this machine
+        v
+authorization document
+        v
+human signs
+        v
+ONE J1 attempt
+```
+
+1. **No environment has been built or submitted, and this machine cannot do
+   it.** That is the package's own thesis: a local machine may generate a
+   candidate, it cannot promote itself. A real record needs a reproducibly
+   built, **digest-addressed artifact that exists outside this box** — a
+   container image in a registry. `verify_authority_record` takes
+   `artifact_exists` as an injected callable precisely because checking it
+   means reaching a registry. **Producing that artifact, or authorizing its
+   construction, is an owner decision.** The mechanism is qualified; nothing has
+   passed through it.
+2. **Then `J1_AUTHORIZATION_V1`**, populating the contract merged in #145.
+   **Authorization is a human act — do not perform it autonomously.**
+3. **The provenance sink value comes from the authorization**, and the **TRAIN
+   manifest is supplied by it**, never discovered by the instrument.
+4. **The S3 mirror re-check is still owed and still blocked.**
+   `aws sts get-caller-identity` returns `Your session has expired. Please
+   reauthenticate using 'aws login'.` Evidence bucket, Object Lock to 2027;
+   drafts bucket, versioned, no lock; 994 files at the last count. Retention
+   expires **2027-08-22**.
+5. **Three frozen records name the retired `docs/paper/` files in prose** —
+   ECG16 and two audits. Historical, not drift.
+6. **The symlink question is still open** (§0). It went missing between ECG26
+   and this session, which argues for settling it.
 
 ## 6. THE SCIENCE IS UNCHANGED
 
@@ -258,8 +281,22 @@ are open, and every one needs a run.
 
 ---
 
-**The characteristic failure of this session:** reviewing the question the
-author raised instead of the code they wrote. #143 put one judgement call up for
-decision, I agreed with it, and I very nearly merged on that agreement — the
-forgeable digest was three lines away from the paragraph correctly explaining
-why it must not be forgeable.
+**The characteristic failure of this session:** writing the guarantee in prose
+and the weaker check in code — then building the fixture to the prose, so the
+suite went green over the gap.
+
+It happened three times. In #143 the specification said padded values are
+refused *because stripping would merge two records that differ*, and the
+separators — the same failure, one door over — were unguarded. In #145 I wrote
+that `protocol_sha256` "must equal the frozen protocol digest" and implemented
+"looks like 64 hex", **and my own fixture declared `"a"*64`**, so 112 passing
+tests certified a check the document did not describe. In #146's receipt I
+listed two collaborators as real when no object exposed the method the gate
+calls.
+
+The first was someone else's and I caught it reviewing. The second and third
+were mine and I caught them only because a later step forced me to actually run
+the thing. **A green suite is evidence about the fixtures, not about the
+claim** — the fixture and the code were written by the same hand, in the same
+hour, from the same misunderstanding. Bind a check to an external fact the
+fixture cannot supply, or it proves nothing.
