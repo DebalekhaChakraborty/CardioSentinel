@@ -15,7 +15,7 @@ budget is set by an authorization, and none exists.
 
 | ID | Workstream | Parent RQ | Current state | Real-data authority | Primary dependency |
 |---|---|---|---|---|---|
-| **J1** | Fair episode comparator | J-RQ3 | PLANNED / NOT AUTHORIZED | NONE | [protocol](j1/J1_FAIR_EPISODE_COMPARATOR_PROTOCOL_V1.md) and [pre-registration](j1/J1_PRE_REGISTRATION_V1.md) drafted; **FREEZE CANDIDATE — NOT AUTHORIZED**; all design decisions closed, human review pending |
+| **J1** | Fair episode comparator | J-RQ3 | **PRE-REGISTERED** | NONE | [freeze receipt](j1/J1_FREEZE_RECEIPT_V1.md) — protocol and pre-registration digest-bound; **not authorized** |
 | **J2** | Patient-memory contribution | J-RQ1 | PLANNED / NOT AUTHORIZED | NONE | P0 + cross-fit design |
 | **J3** | Adaptation stress / recovery | J-RQ2 | PLANNED / NOT AUTHORIZED | NONE | J2 / stress registry |
 | **J4** | Explanation-state consistency | J-RQ5 | PLANNED / NOT AUTHORIZED | synthetic / structured context protocol required | context freeze |
@@ -38,9 +38,10 @@ authorization, never in advance.
 
 | Field | J1 | J2 | J3 | J4 | J5 | J6 | R2 |
 |---|---|---|---|---|---|---|---|
-| Protocol path | draft | — | — | — | — | — | — |
-| Protocol digest | — | — | — | — | — | — | — |
-| Pre-registration path | — | — | — | — | — | — | — |
+| Protocol path | `j1/J1_FAIR_EPISODE_COMPARATOR_PROTOCOL_V1.md` | — | — | — | — | — | — |
+| Protocol digest | `cedb152eef187fd5…` | — | — | — | — | — | — |
+| Pre-registration path | `j1/J1_PRE_REGISTRATION_V1.md` | — | — | — | — | — | — |
+| Pre-registration digest | `88dadd88e0593641…` | — | — | — | — | — | — |
 | Authorization path | — | — | — | — | — | — | — |
 | Attempt budget | — | — | — | — | — | — | — |
 | Attempts used | — | — | — | — | — | — | — |
@@ -51,6 +52,10 @@ authorization, never in advance.
 | Evidence class | — | — | — | — | — | — | — |
 | Claim enabled | — | — | — | — | — | — | — |
 | Claim prohibited | — | — | — | — | — | — | — |
+
+**Protocol and pre-registration binding fields are populated at freeze.** The
+authorization, attempt-budget, execution, artifact, report and decision fields
+remain authorization- and execution-only, and stay `—` until those acts occur.
 
 A dash means **not yet established**. It does not mean zero, none, or unlimited —
 particularly for *Attempt budget*, where an absent value is not permission to run

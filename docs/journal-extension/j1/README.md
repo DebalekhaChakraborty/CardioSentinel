@@ -1,6 +1,6 @@
 # J1 — Fair stateful vs memoryless episode comparator
 
-**State: `PLANNED / NOT AUTHORIZED`.** Nothing here authorizes execution.
+**State: `PRE-REGISTERED — NOT AUTHORIZED`.** Nothing here authorizes execution.
 
 J1 exists to remove the one limitation that bounds the V1 W1 result. W1's own
 report names it: both arms ran at `qw0.9_qe0.99_FAST`, an operating point whose
@@ -19,17 +19,21 @@ J1 asks the question that leaves open:
 
 | File | Status |
 |---|---|
-| [`J1_FAIR_EPISODE_COMPARATOR_PROTOCOL_V1.md`](J1_FAIR_EPISODE_COMPARATOR_PROTOCOL_V1.md) | PROPOSED / NOT AUTHORIZED |
-| [`J1_PRE_REGISTRATION_V1.md`](J1_PRE_REGISTRATION_V1.md) | **FREEZE CANDIDATE — NOT AUTHORIZED** |
+| [`J1_FAIR_EPISODE_COMPARATOR_PROTOCOL_V1.md`](J1_FAIR_EPISODE_COMPARATOR_PROTOCOL_V1.md) | **FROZEN — NOT AUTHORIZED** |
+| [`J1_PRE_REGISTRATION_V1.md`](J1_PRE_REGISTRATION_V1.md) | **PRE-REGISTERED — NOT AUTHORIZED** |
+| [`J1_FREEZE_RECEIPT_V1.md`](J1_FREEZE_RECEIPT_V1.md) | **ACTIVE GOVERNANCE BINDING** |
 
-**All result-affecting design choices are closed.** Human freeze review is
-pending. **J1 remains `PLANNED / NOT AUTHORIZED`.**
+> ## Pre-registration is not authorization.
 
-**No protocol digest or pre-registration digest has yet been promoted as frozen
-authority** — freezing is a subsequent human act, and authorization a further one.
+> **No real-data access may occur until a separate authorization names the frozen
+> digests, data authority and attempt budget.**
 
-No authorization document exists. No report, result or decision document exists.
-No attempt budget is set and no data authority is granted.
+**Human freeze review is complete.** Both scientific documents are frozen and
+digest-bound by [`J1_FREEZE_RECEIPT_V1.md`](J1_FREEZE_RECEIPT_V1.md).
+
+**J1 is `PRE-REGISTERED`, not `AUTHORIZED`.** No authorization document exists, no
+attempt budget is set, no data authority is granted, no fold manifest has been
+generated and no result exists.
 
 ## The population finding that shaped this design
 
