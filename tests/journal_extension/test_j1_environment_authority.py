@@ -273,3 +273,113 @@ def test_authorized_is_not_reachable_from_this_package() -> None:
         EnvironmentAuthorityState.CANDIDATE,
         EnvironmentAuthorityState.QUALIFIED,
     )
+
+
+# -- canonical form: structure is refused, never escaped ---------------------
+
+
+def test_a_dependency_value_cannot_impersonate_further_pairs() -> None:
+    """Two different environments must never serialize to the same bytes.
+
+    Before the separators were refused, these two records -- one dependency
+    pinned to a version containing the pair separators, and two dependencies --
+    produced identical canonical bytes and therefore one digest, and both
+    reached `QUALIFIED`.
+    """
+    honest = _record(runtime_dependencies={"numpy": "2.3.2", "scipy": "1.0.0"})
+    impostor_deps = {"numpy": "2.3.2,scipy=1.0.0"}
+    assert (
+        ",".join(f"{k}={v}" for k, v in sorted(honest.runtime_dependencies.items()))
+        == ",".join(f"{k}={v}" for k, v in impostor_deps.items())
+    ), "the fixture must reproduce the byte-for-byte collision it guards"
+
+    with pytest.raises(EnvironmentAuthorityError, match="refused rather than escaped"):
+        environment_sha256(_record(runtime_dependencies=impostor_deps))
+
+
+@pytest.mark.parametrize("separator", [",", "=", "\n", "\r"])
+def test_a_dependency_name_may_not_carry_canonical_structure(separator: str) -> None:
+    with pytest.raises(EnvironmentAuthorityError, match="dependency name"):
+        canonical_serialization(
+            _record(runtime_dependencies={f"num{separator}py": "2.3.2"})
+        )
+
+
+@pytest.mark.parametrize("separator", [",", "=", "\n", "\r"])
+def test_a_dependency_version_may_not_carry_canonical_structure(
+    separator: str,
+) -> None:
+    with pytest.raises(EnvironmentAuthorityError, match="version"):
+        canonical_serialization(
+            _record(runtime_dependencies={"numpy": f"2{separator}3"})
+        )
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r"])
+def test_a_field_value_may_not_inject_a_line(newline: str) -> None:
+    """A field free to carry a newline can add or displace another field's line."""
+    with pytest.raises(EnvironmentAuthorityError, match="canonical-form structure"):
+        canonical_serialization(
+            _record(environment_id=f"j1-env{newline}environment_version=9")
+        )
+
+
+def test_padded_dependency_names_and_versions_are_refused() -> None:
+    """The no-padding rule covers the dependency line, not only the others."""
+    for dependencies in ({"numpy ": "2.3.2"}, {"numpy": " 2.3.2"}):
+        with pytest.raises(EnvironmentAuthorityError, match="whitespace"):
+            canonical_serialization(_record(runtime_dependencies=dependencies))
+
+
+def test_a_non_string_dependency_is_refused() -> None:
+    with pytest.raises(EnvironmentAuthorityError, match="string versions"):
+        canonical_serialization(_record(runtime_dependencies={"numpy": 232}))
+
+
+def test_mutable_local_state_in_a_dependency_cannot_become_authority() -> None:
+    """A dependency resolved from a local wheel reaches the digest too."""
+    record = _record(
+        runtime_dependencies={"cardiosentinel": "file:///home/dev/cs.whl"}
+    )
+    with pytest.raises(EnvironmentAuthorityError, match="mutable local state"):
+        verify_authority_record(
+            record,
+            declared_sha256=environment_sha256(record),
+            artifact_exists=_exists,
+        )
+
+
+def test_the_dependency_mapping_participates_in_the_digest() -> None:
+    baseline = environment_sha256(_record())
+    altered = environment_sha256(_record(runtime_dependencies={"numpy": "2.3.3"}))
+    assert altered != baseline
+
+
+# -- preflight: a digest an object merely reports is not an authority -------
+
+
+def test_preflight_requires_a_verified_authority_object() -> None:
+    """Structural, by AST. An object that only reports a digest attests to
+    nothing: `verify_runtime_matches` compares the runtime against that same
+    object's own record, so a duck-typed stand-in would verify itself."""
+    source = Path(preflight.__file__).read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    function = next(
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef) and node.name == "run_preflight"
+    )
+    guards = [
+        node
+        for node in ast.walk(function)
+        if isinstance(node, ast.Call)
+        and getattr(node.func, "id", None) == "isinstance"
+        and any(
+            getattr(argument, "id", None) == "VerifiedEnvironmentAuthority"
+            for argument in ast.walk(node)
+        )
+    ]
+    assert guards, (
+        "run_preflight must require a VerifiedEnvironmentAuthority, not any "
+        "object carrying an environment_sha256 attribute"
+    )

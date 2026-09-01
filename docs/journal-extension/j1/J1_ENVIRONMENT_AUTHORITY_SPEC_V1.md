@@ -67,7 +67,23 @@ Frozen so two independent implementations agree byte for byte:
   not stripped, because silently stripping would hide two records that differ;
 - strings as-is; integers in decimal; mappings as `key=value` joined by `,` in
   **sorted key order**, so mapping insertion order cannot change the digest;
+- **the separators are refused as content, never escaped** — `\n` and `\r` in
+  any field value, and `\n`, `\r`, `,` or `=` in any dependency name or
+  version;
+- the no-padding and no-separator rules apply to dependency names and versions
+  on the same terms as to every other field;
 - excluded fields omitted entirely.
+
+**Why the separators are refused rather than escaped.** They carry the whole
+meaning of this form, so a value free to contain one can impersonate a
+different record. `{"numpy": "2.3.2,scipy=1.0.0"}` and `{"numpy": "2.3.2",
+"scipy": "1.0.0"}` are two different environments that would serialize to
+identical bytes, share one digest, and both qualify. That is the same failure
+the no-padding rule exists to prevent — two records that differ silently
+merging into one — reached by a different door. Escaping would close it too,
+but an escaping scheme is a second thing two implementations must agree on byte
+for byte, and this form exists so that they need not. Refusal has one rule and
+no encoding to get wrong.
 
 ## 4. States
 
@@ -94,6 +110,12 @@ completeness, no blank fields, a non-empty dependency set, **no mutable local
 state**, digest integrity against the declared value, and an immutable artifact
 reference that exists.
 
+Its caller is not trusted to have done this. **`run_preflight` requires a
+`VerifiedEnvironmentAuthority`** — the object `verify_authority_record`
+returns — and refuses anything else, because `verify_runtime_matches` compares
+the runtime against the record the object carries. An object that merely
+reports an `environment_sha256` would be checking itself against itself.
+
 **`verify_runtime_matches`** — is the runtime executing now the approved one?
 Python identity, OS identity, dependency digest.
 
@@ -106,7 +128,10 @@ returns is hashed, and no value from it can become an `environment_sha256`.
 `developer-laptop` · `workstation` · `unbound` · `unknown`
 
 A record naming any of these is refused with the reason stated, rather than
-accepted and quietly relied upon.
+accepted and quietly relied upon. **`runtime_dependencies` is scanned on the
+same terms as every other digest-bearing field**: a dependency resolved from a
+local wheel or a home directory is exactly the mutable local state this rule
+keeps out of a digest, and it reaches the digest by the same route.
 
 ## 6. Preflight integration
 

@@ -36,6 +36,7 @@ from .authorization import AuthorizationError, J1Authorization, verify_authoriza
 from .capability_gate import require_execution_capability
 from .environment_authority import (
     EnvironmentAuthorityError,
+    VerifiedEnvironmentAuthority,
     verify_runtime_matches,
 )
 from .freeze_binding import verify_freeze_binding
@@ -123,6 +124,12 @@ def run_preflight(
             "environment authority absent. J1 requires a qualified environment "
             "authority record whose digest the authorization names; a developer "
             "machine is not a scientific authority."
+        )
+    if not isinstance(environment_authority, VerifiedEnvironmentAuthority):
+        raise PreflightError(
+            "environment authority must be a record that passed "
+            "verify_authority_record; an object that merely reports a digest "
+            f"attests to nothing. Got {type(environment_authority).__name__}."
         )
     if environment_authority.environment_sha256 != authorization.environment_sha256:
         raise PreflightError(

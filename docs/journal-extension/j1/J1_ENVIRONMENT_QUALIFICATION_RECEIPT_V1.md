@@ -1,6 +1,6 @@
 # J1 — Environment Qualification Receipt, V1
 
-# `QUALIFIED — NOT AUTHORIZED`
+# `MECHANISM QUALIFIED — NO ENVIRONMENT SUBMITTED`
 
 **Date:** 2026-09-01
 **Specification:** [`J1_ENVIRONMENT_AUTHORITY_SPEC_V1.md`](J1_ENVIRONMENT_AUTHORITY_SPEC_V1.md), V1
@@ -12,6 +12,13 @@
 **The environment authority mechanism** — the record schema, the frozen
 canonical serialization, the digest construction, the verifier, and the
 preflight gate that consumes it.
+
+**`QUALIFIED` is a state of a record, not of a mechanism**, so this receipt
+does not use the bare word. `EnvironmentAuthorityState.QUALIFIED` means *a
+record passed `verify_authority_record`*, and no record has. A heading reading
+`QUALIFIED — NOT AUTHORIZED` beside an environment-authority document invites
+exactly the misreading this package exists to prevent: that an environment
+is qualified and only the signature is missing.
 
 ## What is *not* qualified
 
@@ -38,10 +45,16 @@ This V1 receipt is not edited to add them.
 |---|---|
 | Specification version | V1 |
 | Verification commit | the commit that adds this receipt |
-| Qualification tests | `tests/journal_extension/test_j1_environment_authority.py` — **34 passed** |
-| Instrument tests | `tests/journal_extension/` — **96 passed** |
-| Governance tests | `tests/reproducibility/` — **75 passed** |
+| Qualification tests | `tests/journal_extension/test_j1_environment_authority.py` — **50 passed** |
+| Instrument tests | `tests/journal_extension/` — **112 passed** |
+| Governance tests | `tests/reproducibility/` — **52 passed** |
+| Sealed-test identity | `tests/neural/test_b4b_sealed_test_identity.py` — **23 passed** |
+| Shared-interpreter condition | all three together — **187 passed** |
 | Lint | `ruff check .` — clean |
+
+The three suites are run in one interpreter as well as separately, because a
+J1 module previously asserted a `sys.modules` absence that held in isolation
+and failed in the full suite.
 
 ### Runtime checks exercised
 
@@ -57,8 +70,20 @@ Against synthetic records only:
 - every blank field fails;
 - five forms of mutable local state fail: home paths, `localhost`,
   `current-machine`, `developer-laptop`, `unknown`;
+- **a dependency name or version carrying `\n`, `\r`, `,` or `=` is refused**,
+  and so is a field value carrying `\n` or `\r` — the separators are
+  structure, not content, so a value free to carry one could impersonate a
+  different record and share its digest;
+- padded dependency names and versions are refused, as padded fields are;
+- a non-string dependency is refused;
+- mutable local state inside `runtime_dependencies` — a wheel resolved from a
+  home directory — is refused, as it is in every other digest-bearing field;
+- the dependency mapping participates in the digest;
 - Python, OS and dependency-digest runtime mismatches each fail;
 - preflight refuses without an environment authority;
+- **preflight requires a `VerifiedEnvironmentAuthority`**, not any object
+  reporting a digest — `verify_runtime_matches` compares the runtime against
+  the record the object carries, so a duck-typed stand-in would verify itself;
 - no bypass parameter exists;
 - `AUTHORIZED` is unreachable from the package;
 - **no production path derives authority from hostname, username, home
@@ -68,7 +93,7 @@ Against synthetic records only:
 
 | | |
 |---|---|
-| Mechanism | **QUALIFIED** |
+| Mechanism | **QUALIFIED** (the mechanism; no record has been) |
 | Environment | **NONE SUBMITTED** |
 | Authorization | **ABSENT** |
 | J1 | **`PRE-REGISTERED — NOT AUTHORIZED`** |

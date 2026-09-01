@@ -15,12 +15,24 @@ Canonical serialization, frozen so two independent implementations agree:
 - no leading or trailing whitespace on any line;
 - values serialized as-is for strings, `int` decimal, and `key=value` pairs
   joined by `,` in sorted key order for mappings;
+- **structural characters are refused, never escaped** -- see below;
 - `EXCLUDED_FROM_DIGEST` fields are recorded in the document but never hashed.
 
 The exclusions matter as much as the inclusions. A creation timestamp, a
 hostname or an owner path would make the digest depend on where the record was
 written rather than on what it describes, so two faithful rebuilds of the same
 environment would disagree.
+
+**Why structural characters are refused rather than escaped.** The separators
+`\\n`, `,` and `=` carry the whole meaning of this form. A value free to contain
+them can impersonate a different record: `{"numpy": "2.3.2,scipy=1.0.0"}` and
+`{"numpy": "2.3.2", "scipy": "1.0.0"}` are different environments that would
+serialize to identical bytes and therefore share a digest. That is the same
+failure the padded-value rule exists to prevent -- two records that differ
+silently merging into one -- reached through a different door. Escaping would
+close it too, but an escaping scheme is a second thing two implementations must
+agree on byte for byte, and this form exists precisely so that they need not.
+Refusal has one rule and no encoding to get wrong.
 """
 
 from __future__ import annotations
@@ -51,6 +63,14 @@ EXCLUDED_FROM_DIGEST: Final[tuple[str, ...]] = (
     "creation_timestamp",
     "owner_provenance_identity",
 )
+
+#: Line structure. A scalar field value carrying one of these could add or
+#: displace a line, so the record it describes would not be the record hashed.
+FORBIDDEN_IN_FIELD_VALUE: Final[tuple[str, ...]] = ("\n", "\r")
+
+#: Line *and* pair structure. A dependency name or version carrying one of
+#: these could impersonate additional pairs within the single dependency line.
+FORBIDDEN_IN_DEPENDENCY: Final[tuple[str, ...]] = ("\n", "\r", ",", "=")
 
 #: Values that name a machine rather than an approved artifact.
 _MUTABLE_LOCAL_MARKERS: Final[tuple[str, ...]] = (
@@ -98,9 +118,42 @@ class EnvironmentAuthorityRecord:
         return document
 
 
+def _reject_uncanonical(label: str, text: str, forbidden: tuple[str, ...]) -> None:
+    """Refuse padding and refuse structure. Neither is stripped or escaped."""
+    if text != text.strip():
+        raise EnvironmentAuthorityError(
+            f"{label} carries leading or trailing whitespace; the canonical "
+            "form has none, so a padded value would change the digest."
+        )
+    for character in forbidden:
+        if character in text:
+            raise EnvironmentAuthorityError(
+                f"{label} contains {character!r}, which is canonical-form "
+                "structure, not content. It is refused rather than escaped: "
+                "a value free to carry a separator can impersonate a "
+                "different record, and two records that differ must never "
+                "serialize to the same bytes."
+            )
+
+
+def _serialize_mapping(mapping: dict[str, str]) -> str:
+    """`key=value` pairs joined by `,` in sorted key order, structure refused."""
+    for key, value in mapping.items():
+        if not isinstance(key, str) or not isinstance(value, str):
+            raise EnvironmentAuthorityError(
+                "a dependency mapping must name string versions by string "
+                f"name; got {key!r}: {value!r}."
+            )
+        _reject_uncanonical(f"dependency name {key!r}", key, FORBIDDEN_IN_DEPENDENCY)
+        _reject_uncanonical(
+            f"dependency {key!r} version", value, FORBIDDEN_IN_DEPENDENCY
+        )
+    return ",".join(f"{key}={mapping[key]}" for key in sorted(mapping))
+
+
 def _serialize_value(value: Any) -> str:
     if isinstance(value, dict):
-        return ",".join(f"{k}={value[k]}" for k in sorted(value))
+        return _serialize_mapping(value)
     if isinstance(value, bool):
         raise EnvironmentAuthorityError("a boolean is not an environment identity.")
     if isinstance(value, int):
@@ -117,13 +170,9 @@ def canonical_serialization(record: EnvironmentAuthorityRecord) -> bytes:
     lines = []
     for name in ENVIRONMENT_RECORD_FIELDS:
         value = _serialize_value(getattr(record, name))
-        if value != value.strip():
-            raise EnvironmentAuthorityError(
-                f"{name!r} carries leading or trailing whitespace; the canonical "
-                "form has none, so a padded value would change the digest."
-            )
+        _reject_uncanonical(repr(name), value, FORBIDDEN_IN_FIELD_VALUE)
         lines.append(f"{name}={value}")
-    dependencies = _serialize_value(record.runtime_dependencies)
+    dependencies = _serialize_mapping(record.runtime_dependencies)
     lines.append(f"runtime_dependencies={dependencies}")
     return ("\n".join(lines) + "\n").encode("utf-8")
 
@@ -133,17 +182,29 @@ def environment_sha256(record: EnvironmentAuthorityRecord) -> str:
     return hashlib.sha256(canonical_serialization(record)).hexdigest()
 
 
+def _reject_markers(label: str, value: str) -> None:
+    lowered = value.lower()
+    for marker in _MUTABLE_LOCAL_MARKERS:
+        if marker.lower() in lowered:
+            raise EnvironmentAuthorityError(
+                f"{label}={value!r} names mutable local state ({marker!r}). A "
+                "workstation snapshot is not a scientific authority: the "
+                "record must reference an immutable, reproducible artifact."
+            )
+
+
 def reject_mutable_local_state(record: EnvironmentAuthorityRecord) -> None:
-    """Refuse a record that names a machine instead of an approved artifact."""
+    """Refuse a record that names a machine instead of an approved artifact.
+
+    `runtime_dependencies` is scanned on the same terms as every other
+    digest-bearing field. A dependency resolved from a local wheel or a home
+    directory is exactly the mutable local state this rule exists to keep out
+    of a digest, and it reaches the digest by the same route.
+    """
     for name in ENVIRONMENT_RECORD_FIELDS:
         value = getattr(record, name)
         if not isinstance(value, str):
             continue
-        lowered = value.lower()
-        for marker in _MUTABLE_LOCAL_MARKERS:
-            if marker.lower() in lowered:
-                raise EnvironmentAuthorityError(
-                    f"{name}={value!r} names mutable local state ({marker!r}). A "
-                    "workstation snapshot is not a scientific authority: the "
-                    "record must reference an immutable, reproducible artifact."
-                )
+        _reject_markers(name, value)
+    for key, value in record.runtime_dependencies.items():
+        _reject_markers(f"runtime_dependencies[{key!r}]", str(value))
