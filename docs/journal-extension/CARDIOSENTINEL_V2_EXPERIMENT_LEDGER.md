@@ -15,7 +15,7 @@ budget is set by an authorization, and none exists.
 
 | ID | Workstream | Parent RQ | Current state | Real-data authority | Primary dependency |
 |---|---|---|---|---|---|
-| **J1** | Fair episode comparator | J-RQ3 | PLANNED / NOT AUTHORIZED | NONE | P0 control plane |
+| **J1** | Fair episode comparator | J-RQ3 | PLANNED / NOT AUTHORIZED | NONE | [protocol](j1/J1_FAIR_EPISODE_COMPARATOR_PROTOCOL_V1.md) and [pre-registration](j1/J1_PRE_REGISTRATION_V1.md) drafted; **not ready to freeze** — 11 open human decisions |
 | **J2** | Patient-memory contribution | J-RQ1 | PLANNED / NOT AUTHORIZED | NONE | P0 + cross-fit design |
 | **J3** | Adaptation stress / recovery | J-RQ2 | PLANNED / NOT AUTHORIZED | NONE | J2 / stress registry |
 | **J4** | Explanation-state consistency | J-RQ5 | PLANNED / NOT AUTHORIZED | synthetic / structured context protocol required | context freeze |
@@ -38,7 +38,7 @@ authorization, never in advance.
 
 | Field | J1 | J2 | J3 | J4 | J5 | J6 | R2 |
 |---|---|---|---|---|---|---|---|
-| Protocol path | — | — | — | — | — | — | — |
+| Protocol path | draft | — | — | — | — | — | — |
 | Protocol digest | — | — | — | — | — | — | — |
 | Pre-registration path | — | — | — | — | — | — | — |
 | Authorization path | — | — | — | — | — | — | — |
