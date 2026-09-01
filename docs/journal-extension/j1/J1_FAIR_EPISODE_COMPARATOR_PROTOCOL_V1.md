@@ -138,7 +138,40 @@ If any scientifically unavoidable upstream difference between the arms is
 discovered during implementation, **execution stops and the protocol returns for
 human review.**
 
-## 4. Development population and data authority
+## 4. Population, cohorts and data authority
+
+### 4.1 Study population — all 56
+
+**The J1 study population is all 56 subjects of the frozen V1 TRAIN partition.**
+No subject is removed from J1 because it has zero reference episodes.
+
+### 4.2 Endpoint-specific evaluability, defined from reference truth
+
+```
+PRIMARY_F1_ELIGIBLE(subject) := reference_episode_count(subject) > 0
+```
+
+| Cohort | Definition | Role |
+|---|---|---|
+| **Study population** | all 56 TRAIN subjects | everything J1 reports |
+| **Primary episode-F1 cohort** | `reference_episode_count > 0` | the primary paired estimand |
+| **Zero-reference cohort** | `reference_episode_count == 0` | operational / false-alerting analyses (§7.3) |
+
+**This is not a subject exclusion.** It is **endpoint-specific evaluability
+defined prospectively from reference truth**. Zero-reference subjects remain part
+of J1 and carry the study's false-alerting evidence.
+
+The criterion depends **only** on the frozen reference annotation. It does not
+depend on J1-S predictions, J1-W predictions, predicted event count, whether an
+arm's F1 would otherwise be undefined, observed performance, or fold performance.
+**It is identical for both arms**, so no subject can enter or leave the primary
+denominator because of what an arm predicted.
+
+**The size of each cohort is not known and is not knowable from this task.** No
+TRAIN annotation was inspected. The counts are descriptive results produced only
+under an authorized execution stage.
+
+### 4.3 Data authority
 
 | | |
 |---|---|
@@ -150,13 +183,9 @@ human review.**
 | Labels | usable only as the frozen protocol specifies, never as a transition input |
 | Provenance | every access emits a record |
 
-**No data authority is granted by this protocol.** It is granted, if at all, by a
-later authorization.
-
-The V1 edge runtime's refusal to score non-VALIDATION subjects is **not relaxed**.
-J1 will require a separately governed research evaluation path that accepts
-explicitly supplied V2 cross-fitted artifacts. That path is not implemented and
-not designed here beyond the requirement that it exist.
+**No data authority is granted by this protocol.** The V1 edge runtime's refusal to
+score non-VALIDATION subjects is **not relaxed**; J1 will require a separately
+governed research evaluation path, not implemented here.
 
 ## 5. Prospective cross-fitting geometry — FROZEN
 
@@ -288,9 +317,12 @@ pre-registration's attack audit rather than argued away.
 
 - the **same inner subjects** for both arms;
 - the **same cross-fitting structure**;
-- the **same optimization endpoint** (§7 primary metric);
-- the **same selection discipline** — argmax over the space on inner data, ties
-  broken by a prospectively fixed deterministic rule;
+- the **same optimization endpoint** — subject-macro episode F1 computed over the
+  **primary-F1-eligible inner subjects only**, by the §4.2 reference-defined rule.
+  A zero-reference subject never enters or leaves an arm's tuning denominator
+  according to that arm's predictions;
+- the **same selection discipline** — argmax over the space on inner data, with
+  the shared lexicographic order of §6.5 and its deterministic tie-break;
 - **identical information access**, except the `elapsed_state_seconds` exclusion
   of §3.2, which is disclosed and in J1-W's disfavour;
 - **no manual tuning after viewing any outer-assessment outcome**;
@@ -310,6 +342,36 @@ V1 promoted `qw0.9_qe0.99_FAST` — quantile levels bound **jointly** with
 two selections, run independently on the same inner data against the same
 endpoint, neither able to see the other's outcome.
 
+### 6.5 Selection order and tie-breaking — FROZEN
+
+V1 already froze a complete deterministic selection order,
+`policy_sort_key()` in
+[`neural/t1_protocol.py`](../../../src/cardiosentinel/neural/t1_protocol.py),
+whose own docstring states its purpose: *"no fold may be decided by dictionary
+order or by a human preference expressed after the numbers were seen."*
+
+**J1 preserves it rather than inventing one.** Both arms are selected by the same
+shared lexicographic key, smaller sorting first:
+
+| Rank | Term | Direction |
+|---|---|---|
+| 1 | subject-macro `episode_f1` over primary-F1-eligible inner subjects | maximise |
+| 2 | `window_mcc` | maximise |
+| 3 | `false_onsets_per_hour` | minimise |
+| 4 | `event_exposure_fraction` | minimise |
+
+Terms 1–4 are identical for both arms — the same quantities, the same directions,
+the same eligibility rule. Only the final, arbitrary-but-deterministic tie-break
+differs, because the arms are parameterised differently:
+
+- **J1-S** — V1's remaining terms unchanged: `-q_event`, then `-q_watch`, then
+  `T1_PERSISTENCE_PROFILES.index(profile)`.
+- **J1-W** — ascending rule ID (§6.2), which is fixed at enumeration.
+
+**No tie is ever broken by an outer-assessment outcome**, by dictionary order, or
+by a preference expressed after any number is seen. The order is fixed before
+execution and applies identically to every fold.
+
 ## 7. Endpoints
 
 ### 7.1 Primary
@@ -325,7 +387,7 @@ inference is computed on pooled rows.
 
 | Specification | Value | Authority |
 |---|---|---|
-| Subject denominator | every eligible outer-assessment subject, all 7 folds | this protocol |
+| Subject denominator | every **primary-F1-eligible** outer-assessment subject, all 7 folds — **identical for both arms** | §4.2 |
 | Aggregation | `(1/N) · Σ_i (F1_S,i − F1_W,i)` | follows V1's subject-macro form |
 | Bootstrap unit | subject | V1 T1 analysis plan |
 | Resampling | **paired** — `(F1_S,i, F1_W,i)` resampled together | this protocol |
@@ -333,14 +395,14 @@ inference is computed on pooled rows.
 | Seed | 2026 | V1 T1 analysis plan |
 | Reselection of candidates inside replicates | **none** | V1 T1 analysis plan |
 | Interval level | **95%** | frozen here |
-| Undefined per-subject F1 in the paired form | **OPEN — see §7.1.1** | conflict, not chosen |
+| Undefined per-subject F1 in the paired form | **cannot arise** — see §7.1.1 | §4.2 |
 
 Interval construction reuses V1's method where it is explicitly defined and valid
 for a paired contrast. **The method is not changed after results are seen.**
 
-#### 7.1.1 `STOP` — the zero-reference convention does not extend to the paired form
+#### 7.1.1 Why no undefined-F1 convention is needed
 
-V1's convention was traced in code, not assumed. Both implementations agree:
+V1's convention was traced in code and is **preserved unchanged**:
 
 ```
 episode_f1 = 2·matched / (predicted + reference)     # None when denominator == 0
@@ -349,39 +411,30 @@ episode_f1 = 2·matched / (predicted + reference)     # None when denominator ==
 - [`neural/t1_development_run.py`](../../../src/cardiosentinel/neural/t1_development_run.py) — `2TP/(2TP+FP+FN)`, "Undefined when the denominator is zero"
 - [`neural/t1_continuation_results.py`](../../../src/cardiosentinel/neural/t1_continuation_results.py) — returns `None` when `predicted + reference == 0`
 
-So for a single arm: zero reference **and** zero predicted → **undefined**; zero
-reference with ≥1 predicted → **0.0**; reference with zero predicted → **0.0**.
-V1's prose agrees and records that `episode_f1` was *"defined for all twelve"* —
-**the undefined case never arose**, and V1 computed a single-arm mean, not a
-paired difference.
+**The earlier ambiguity is dissolved rather than adjudicated.** Because primary-F1
+eligibility requires `reference > 0`, the denominator satisfies
 
-**Why this does not settle J1.** Definedness depends on `predicted`, which is
-**arm output**. A subject with zero reference episodes can therefore be defined for
-one arm and undefined for the other:
+```
+predicted + reference  >=  reference  >  0
+```
 
-| Subject | reference | J1-S predicted | J1-W predicted | `F1_S` | `F1_W` | paired difference |
-|---|---|---|---|---|---|---|
-| example | 0 | 0 | 0 | undefined | undefined | undefined |
-| example | 0 | 0 | ≥1 | **undefined** | **0.0** | **ambiguous** |
-| example | 0 | ≥1 | 0 | **0.0** | **undefined** | **ambiguous** |
+for **every** subject in the primary cohort, **whatever either arm predicts**.
+Both J1-S and J1-W therefore have a defined F1 for every subject in that cohort,
+and the undefined branch is unreachable inside the primary estimand.
 
-The set of subjects entering the paired mean would then be **arm-dependent and
-outcome-dependent** — precisely what V1's own analysis plan warns is *"a statistic
-over a data-dependent subset — not a subject-macro average, whatever it is
-labelled."*
+This removes the defect exactly: the earlier proposal made definedness a function
+of `predicted`, which is arm output, so the analysis set became arm- and
+outcome-dependent and systematically favoured whichever arm predicted fewer runs
+on zero-episode subjects. Anchoring eligibility to **reference truth** makes the
+denominator identical for both arms by construction.
 
-Worse, it is **directionally biased**: dropping such a subject removes a `0.0`
-from whichever arm predicted runs while the quieter arm contributes nothing, so
-the convention would systematically favour the arm that predicts fewer runs on
-zero-episode subjects. That is a thumb on the scale in the primary estimand.
+**The V1 function is not modified.** Its mathematical definition is untouched;
+J1 simply does not ask it to score subjects for which the primary endpoint is not
+defined.
 
-**Per the task's instruction, this is reported rather than chosen.** No convention
-is invented here. Resolving it requires a human decision with a known directional
-consequence, and it is the reason this protocol is not a freeze candidate.
-
-**Independent of the resolution**, zero-reference subjects remain included in false
-alarms per hour, predicted-event count, predicted-event duration, and the
-subject-level descriptives.
+**Not done, and not permitted:** imputing undefined F1 as `0`; imputing it as `1`;
+using predicted event count to decide primary-cohort membership; or creating an
+arm-specific F1 denominator.
 
 ### 7.2 Secondary — descriptive, never confirmatory
 
@@ -393,6 +446,32 @@ count; predicted-event duration; fragmentation; overlap and onset latency
 substituted for it.** A favourable pooled result does not displace an unfavourable
 subject-level one; V1's Evidence Map already names three denominators that were
 not what they looked like.
+
+### 7.3 Zero-reference and all-subject operational analysis — MANDATORY
+
+Zero-reference subjects carry J1's false-alerting evidence and **must not
+disappear from the study**.
+
+**Reported for the zero-reference cohort**, per subject and for both arms:
+
+- false alarms per hour;
+- predicted event-run count;
+- predicted event duration;
+- fragmentation / spurious-run behaviour where defined.
+
+**Also reported across all 56 TRAIN subjects:** false alarms per hour.
+
+**The report must expose the accounting:**
+
+| Quantity |
+|---|
+| total J1 study subjects |
+| number of primary-F1-eligible (reference-positive) subjects |
+| number of zero-reference subjects |
+| every reason for any technical unevaluability |
+
+These are **descriptive results produced only after authorized access**. They are
+not computed in this task, and no annotation was inspected to anticipate them.
 
 ## 8. Multiplicity and claim hierarchy
 
@@ -427,6 +506,25 @@ difference from which one could be derived. W1's report already declines to rank
 the arms in monitoring terms for exactly that reason. Inventing a margin would be
 choosing the bar without justification; adding one after results is the failure
 pre-registration exists to prevent.
+
+### 9.1 What Gate A is about
+
+**Gate A refers specifically to the reference-positive episode-F1 estimand** — the
+primary cohort of §4.2. It says nothing on its own about monitoring behaviour on
+event-free subjects.
+
+**A PASS does not license the statement "stateful reasoning provides better
+overall monitoring."** The final interpretation must additionally disclose the
+secondary operational behaviour, **particularly false alarms per hour**, across
+both the zero-reference cohort and all 56 subjects (§7.3).
+
+**If the F1 contrast is favourable but false-alert behaviour worsens, both facts
+must be reported**, in the same place, with equal prominence. A favourable primary
+result does not suppress an unfavourable operational one.
+
+**No false-alarm non-inferiority threshold is invented here.** None exists in the
+repository, and the programme has no alerting-cost model from which one could be
+derived.
 
 **Magnitude is always reported alongside** false alarms per hour, episode
 sensitivity, episode precision, fragmentation, and subject-level heterogeneity.
@@ -492,19 +590,22 @@ provenance sink for J1 artifacts.
 | 3 | Fold-assignment seed | **CLOSED** — §5.1. `2026`. |
 | 4 | Fold balancing and statistic | **CLOSED** — §5.1. Reference-episode presence, then count, sha256 identity tie-break. Burden only. |
 | 5 | Subject exclusions | **CLOSED** — §5.2. None post-hoc; pre-existing integrity rules only, always visible in the denominator. |
-| 6 | **Zero-reference-subject handling in the paired form** | **OPEN — `STOP` recorded at §7.1.1.** V1's convention exists and is internally consistent, but does not determine the paired case, and every resolution has a known directional consequence. Reported, not chosen. |
+| 6 | Zero-reference-subject handling in the paired form | **CLOSED** — §4.2, §7.1.1. Primary-F1 eligibility is `reference_episode_count > 0`, defined from reference truth alone. The undefined branch becomes unreachable in the primary cohort, so no imputation convention is needed and V1's function is unmodified. |
+| 12 | Selection order and tie-breaking | **CLOSED** — §6.5. V1's frozen `policy_sort_key` preserved; terms 1–4 identical for both arms, arm-specific final term only. |
 | 7 | Bootstrap interval level | **CLOSED** — §7.1. 95%, paired, 1000 replicates, seed 2026. |
 | 8 | J1-W registry and count | **CLOSED** — §6.2. 206 enumerated candidates, stable IDs, deterministic tie-break. |
 | 9 | J1-S expansion | **CLOSED** — §6.1. `NO EXPANSION`; 12 candidates. |
 | 10 | B4 fitting population | **CLOSED** — README §1. TRAIN, 56 subjects, lock `58e44a09…`. |
 | 11 | T2 S4D classification | **CLOSED** — README §2. `FROZEN_REUSED`. |
 
-**Ten of eleven closed. One remains open, and it is a `STOP` reported for human
-resolution rather than a gap left unnoticed.**
+**All twelve closed.** Every result-affecting choice is fixed prospectively, and
+none was made by inspecting an outcome, a fold, or an annotation count.
 
-Decision 6 alone prevents this protocol from being a freeze candidate. It is not a
-formatting detail: it determines which subjects enter the primary estimand, and
-the choice is directionally consequential.
+The decision that blocked the previous revision — how a zero-reference subject
+enters the paired difference — was not adjudicated between biased options. It was
+**dissolved**: anchoring eligibility to reference truth makes the primary
+denominator identical for both arms by construction, so the arm-dependence that
+created the bias cannot arise.
 
 ## 13. Implementation audit — read-only
 

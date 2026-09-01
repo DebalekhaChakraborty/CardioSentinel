@@ -1,16 +1,22 @@
 # J1 — Pre-Registration V1
 
-# **NOT READY TO FREEZE**
+# **FREEZE CANDIDATE — NOT AUTHORIZED**
 
-**Ten of eleven decisions are now closed. One remains open, and it is enough.**
+**Every result-affecting design choice is closed.** None was made by inspecting an
+outcome, a fold, or an annotation count.
 
-Decision 6 — how a zero-reference subject enters the **paired** difference — is a
-`STOP` recorded at protocol §7.1.1, not an oversight. V1's convention exists and
-is internally consistent, but it does not determine the paired case, and every
-resolution has a **known directional consequence** for the primary estimand.
+The decision that blocked the previous revision — how a zero-reference subject
+enters the paired difference — was **dissolved rather than adjudicated**. Primary
+episode-F1 eligibility is `reference_episode_count > 0`, defined from reference
+truth alone, so the denominator `predicted + reference` is strictly positive for
+both arms on every subject in the primary cohort and the undefined branch is
+unreachable. The arm-dependence that made every earlier option directionally
+biased cannot arise.
 
-Because that choice would change which subjects enter the primary contrast, this
-document cannot become a freeze candidate. J1 remains `PLANNED / NOT AUTHORIZED`.
+**This is not `PRE-REGISTERED`, not `AUTHORIZED`, and not `EXECUTABLE`.** Those
+require explicit human action. No authorization document exists, no attempt budget
+is set, and no real-data authority is granted. J1 remains
+`PLANNED / NOT AUTHORIZED`.
 
 Protocol: [`J1_FAIR_EPISODE_COMPARATOR_PROTOCOL_V1.md`](J1_FAIR_EPISODE_COMPARATOR_PROTOCOL_V1.md).
 
@@ -38,21 +44,24 @@ result.
 | 1 | Hypothesis | **FROZEN** (§1) |
 | 2 | Arms | **FROZEN** — protocol §2 |
 | 3 | Arm-neutral upstream row | **FROZEN** — 8 fields, protocol §3.1. `elapsed_state_seconds` is endogenous to J1-S and is not in the row |
-| 4 | Development population | **FROZEN** — all 56 V1 TRAIN subjects |
+| 4 | Study population | **FROZEN** — all 56 V1 TRAIN subjects |
+| 4a | Primary-F1 cohort | **FROZEN** — `reference_episode_count > 0`, from reference truth alone, identical for both arms |
 | 5 | Fold-generation procedure | **FROZEN** — outer 7 × 8, inner 6 × 8 over 48; seed 2026; burden balancing; sha256 identity tie-break |
 | 6 | Tuning spaces | **FROZEN** — J1-S 12 (`NO EXPANSION`); J1-W 206 enumerated with stable IDs |
 | 7 | Selection objective | **FROZEN** — subject-macro episode F1 on inner data, both arms |
 | 8 | Primary metric | **FROZEN** — paired subject-level difference `Δ = J1-S − J1-W` |
 | 9 | Inferential unit | **FROZEN** — the subject |
 | 10 | Bootstrap procedure | **FROZEN** — paired, subject unit, 1000 replicates, seed 2026, no reselection, **95%** |
-| 11 | **Undefined-subject handling in the paired form** | **OPEN — `STOP`, protocol §7.1.1** |
+| 11 | Undefined-subject handling in the paired form | **FROZEN** — unreachable in the primary cohort; V1's `episode_f1` unmodified; no imputation |
 | 12 | Secondary metrics | **FROZEN** — protocol §7.2, all descriptive |
 | 13 | Gate A interpretation | **FROZEN** — `Δ > 0` and 95% lower bound `> 0`; no margin invented |
 | 14 | Exclusion rules | **FROZEN** — none post-hoc; pre-existing integrity rules only |
 | 15 | Failure handling | **FROZEN** — protocol §11 |
 | 16 | Claim language | **FROZEN** — protocol §10 |
+| 17 | Selection order and tie-break | **FROZEN** — V1's `policy_sort_key` preserved, protocol §6.5 |
+| 18 | Zero-reference operational reporting | **FROZEN** — mandatory, protocol §7.3 |
 
-**One open item. Fifteen frozen.**
+**All eighteen frozen. None open.**
 
 ## 3. Prohibited after freeze
 
@@ -60,7 +69,7 @@ Once frozen, none of the following may change in response to any observed
 outcome: the hypothesis; either arm's definition; the arm-neutral row;
 the population; the fold procedure or seed; either tuning space; the selection
 objective; the primary metric; the inferential unit; the bootstrap procedure;
-undefined-subject handling; the secondary metric list; Gate A's interpretation;
+the primary-F1 eligibility rule; the secondary metric list; Gate A's interpretation;
 exclusion rules; failure classification; or the claim forms.
 
 **Specifically prohibited**, because each is a way this study could be quietly
@@ -84,11 +93,14 @@ rescued:
    data, same subjects, same endpoint, same discipline.
 3. Per outer fold: produce **one** arm-neutral row set for the 8 outer-assessment subjects
    and hand the identical rows to both frozen arms.
-4. Compute per-subject episode F1 for each arm.
+4. Compute per-subject episode F1 for each arm, over the **primary-F1-eligible**
+   subjects (`reference_episode_count > 0`) — the same set for both arms.
 5. Compute the paired per-subject difference and its subject-macro mean.
 6. Compute the subject bootstrap: 1000 replicates, seed 2026, no reselection.
-7. Report secondary and per-subject descriptives.
-8. Read Gate A against the frozen criterion.
+7. Report the zero-reference and all-56 operational analyses of protocol §7.3,
+   with the full cohort accounting.
+8. Report secondary and per-subject descriptives.
+9. Read Gate A against the frozen criterion, scoped as protocol §9.1 requires.
 
 **Outcomes are inspected only at step 4, and only after steps 1–3 are complete for
 every fold.** No operating point is revised after any outer-assessment outcome is seen.
@@ -114,7 +126,8 @@ deferred to the report.
 | **Is the comparison isolated to statefulness?** | Both arms take the identical 8-field arm-neutral row. `elapsed_state_seconds` is not in that row at all: it is endogenous to J1-S and derived from J1-S's own state. Its absence from J1-W is **constitutive of the memoryless definition**, not an imposed handicap. |
 | **Is a subject used in both tuning and evaluation?** | No. Nesting exists for this; outer-assessment subjects contribute to no fitting, calibration or selection of their own rows. |
 | **Is cross-fitting truly subject-disjoint?** | At the J1 levels, yes — outer-assessment subjects contribute to no calibration, tuning or selection of their own rows. **Verified limitation:** the B4 encoder **was** trained on all 56 TRAIN subjects, and T2 was developed on them too. A J1 outer assessment fold is therefore **not held out from all historical upstream model development**. J1 estimates a conditional episode-policy contrast given the inherited scaffold. Using one fixed upstream for both arms removes upstream identity as an intentional arm difference; it does **not** prove upstream in-sampleness has zero interaction with policy behaviour. Absolute values are development evidence only. |
-| **Are subjects without episodes handled transparently?** | **Not yet — this is the open item.** In the paired form, definedness depends on each arm's own predictions, so the subject set entering the primary contrast would be arm- and outcome-dependent, and dropping such subjects systematically favours the arm predicting fewer runs on zero-episode subjects. Reported at protocol §7.1.1 rather than resolved. They remain included in false alarms/hour, predicted-event count and duration, and the descriptives regardless. |
+| **Are subjects without episodes handled transparently?** | Yes. They stay in the 56-subject study population and carry the false-alerting evidence (protocol §7.3). They are outside the *primary episode-F1 endpoint* because that endpoint is undefined without a reference episode — endpoint-specific evaluability, not exclusion. |
+| **Did zero-event subjects disappear from the comparison in a way that favoured one arm?** | **No.** Primary-F1 eligibility is determined **only** by `reference_episode_count > 0`; the criterion is **identical for both arms**; **no prediction-dependent dropping occurs**; zero-reference subjects remain in **all** false-alarm analyses; and total plus per-stratum subject counts are reported. |
 | **Could pooled prevalence drive the result?** | Inference is subject-macro on a paired difference. Pooled metrics are reported separately and cannot substitute. |
 | **Could threshold search overfit folds?** | Selection is on the 6 inner folds only; evaluation is on the 8 outer-assessment subjects. **J1-W searches 206 candidates against J1-S's 12, so residual inner-fold selection variance is larger for J1-W.** This is disclosed rather than corrected, because shrinking J1-W's space to match would make it a weaker comparator — the defect J1 exists to remove. |
 | **Does the stateful arm have more degrees of freedom?** | **No — the reverse.** J1-S has 12 candidates; J1-W has **206**. The larger space makes J1-W credible rather than constrained to resemble V1's W1, but it also gives J1-W more opportunity to overfit the inner folds. Both counts are disclosed in the report. The asymmetry is a deliberate design choice recorded here, in J1-W's favour on capability and against it on selection variance. |
@@ -123,7 +136,21 @@ deferred to the report.
 | **Could consumed V1 evidence leak in?** | VALIDATION and TEST are prohibited. **Open risk:** the V1 runtime resolves operating points by validation-subject identity; a J1 path reusing it carelessly could bind to a VALIDATION artifact. A structural guard making forbidden partitions unrepresentable is **required before execution** (protocol §13.6). |
 | **What would falsify the thesis?** | §5. Stated before any data is seen. |
 
+## 6a. Recorded limitation
+
+> The primary F1 estimand characterizes **episode detection among subjects
+> containing at least one reference episode.** Event-free monitoring behaviour is
+> characterized separately, by false-alarm and predicted-event metrics over the
+> zero-reference cohort and over all 56 subjects.
+
+This is stated in the report, not omitted. A Gate A PASS is a statement about the
+reference-positive estimand and **does not by itself support "better overall
+monitoring"** — that requires the operational evidence alongside it.
+
 ## 7. Status
 
 `PLANNED / NOT AUTHORIZED`. No data authority. No attempt budget. No
-authorization document. **NOT READY TO FREEZE** — one open decision, protocol §7.1.1.
+authorization document.
+
+**FREEZE CANDIDATE — NOT AUTHORIZED.** Human review required to freeze; a further
+explicit act to authorize.
