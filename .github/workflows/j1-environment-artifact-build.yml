@@ -13,7 +13,9 @@
 #     capable of completing, but not permitted to start
 #
 # Action pins are commit SHAs. The version comment beside each is descriptive:
-# a tag can be repointed at different code after this file is reviewed.
+# a tag can be repointed at different code after this file is reviewed. The
+# Buildx binary and the BuildKit daemon image are pinned separately, because
+# pinning the action pins neither.
 
 name: J1 controlled environment artifact build
 
@@ -45,9 +47,12 @@ jobs:
       # even if a later job were somehow reached.
       authorized_source_commit: ${{ steps.gate.outputs.authorized_source_commit }}
     steps:
-      - name: Check out the workflow's own commit
+      - name: Check out with history, so the reviewed commit is readable
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          # The gate reads the workflow bytes out of git at the reviewed
+          # commit. A shallow checkout would not contain that object.
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up the gate's interpreter
@@ -62,9 +67,11 @@ jobs:
         run: python -m pip install -e "."
 
       # Refuses. There is no builder authorization in the repository, and no
-      # flag makes this exit zero. The workflow reports the identity it is
-      # running as; the authorization must already name exactly that, which is
-      # how a workflow avoids having to contain its own commit.
+      # flag makes this exit zero. The gate binds execution to the reviewed
+      # workflow *bytes*, recomputed from both this checkout and git's object
+      # store at the reviewed commit -- so an authorization may live in a
+      # later commit than the workflow it authorizes, which it must, since a
+      # file cannot contain the SHA of the commit that contains it.
       - name: Verify a human authorized this workflow at this commit
         id: gate
         run: |
@@ -132,7 +139,18 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
+      # Four separate identities, deliberately not collapsed into "Docker
+      # version": the action's commit, the Buildx binary release, the BuildKit
+      # daemon image digest, and the runner class. Pinning the action alone
+      # leaves the binary and the daemon floating.
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+        with:
+          version: v0.36.1
+          driver: docker-container
+          # moby/buildkit:buildx-stable-1 resolved 2026-09-02. The tag is
+          # descriptive metadata; the digest is the authority.
+          driver-opts: |
+            image=moby/buildkit@sha256:28a898719c18a33f4e8000685287fa36fd0dd9560c6440227d3a732d79bb41d8
       - name: Install the build tooling
         run: python -m pip install -e ".[dev,ml,neural]"
       - name: Materialize the derived dependency input
@@ -167,7 +185,18 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
+      # Four separate identities, deliberately not collapsed into "Docker
+      # version": the action's commit, the Buildx binary release, the BuildKit
+      # daemon image digest, and the runner class. Pinning the action alone
+      # leaves the binary and the daemon floating.
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+        with:
+          version: v0.36.1
+          driver: docker-container
+          # moby/buildkit:buildx-stable-1 resolved 2026-09-02. The tag is
+          # descriptive metadata; the digest is the authority.
+          driver-opts: |
+            image=moby/buildkit@sha256:28a898719c18a33f4e8000685287fa36fd0dd9560c6440227d3a732d79bb41d8
       - name: Install the build tooling
         run: python -m pip install -e ".[dev,ml,neural]"
       - name: Materialize the derived dependency input

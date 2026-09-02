@@ -12,19 +12,40 @@ cannot be edited without the diff appearing in a Python review. The workflow
 calls `python -m ...builder_authorization` and obeys the exit status; it decides
 nothing itself.
 
-**The self-reference is resolved by the authorization, not by the workflow.**
-A workflow cannot contain the commit that contains it. So the workflow does not
-name its own identity: it reports the identity it is *running as* --
-`github.workflow_ref` and `github.sha` -- and the authorization must already
-name exactly that. A workflow running at a commit no human named is refused,
-which is the same rule from the other direction and needs no placeholder.
+**The identity is the reviewed workflow *bytes*, not a commit equality.**
+
+An earlier version of this module required `github.sha` to equal a
+`workflow_commit` field carried by the authorization. That rule was
+**unsatisfiable**: the authorization lives in the repository, so the commit that
+adds it is the commit the workflow then runs at, and the document would have had
+to contain the SHA of the commit containing itself. It could never be written.
+
+What a human actually reviews is a *file*, so that is what the authorization
+names: the path, the historical commit at which those bytes were reviewed, and
+the SHA-256 of the raw committed bytes. The authorization may therefore live in
+a **later** commit than the workflow it authorizes, which is the normal case.
+Execution from a later commit is permitted **only while the workflow bytes are
+unchanged**; a single differing byte is a hard refusal.
+
+Two ways that can fail, kept separate because they mean different things:
+
+- **reviewed historical workflow drift** -- the bytes at the reviewed commit do
+  not hash to the digest the authorization declares, so the authorization is
+  describing something that was never there;
+- **current workflow differs from the authorized reviewed bytes** -- the
+  reviewed commit is intact, but the file being executed has since changed.
+
+**A declared digest is never trusted.** Both digests are recomputed: one from
+the working tree, one from git's own object store at the reviewed commit.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -51,7 +72,8 @@ BUILDER_AUTHORIZATION_FIELDS: Final[tuple[str, ...]] = (
     "provider",
     "repository",
     "workflow_path",
-    "workflow_commit",
+    "workflow_review_commit",
+    "workflow_sha256",
     "runner_class",
     "controlled_build_protocol_identity",
     "controlled_build_protocol_digest",
@@ -86,10 +108,11 @@ _SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
 _IMAGE_BY_DIGEST = re.compile(r"^[^\s@]+@sha256:[0-9a-f]{64}$")
 
 COMMIT_FIELDS: Final[tuple[str, ...]] = (
-    "workflow_commit",
+    "workflow_review_commit",
     "authorized_source_commit",
 )
 DIGEST_FIELDS: Final[tuple[str, ...]] = (
+    "workflow_sha256",
     "controlled_build_protocol_digest",
     "dependency_digest",
     "build_configuration_digest",
@@ -107,8 +130,16 @@ class VerifiedBuilderAuthorization:
     fields: Mapping[str, Any]
 
     @property
-    def workflow_commit(self) -> str:
-        return str(self.fields["workflow_commit"])
+    def workflow_review_commit(self) -> str:
+        return str(self.fields["workflow_review_commit"])
+
+    @property
+    def workflow_sha256(self) -> str:
+        return str(self.fields["workflow_sha256"])
+
+    @property
+    def workflow_path(self) -> str:
+        return str(self.fields["workflow_path"])
 
     @property
     def authorized_source_commit(self) -> str:
@@ -117,7 +148,8 @@ class VerifiedBuilderAuthorization:
     def as_attestation(self) -> dict[str, Any]:
         return {
             "builder_authorization_id": self.fields["builder_authorization_id"],
-            "workflow_commit": self.workflow_commit,
+            "workflow_review_commit": self.workflow_review_commit,
+            "workflow_sha256": self.workflow_sha256,
             "authorized_source_commit": self.authorized_source_commit,
             "human_authorizer_identity": self.fields["human_authorizer_identity"],
         }
@@ -225,39 +257,149 @@ def load_builder_authorization(repository_root: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def require_running_identity_is_authorized(
+class ReviewedWorkflowDriftError(BuilderAuthorizationError):
+    """The reviewed commit does not contain the bytes the authorization names."""
+
+
+class CurrentWorkflowMismatchError(BuilderAuthorizationError):
+    """The workflow about to run is not the one that was reviewed."""
+
+
+def _git(arguments: list[str], *, repository_root: Path) -> bytes:
+    completed = subprocess.run(
+        ["git", "-C", str(repository_root), *arguments],
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise BuilderAuthorizationError(
+            "git could not answer a question the authorization depends on: "
+            f"git {' '.join(arguments)}\n"
+            + completed.stderr.decode("utf-8", "replace").strip()
+        )
+    return completed.stdout
+
+
+def workflow_bytes_at_commit(
+    repository_root: Path, *, commit: str, path: str
+) -> bytes:
+    """The raw committed bytes, read from git's object store.
+
+    Not the working tree, and not a parsed-and-re-rendered document: YAML
+    round-trips through a parser lossily, and a digest over re-rendered bytes
+    would agree with a file nobody wrote.
+    """
+    return _git(
+        ["cat-file", "blob", f"{commit}:{path}"],
+        repository_root=repository_root,
+    )
+
+
+def verify_workflow_identity(
     authorization: VerifiedBuilderAuthorization,
     *,
-    running_workflow_ref: str,
-    running_commit: str,
-) -> dict[str, str]:
-    """The workflow must be running as the object a human actually named.
+    repository_root: Path,
+    running_workflow_ref: str | None = None,
+    running_commit: str | None = None,
+) -> dict[str, Any]:
+    """Bind execution to reviewed bytes rather than to a commit equality.
 
-    `running_workflow_ref` is GitHub's `github.workflow_ref`, of the form
-    `owner/repo/.github/workflows/file.yml@refs/heads/branch`. The path is
-    compared; the ref suffix is not, because the commit is compared directly
-    and is the stronger claim.
+    Three independent checks, none of which trusts a declared value:
+
+    1. the workflow now on disk hashes to the authorized digest;
+    2. the bytes git holds at `workflow_review_commit` hash to the same digest;
+    3. the running workflow, if reported, is the authorized path.
+
+    The authorization may live in a commit that did not exist when the workflow
+    was reviewed. That is the ordinary case and is exactly what the previous
+    commit-equality rule made impossible.
     """
-    expected_path = str(authorization.fields["workflow_path"])
-    if expected_path not in running_workflow_ref:
-        raise BuilderAuthorizationError(
+    declared = authorization.workflow_sha256
+    path = authorization.workflow_path
+
+    current_file = repository_root / path
+    if not current_file.is_file():
+        raise CurrentWorkflowMismatchError(
+            f"the authorized workflow {path!r} is not present in this checkout."
+        )
+    current_digest = hashlib.sha256(current_file.read_bytes()).hexdigest()
+
+    reviewed_bytes = workflow_bytes_at_commit(
+        repository_root,
+        commit=authorization.workflow_review_commit,
+        path=path,
+    )
+    reviewed_digest = hashlib.sha256(reviewed_bytes).hexdigest()
+
+    # Reported before the current-file comparison: if the reviewed commit never
+    # held these bytes, the authorization is describing something that did not
+    # exist, and the state of the working tree is beside the point.
+    if reviewed_digest != declared:
+        raise ReviewedWorkflowDriftError(
+            "reviewed historical workflow drift: the authorization declares a "
+            "digest the reviewed commit does not contain.\n"
+            f"  path:               {path}\n"
+            f"  review commit:      {authorization.workflow_review_commit}\n"
+            f"  declared:           {declared}\n"
+            f"  recomputed at that commit: {reviewed_digest}\n"
+            "A declared digest is not evidence. This authorization describes "
+            "bytes that were never reviewed at that commit."
+        )
+    if current_digest != declared:
+        raise CurrentWorkflowMismatchError(
+            "current workflow differs from the authorized reviewed bytes.\n"
+            f"  path:       {path}\n"
+            f"  authorized: {declared}\n"
+            f"  current:    {current_digest}\n"
+            "Execution from a later commit is permitted only while the workflow "
+            "bytes are unchanged. One differing byte is a different workflow."
+        )
+    if running_workflow_ref is not None and path not in running_workflow_ref:
+        raise CurrentWorkflowMismatchError(
             "this workflow is not the one that was authorized.\n"
-            f"  authorized: {expected_path}\n"
+            f"  authorized: {path}\n"
             f"  running:    {running_workflow_ref}"
         )
-    if running_commit != authorization.workflow_commit:
-        raise BuilderAuthorizationError(
-            "this workflow is running at a commit no human authorized.\n"
-            f"  authorized: {authorization.workflow_commit}\n"
-            f"  running:    {running_commit}\n"
-            "The authorization names the exact reviewed bytes; a later commit "
-            "to the same path is a different object."
-        )
-    return {
-        "workflow_path": expected_path,
-        "workflow_commit": authorization.workflow_commit,
+
+    proof: dict[str, Any] = {
+        "workflow_path": path,
+        "workflow_review_commit": authorization.workflow_review_commit,
+        "workflow_sha256": declared,
+        "workflow_sha256_recomputed_from_review_commit": reviewed_digest,
+        "workflow_sha256_recomputed_from_checkout": current_digest,
         "authorized_source_commit": authorization.authorized_source_commit,
     }
+    proof["running_commit_descends_from_review_commit"] = _describe_ancestry(
+        repository_root,
+        ancestor=authorization.workflow_review_commit,
+        descendant=running_commit,
+    )
+    return proof
+
+
+def _describe_ancestry(
+    repository_root: Path, *, ancestor: str, descendant: str | None
+) -> str:
+    """Record whether the running commit descends from the reviewed one.
+
+    Recorded, not enforced. A CI checkout is routinely shallow, so ancestry is
+    frequently unprovable locally, and a check that silently passes whenever it
+    cannot run is worse than one that says it did not run. The binding claim is
+    the byte digest, which needs no history.
+    """
+    if descendant is None:
+        return "not_reported"
+    completed = subprocess.run(
+        ["git", "-C", str(repository_root), "merge-base", "--is-ancestor",
+         ancestor, descendant],
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode == 0:
+        return "verified"
+    if completed.returncode == 1:
+        return "not_a_descendant"
+    return "unverifiable_shallow_or_missing_history"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -272,7 +414,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--repository-root", default=".")
     parser.add_argument("--running-workflow-ref", required=True)
-    parser.add_argument("--running-commit", required=True)
+    parser.add_argument("--running-commit", default=None)
     arguments = parser.parse_args(argv)
 
     root = Path(arguments.repository_root).resolve()
@@ -280,8 +422,9 @@ def main(argv: list[str] | None = None) -> int:
         authorization = verify_builder_authorization(
             load_builder_authorization(root)
         )
-        proof = require_running_identity_is_authorized(
+        proof = verify_workflow_identity(
             authorization,
+            repository_root=root,
             running_workflow_ref=arguments.running_workflow_ref,
             running_commit=arguments.running_commit,
         )

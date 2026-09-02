@@ -209,6 +209,27 @@ selection receipt.
 
 The runner label is pinned. **`ubuntu-latest` is a moving target.**
 
+### Four identities, not one
+
+Provenance records these separately, because "Docker version" names none of
+them and pinning the action pins only the first:
+
+```text
+setup_buildx_action_commit   8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+buildx_version               v0.36.1
+buildkit_image_digest        sha256:28a898719c18a33f4e8000685287fa36fd0dd9560c6440227d3a732d79bb41d8
+runner_class                 ubuntu-24.04
+```
+
+The `docker-container` driver starts a BuildKit daemon from an image. Left as
+`moby/buildkit:buildx-stable-1` that daemon floats, so the digest is pinned and
+the tag kept as descriptive metadata only.
+
+**The GitHub-hosted runner and its Docker host remain residual provider trust.**
+Pinning these four constrains what code runs; it does not constrain what
+executes it. That residual trust is accepted only by the human builder
+authorization.
+
 ---
 
 ## 9. Network policy

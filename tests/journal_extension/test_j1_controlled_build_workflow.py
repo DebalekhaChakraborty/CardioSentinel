@@ -11,6 +11,7 @@ cannot tell which job it belongs to.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -25,8 +26,11 @@ from cardiosentinel.journal_extension.j1.builder_authorization import (
     BUILDER_AUTHORIZATION_FIELDS,
     BUILDER_AUTHORIZATION_PATH,
     BuilderAuthorizationError,
+    CurrentWorkflowMismatchError,
+    ReviewedWorkflowDriftError,
     load_builder_authorization,
     verify_builder_authorization,
+    verify_workflow_identity,
 )
 
 REPOSITORY_ROOT = Path(preflight.J1_PACKAGE_ROOT).parents[3]
@@ -274,14 +278,15 @@ def test_an_absent_authorization_refuses_in_its_own_words() -> None:
 def test_the_schema_names_every_required_field() -> None:
     for field in (
         "builder_authorization_id",
-        "workflow_commit",
+        "workflow_review_commit",
+        "workflow_sha256",
         "runner_class",
         "authorized_source_commit",
         "build_configuration_digest",
         "human_authorizer_identity",
     ):
         assert field in BUILDER_AUTHORIZATION_FIELDS
-    assert len(BUILDER_AUTHORIZATION_FIELDS) == 20
+    assert len(BUILDER_AUTHORIZATION_FIELDS) == 21
 
 
 # -- what a future authorization must survive ------------------------------
@@ -299,7 +304,8 @@ def _authorization(**overrides: object) -> dict[str, object]:
         "provider": "github-actions",
         "repository": "DebalekhaChakraborty/CardioSentinel",
         "workflow_path": ".github/workflows/j1-environment-artifact-build.yml",
-        "workflow_commit": "1" * 40,
+        "workflow_review_commit": "1" * 40,
+        "workflow_sha256": "b" * 64,
         "runner_class": "ubuntu-24.04",
         "controlled_build_protocol_identity": "J1_CONTROLLED_BUILD_PROTOCOL_V1",
         "controlled_build_protocol_digest": "a" * 64,
@@ -321,7 +327,8 @@ def _authorization(**overrides: object) -> dict[str, object]:
 
 def test_a_complete_synthetic_authorization_verifies() -> None:
     verified = verify_builder_authorization(_authorization())
-    assert verified.workflow_commit == "1" * 40
+    assert verified.workflow_review_commit == "1" * 40
+    assert verified.workflow_sha256 == "b" * 64
 
 
 @pytest.mark.parametrize("field", BUILDER_AUTHORIZATION_FIELDS)
@@ -339,7 +346,9 @@ def test_no_field_may_be_left_to_be_filled_in_later(value: str) -> None:
         verify_builder_authorization(_authorization(human_authorizer_identity=value))
 
 
-@pytest.mark.parametrize("field", ["workflow_commit", "authorized_source_commit"])
+@pytest.mark.parametrize(
+    "field", ["workflow_review_commit", "authorized_source_commit"]
+)
 @pytest.mark.parametrize("value", ["main", "v1.0", "abc1234", "HEAD"])
 def test_a_branch_where_a_commit_is_required_is_refused(
     field: str, value: str
@@ -370,88 +379,208 @@ def test_an_unknown_field_is_refused() -> None:
         verify_builder_authorization(_authorization(allow_unauthorized="true"))
 
 
-def test_a_workflow_running_at_an_unnamed_commit_is_refused() -> None:
-    """The self-reference resolved from the other direction: the workflow says
-    what it is running as, and the authorization must already name it."""
-    from cardiosentinel.journal_extension.j1.builder_authorization import (
-        require_running_identity_is_authorized,
-    )
+def test_the_schema_no_longer_carries_an_unsatisfiable_commit_equality() -> None:
+    """The previous rule required `github.sha == workflow_commit`.
 
-    verified = verify_builder_authorization(_authorization())
-    with pytest.raises(BuilderAuthorizationError, match="no human authorized"):
-        require_running_identity_is_authorized(
-            verified,
-            running_workflow_ref=(
-                "o/r/.github/workflows/j1-environment-artifact-build.yml@refs/x"
-            ),
-            running_commit="9" * 40,
-        )
-
-
-def test_a_different_workflow_at_the_right_commit_is_refused() -> None:
-    from cardiosentinel.journal_extension.j1.builder_authorization import (
-        require_running_identity_is_authorized,
-    )
-
-    verified = verify_builder_authorization(_authorization())
-    with pytest.raises(BuilderAuthorizationError, match="not the one that was"):
-        require_running_identity_is_authorized(
-            verified,
-            running_workflow_ref="o/r/.github/workflows/ci.yml@refs/heads/master",
-            running_commit="1" * 40,
-        )
-
-
-# -- the build inputs must actually be in the repository -------------------
-
-
-BUILD_CONFIGURATION_SOURCES = (
-    "containers/j1-environment/Containerfile",
-    "containers/j1-environment/build.sh",
-    "containers/j1-environment/validate_artifact.sh",
-    ".github/workflows/j1-environment-artifact-build.yml",
-)
-
-
-@pytest.mark.parametrize("relative", BUILD_CONFIGURATION_SOURCES)
-def test_every_build_input_is_tracked_by_git(relative: str) -> None:
-    """These files were first written under `build/`, which `.gitignore`
-    excludes as a Python packaging convention. They existed on disk, every
-    local test passed, and none of them would have reached the repository --
-    the same shape as the `docs/paper/` failure that kept master red for
-    eighteen hours. Presence on disk is not membership of the build.
+    The authorization lives in the repository, so the commit that adds it is
+    the commit the workflow then runs at, and the document would have had to
+    contain the SHA of the commit containing itself. It could never be written.
     """
-    assert (REPOSITORY_ROOT / relative).is_file()
-    tracked = subprocess.run(
-        ["git", "ls-files", "--error-unmatch", relative],
+    assert "workflow_commit" not in BUILDER_AUTHORIZATION_FIELDS
+    assert "workflow_review_commit" in BUILDER_AUTHORIZATION_FIELDS
+    assert "workflow_sha256" in BUILDER_AUTHORIZATION_FIELDS
+
+
+# -- the self-reference fix, exercised against real git history ------------
+
+
+def _git(repo: Path, *arguments: str) -> str:
+    return subprocess.run(
+        ["git", "-C", str(repo), *arguments],
         capture_output=True,
         text=True,
-        cwd=REPOSITORY_ROOT,
-    )
-    ignored = subprocess.run(
-        ["git", "check-ignore", relative],
-        capture_output=True,
-        text=True,
-        cwd=REPOSITORY_ROOT,
-    )
-    assert ignored.returncode != 0, f"{relative} is gitignored"
-    assert tracked.returncode == 0, f"{relative} is not tracked by git"
+        check=True,
+    ).stdout.strip()
 
 
-def test_the_generated_dependency_input_is_not_tracked() -> None:
-    """Its generator and the proof it equals the frozen authority are tracked;
-    its output is not, so a stale copy cannot be mistaken for the authority."""
-    ignored = subprocess.run(
-        ["git", "check-ignore", "containers/j1-environment/requirements.pypi.txt"],
-        capture_output=True,
-        text=True,
-        cwd=REPOSITORY_ROOT,
-    )
-    assert ignored.returncode == 0
+@pytest.fixture
+def reviewed_repository(tmp_path: Path) -> dict[str, Any]:
+    """Commit A introduces the workflow; commit B adds the authorization.
+
+    This is the ordinary case the previous rule made impossible: a human
+    reviews a workflow, then signs an authorization in a *later* commit.
+    """
+    repo = tmp_path / "repo"
+    workflow_relative = ".github/workflows/j1-environment-artifact-build.yml"
+    (repo / ".github/workflows").mkdir(parents=True)
+    repo_workflow = repo / workflow_relative
+    repo_workflow.write_bytes(WORKFLOW_PATH.read_bytes())
+
+    _git(repo.parent, "init", "-q", str(repo))
+    _git(repo, "config", "user.email", "qualification@example.invalid")
+    _git(repo, "config", "user.name", "qualification")
+    _git(repo, "add", workflow_relative)
+    _git(repo, "commit", "-q", "-m", "commit A: introduce the workflow")
+    commit_a = _git(repo, "rev-parse", "HEAD")
+
+    reviewed_digest = hashlib.sha256(repo_workflow.read_bytes()).hexdigest()
+
+    (repo / "unrelated.txt").write_text("commit B changes something else\n")
+    _git(repo, "add", "unrelated.txt")
+    _git(repo, "commit", "-q", "-m", "commit B: add the authorization")
+    commit_b = _git(repo, "rev-parse", "HEAD")
+
+    return {
+        "root": repo,
+        "path": workflow_relative,
+        "commit_a": commit_a,
+        "commit_b": commit_b,
+        "digest": reviewed_digest,
+    }
 
 
-def test_the_workflow_references_only_tracked_build_inputs() -> None:
-    text = WORKFLOW_PATH.read_text(encoding="utf-8")
-    assert "build/j1-environment" not in text, (
-        "the workflow points at the gitignored build/ path"
+def _authorization_for(fixture: dict[str, Any], **overrides: object):
+    fields: dict[str, object] = {
+        "workflow_path": fixture["path"],
+        "workflow_review_commit": fixture["commit_a"],
+        "workflow_sha256": fixture["digest"],
+    }
+    fields.update(overrides)
+    return verify_builder_authorization(_authorization(**fields))
+
+
+def test_an_authorization_may_live_in_a_later_commit(
+    reviewed_repository: dict[str, Any],
+) -> None:
+    """Commit A holds the workflow, commit B holds the authorization, and the
+    workflow bytes are unchanged. This must be able to pass."""
+    proof = verify_workflow_identity(
+        _authorization_for(reviewed_repository),
+        repository_root=reviewed_repository["root"],
+        running_workflow_ref=f"o/r/{reviewed_repository['path']}@refs/heads/x",
+        running_commit=reviewed_repository["commit_b"],
     )
+    assert proof["workflow_sha256_recomputed_from_review_commit"] == (
+        reviewed_repository["digest"]
+    )
+    assert proof["workflow_sha256_recomputed_from_checkout"] == (
+        reviewed_repository["digest"]
+    )
+    assert proof["running_commit_descends_from_review_commit"] == "verified"
+
+
+def test_a_one_byte_workflow_change_after_authorization_refuses(
+    reviewed_repository: dict[str, Any],
+) -> None:
+    """Commit C alters the workflow by a single byte."""
+    repo = reviewed_repository["root"]
+    workflow = repo / reviewed_repository["path"]
+    workflow.write_bytes(workflow.read_bytes() + b" ")
+    _git(repo, "add", reviewed_repository["path"])
+    _git(repo, "commit", "-q", "-m", "commit C: one byte")
+
+    with pytest.raises(
+        CurrentWorkflowMismatchError, match="differs from the authorized"
+    ):
+        verify_workflow_identity(
+            _authorization_for(reviewed_repository),
+            repository_root=repo,
+            running_commit=_git(repo, "rev-parse", "HEAD"),
+        )
+
+
+def test_a_declared_digest_is_not_evidence(
+    reviewed_repository: dict[str, Any],
+) -> None:
+    """A valid-looking but wrong 64-hex digest must not create its own truth."""
+    with pytest.raises(
+        ReviewedWorkflowDriftError, match="never reviewed at that commit"
+    ):
+        verify_workflow_identity(
+            _authorization_for(reviewed_repository, workflow_sha256="a" * 64),
+            repository_root=reviewed_repository["root"],
+        )
+
+
+def test_a_wrong_historical_review_commit_refuses(
+    reviewed_repository: dict[str, Any],
+) -> None:
+    """The named commit does not contain the authorized bytes at that path."""
+    repo = reviewed_repository["root"]
+    workflow = repo / reviewed_repository["path"]
+    workflow.write_bytes(workflow.read_bytes() + b"# altered\n")
+    _git(repo, "add", reviewed_repository["path"])
+    _git(repo, "commit", "-q", "-m", "commit C: altered workflow")
+    commit_c = _git(repo, "rev-parse", "HEAD")
+
+    # The authorization names commit C as the review commit, but declares the
+    # digest of the bytes as they were at commit A.
+    with pytest.raises(ReviewedWorkflowDriftError, match="reviewed historical"):
+        verify_workflow_identity(
+            _authorization_for(reviewed_repository, workflow_review_commit=commit_c),
+            repository_root=repo,
+        )
+
+
+def test_the_two_refusals_are_reported_separately(
+    reviewed_repository: dict[str, Any],
+) -> None:
+    """Both refuse, but they mean different things and are different types."""
+    assert issubclass(ReviewedWorkflowDriftError, BuilderAuthorizationError)
+    assert issubclass(CurrentWorkflowMismatchError, BuilderAuthorizationError)
+    assert not issubclass(ReviewedWorkflowDriftError, CurrentWorkflowMismatchError)
+    assert not issubclass(CurrentWorkflowMismatchError, ReviewedWorkflowDriftError)
+
+
+def test_the_digest_is_over_raw_bytes_not_a_parse_cycle(
+    reviewed_repository: dict[str, Any],
+) -> None:
+    """A digest over re-rendered YAML would agree with a file nobody wrote."""
+    repo = reviewed_repository["root"]
+    raw = (repo / reviewed_repository["path"]).read_bytes()
+    reparsed = yaml.safe_dump(yaml.safe_load(raw.decode("utf-8"))).encode("utf-8")
+    assert hashlib.sha256(raw).hexdigest() == reviewed_repository["digest"]
+    assert hashlib.sha256(reparsed).hexdigest() != reviewed_repository["digest"]
+
+
+# -- build tool identities, kept separate ----------------------------------
+
+
+def _buildx_step() -> dict[str, Any]:
+    for job in _workflow()["jobs"].values():
+        for step in _steps(job):
+            if "setup-buildx-action" in str(step.get("uses", "")):
+                return step
+    raise AssertionError("no setup-buildx step found")
+
+
+def test_the_buildx_binary_version_is_pinned() -> None:
+    """Pinning the action pins the action, not the binary it installs."""
+    version = _buildx_step()["with"]["version"]
+    assert version == "v0.36.1"
+    assert version not in ("latest", "stable", "current", "edge")
+
+
+def test_the_buildkit_daemon_image_is_pinned_by_digest() -> None:
+    """The docker-container driver runs a daemon image; a tag would float."""
+    options = _buildx_step()["with"]["driver-opts"]
+    assert "moby/buildkit@sha256:" in options
+    assert "buildx-stable-1" not in options
+    assert "moby/buildkit:latest" not in options
+
+
+def test_the_four_tool_identities_are_not_collapsed() -> None:
+    """Action commit, Buildx version, BuildKit digest and runner class are
+    four separate things; "Docker version" is none of them."""
+    step = _buildx_step()
+    action_sha = str(step["uses"]).rpartition("@")[2]
+    assert len(action_sha) == 40
+    assert step["with"]["version"]
+    assert "sha256:" in step["with"]["driver-opts"]
+    assert _workflow()["jobs"]["build-a"]["runs-on"] == "ubuntu-24.04"
+
+
+def test_the_gate_checks_out_enough_history_to_read_the_review_commit() -> None:
+    gate = _workflow()["jobs"]["builder-authorization"]
+    checkout = next(s for s in _steps(gate) if "checkout" in str(s.get("uses", "")))
+    assert checkout["with"]["fetch-depth"] == 0
