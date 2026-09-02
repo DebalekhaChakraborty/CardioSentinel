@@ -161,21 +161,37 @@ action installs nor the BuildKit daemon image that binary starts.
 |---|---|---|
 | `setup_buildx_action_commit` | `8d2750c68a42422c14e847fe6c8ac0403b4cbd6f` | GitHub API, tag `v3` |
 | `buildx_version` | **`v0.36.1`** | `docker/buildx` releases API |
-| `buildkit_image_digest` | **`sha256:28a898719c18a33f4e8000685287fa36fd0dd9560c6440227d3a732d79bb41d8`** | Docker Hub registry API, tag `buildx-stable-1`, digest recomputed from the fetched bytes |
+| `buildkit_image_digest` | **`sha256:040d34121c27906c4ff9ac152a30d52bf2c5d328d3bb748916bb3d2743c02528`** | Docker Hub registry API; **linux/amd64 image manifest**, recomputed over 2261 raw manifest bytes |
 | `runner_class` | `ubuntu-24.04` | pinned label |
 
-**Why `v0.36.1` and not `v0.37.0`.** `v0.37.0` was published 2026-09-02T17:20Z
-— roughly an hour before this was written — and has no field exposure at all.
-`v0.36.1` (2026-08-04) is the prior stable release. **This is a judgement, not a
-resolution**, and a reviewer who prefers the newest release should say so; both
-are authoritative upstream values and the choice is one line.
+### Buildx `v0.36.1` — a settled programme decision
 
-The BuildKit reference is the **index** digest, not a single-platform manifest.
-That is deliberate and is the opposite of the rule for the *artifact*: the
-daemon image is a tool the runner pulls for its own platform, whereas the
-artifact is the object J1 freezes and executes. Its linux/amd64 manifest is
-`sha256:040d34121c27906c4ff9ac152a30d52bf2c5d328d3bb748916bb3d2743c02528`,
-recorded as evidence.
+Not an inherited default:
+
+- `v0.36.1` is a stable upstream release with meaningful exposure since
+  **2026-08-04**;
+- `v0.37.0` was published only shortly before the J1 builder freeze;
+- **J1 has no requirement that benefits from adopting the newest release**;
+- reproducibility authority prefers an explicitly reviewed stable tool over
+  unnecessary recency.
+
+### BuildKit authority is the linux/amd64 manifest, not the index
+
+The controlled builder is frozen to `linux/amd64`, so the strongest authority
+names **the exact platform image that will execute** rather than an index that
+still requires a further platform-resolution step. This now follows the same
+rule as the artifact, rather than inverting it.
+
+| Object | Digest | Role |
+|---|---|---|
+| linux/amd64 image manifest | `sha256:040d34121c27906c4ff9ac152a30d52bf2c5d328d3bb748916bb3d2743c02528` | **executable authority** |
+| Multi-platform image index | `sha256:28a898719c18a33f4e8000685287fa36fd0dd9560c6440227d3a732d79bb41d8` | provenance evidence only |
+
+Both were verified by recomputation: the index was addressed by its digest and
+re-hashed to itself, exactly one non-attestation `linux/amd64` descriptor was
+found within it, and the manifest's registry descriptor digest was compared
+against an independent SHA-256 over the fetched bytes before either value was
+written here. Media type: `application/vnd.oci.image.manifest.v1+json`.
 
 These are **recorded resolutions**, not a commitment to use every action. The
 workflow author pins from this table or re-resolves and records the new values.

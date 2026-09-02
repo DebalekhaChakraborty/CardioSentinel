@@ -561,12 +561,68 @@ def test_the_buildx_binary_version_is_pinned() -> None:
     assert version not in ("latest", "stable", "current", "edge")
 
 
+#: The frozen BuildKit authority: the linux/amd64 image manifest inside the
+#: index below. Verified by recomputing SHA-256 over the raw manifest bytes.
+BUILDKIT_AMD64_MANIFEST = (
+    "sha256:040d34121c27906c4ff9ac152a30d52bf2c5d328d3bb748916bb3d2743c02528"
+)
+#: Provenance evidence only. Naming a list where the executable image belongs
+#: would leave a platform-resolution step between authorization and execution.
+BUILDKIT_MULTIPLATFORM_INDEX = (
+    "sha256:28a898719c18a33f4e8000685287fa36fd0dd9560c6440227d3a732d79bb41d8"
+)
+
+
+def _buildx_steps() -> list[dict[str, Any]]:
+    return [
+        step
+        for job in _workflow()["jobs"].values()
+        for step in _steps(job)
+        if "setup-buildx-action" in str(step.get("uses", ""))
+    ]
+
+
 def test_the_buildkit_daemon_image_is_pinned_by_digest() -> None:
     """The docker-container driver runs a daemon image; a tag would float."""
     options = _buildx_step()["with"]["driver-opts"]
     assert "moby/buildkit@sha256:" in options
     assert "buildx-stable-1" not in options
     assert "moby/buildkit:latest" not in options
+
+
+def test_the_buildkit_authority_is_the_linux_amd64_manifest() -> None:
+    """The builder is frozen to one platform, so the authority names the exact
+    image that executes rather than a list needing a further resolution step."""
+    for step in _buildx_steps():
+        options = step["with"]["driver-opts"]
+        assert f"image=moby/buildkit@{BUILDKIT_AMD64_MANIFEST}" in options
+
+
+def test_the_index_digest_cannot_stand_in_for_the_platform_manifest() -> None:
+    """Both are immutable and both are 64 hex, so a shape check would accept
+    either. The index is provenance; only the manifest is the authority."""
+    assert BUILDKIT_MULTIPLATFORM_INDEX != BUILDKIT_AMD64_MANIFEST
+    workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
+    assert BUILDKIT_MULTIPLATFORM_INDEX not in workflow_text, (
+        "the multi-platform index digest appears in the workflow, where only "
+        "the linux/amd64 manifest may be the executable BuildKit authority"
+    )
+    assert BUILDKIT_AMD64_MANIFEST in workflow_text
+
+
+def test_both_builds_use_identical_tool_identities() -> None:
+    """BUILD_A and BUILD_B differ only in which run they happen in. A tool that
+    differed between them would make a digest comparison meaningless."""
+    steps = _buildx_steps()
+    assert len(steps) == 2
+    first, second = steps
+    assert first["uses"] == second["uses"]
+    assert first["with"]["version"] == second["with"]["version"]
+    assert first["with"]["driver"] == second["with"]["driver"] == "docker-container"
+    assert first["with"]["driver-opts"] == second["with"]["driver-opts"]
+
+    jobs = _workflow()["jobs"]
+    assert jobs["build-a"]["runs-on"] == jobs["build-b"]["runs-on"]
 
 
 def test_the_four_tool_identities_are_not_collapsed() -> None:

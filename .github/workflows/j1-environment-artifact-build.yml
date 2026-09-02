@@ -147,10 +147,14 @@ jobs:
         with:
           version: v0.36.1
           driver: docker-container
-          # moby/buildkit:buildx-stable-1 resolved 2026-09-02. The tag is
-          # descriptive metadata; the digest is the authority.
+          # The linux/amd64 image manifest, not the multi-platform index.
+          # The builder is frozen to linux/amd64, so the strongest authority
+          # names the exact platform image that will execute rather than an
+          # index that still requires a resolution step. Resolved from the
+          # registry and recomputed over the raw manifest bytes on 2026-09-02.
+          # Index sha256:28a89871... is retained as evidence in the receipt.
           driver-opts: |
-            image=moby/buildkit@sha256:28a898719c18a33f4e8000685287fa36fd0dd9560c6440227d3a732d79bb41d8
+            image=moby/buildkit@sha256:040d34121c27906c4ff9ac152a30d52bf2c5d328d3bb748916bb3d2743c02528
       - name: Install the build tooling
         run: python -m pip install -e ".[dev,ml,neural]"
       - name: Materialize the derived dependency input
@@ -193,10 +197,14 @@ jobs:
         with:
           version: v0.36.1
           driver: docker-container
-          # moby/buildkit:buildx-stable-1 resolved 2026-09-02. The tag is
-          # descriptive metadata; the digest is the authority.
+          # The linux/amd64 image manifest, not the multi-platform index.
+          # The builder is frozen to linux/amd64, so the strongest authority
+          # names the exact platform image that will execute rather than an
+          # index that still requires a resolution step. Resolved from the
+          # registry and recomputed over the raw manifest bytes on 2026-09-02.
+          # Index sha256:28a89871... is retained as evidence in the receipt.
           driver-opts: |
-            image=moby/buildkit@sha256:28a898719c18a33f4e8000685287fa36fd0dd9560c6440227d3a732d79bb41d8
+            image=moby/buildkit@sha256:040d34121c27906c4ff9ac152a30d52bf2c5d328d3bb748916bb3d2743c02528
       - name: Install the build tooling
         run: python -m pip install -e ".[dev,ml,neural]"
       - name: Materialize the derived dependency input

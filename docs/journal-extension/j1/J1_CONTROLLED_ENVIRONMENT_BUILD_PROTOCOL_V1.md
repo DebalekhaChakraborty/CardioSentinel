@@ -217,13 +217,21 @@ them and pinning the action pins only the first:
 ```text
 setup_buildx_action_commit   8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
 buildx_version               v0.36.1
-buildkit_image_digest        sha256:28a898719c18a33f4e8000685287fa36fd0dd9560c6440227d3a732d79bb41d8
+buildkit_image_digest        sha256:040d34121c27906c4ff9ac152a30d52bf2c5d328d3bb748916bb3d2743c02528
 runner_class                 ubuntu-24.04
 ```
 
 The `docker-container` driver starts a BuildKit daemon from an image. Left as
 `moby/buildkit:buildx-stable-1` that daemon floats, so the digest is pinned and
 the tag kept as descriptive metadata only.
+
+**The BuildKit authority is the `linux/amd64` image manifest, not the
+multi-platform index.** The builder is frozen to one platform, so the authority
+names the exact image that executes rather than a list requiring a further
+resolution step — the same rule the artifact follows. The index
+`sha256:28a898719c18a33f4e8000685287fa36fd0dd9560c6440227d3a732d79bb41d8`
+is retained as provenance evidence only, and `v0.36.1` is a settled decision:
+J1 gains nothing from adopting a release published shortly before the freeze.
 
 **The GitHub-hosted runner and its Docker host remain residual provider trust.**
 Pinning these four constrains what code runs; it does not constrain what
