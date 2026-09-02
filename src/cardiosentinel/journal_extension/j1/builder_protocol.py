@@ -30,7 +30,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass
-from typing import Final, Mapping, Sequence
+from typing import Any, Final, Mapping, Sequence
 
 from .approved_runtime import (
     APPROVED_DEPENDENCY_DIGEST,
@@ -106,15 +106,115 @@ PERMITTED_DEPENDENCY_SOURCES: Final[tuple[str, ...]] = (
 # Build configuration -- specification section 15
 # ---------------------------------------------------------------------------
 
-#: Every file class that influences the produced image. A configuration digest
-#: over the container file alone would miss four of these.
-REQUIRED_BUILD_CONFIGURATION_INPUTS: Final[tuple[str, ...]] = (
-    "containerfile",
-    "dependency_input",
-    "build_script",
-    "workflow",
-    "artifact_validation_script",
+#: A member whose bytes are committed at the authorized source commit.
+TRACKED_SOURCE: Final = "TRACKED_SOURCE"
+#: A member generated at build time from an authority-bound input. Acceptable
+#: only under the conditions `require_derived_input_properties` enumerates.
+DERIVED_BUILD_INPUT: Final = "DERIVED_BUILD_INPUT"
+
+
+@dataclass(frozen=True)
+class BuildConfigurationMember:
+    """One artifact-affecting build input, and why it is bound.
+
+    The previous model was five fixed slots with a single `dependency_input`.
+    That was not an abstraction, it was an undercount: the build materialises
+    *two* requirements files and the Containerfile installs from both, so a
+    change from `torch==2.13.0+cpu` to anything else left the configuration
+    digest unmoved. Roles are enumerated here instead, one per file, so adding
+    a build input is a visible change to this tuple rather than a silent gap.
+    """
+
+    role: str
+    path: str
+    status: str
+    authority: str
+    affects_artifact_bytes: bool
+
+
+#: Every input capable of changing the produced artifact's bytes, plus the
+#: validation script, which does not change the artifact but decides whether it
+#: is accepted. Traced from the Containerfile and build script rather than
+#: inherited: see `J1_CONTROLLED_ENVIRONMENT_BUILD_PROTOCOL_V2.md` §3.
+BUILD_CONFIGURATION_MEMBERS: Final[tuple[BuildConfigurationMember, ...]] = (
+    BuildConfigurationMember(
+        role="containerfile",
+        path="containers/j1-environment/Containerfile",
+        status=TRACKED_SOURCE,
+        authority="authorized_source_commit",
+        affects_artifact_bytes=True,
+    ),
+    BuildConfigurationMember(
+        role="containerfile_dockerignore",
+        path="containers/j1-environment/Containerfile.dockerignore",
+        status=TRACKED_SOURCE,
+        authority="authorized_source_commit",
+        # `COPY . /opt/cardiosentinel/src-tree` puts the build context into a
+        # layer. What the context excludes is therefore image content.
+        affects_artifact_bytes=True,
+    ),
+    BuildConfigurationMember(
+        role="dependency_input_pypi",
+        path="containers/j1-environment/requirements.pypi.txt",
+        status=DERIVED_BUILD_INPUT,
+        authority="frozen V1 experiment lock, via the pinned generator",
+        affects_artifact_bytes=True,
+    ),
+    BuildConfigurationMember(
+        role="dependency_input_pytorch",
+        path="containers/j1-environment/requirements.pytorch-cpu.txt",
+        status=DERIVED_BUILD_INPUT,
+        authority="frozen V1 experiment lock, via the pinned generator",
+        affects_artifact_bytes=True,
+    ),
+    BuildConfigurationMember(
+        role="build_script",
+        path="containers/j1-environment/build.sh",
+        status=TRACKED_SOURCE,
+        authority="authorized_source_commit",
+        affects_artifact_bytes=True,
+    ),
+    BuildConfigurationMember(
+        role="workflow",
+        path=".github/workflows/j1-environment-artifact-build.yml",
+        status=TRACKED_SOURCE,
+        authority="authorized_source_commit",
+        # Carries the base image digest, the BuildKit image digest, the Buildx
+        # version and the runner class -- four artifact-affecting values that
+        # exist nowhere else.
+        affects_artifact_bytes=True,
+    ),
+    BuildConfigurationMember(
+        role="artifact_validation_script",
+        path="containers/j1-environment/validate_artifact.sh",
+        status=TRACKED_SOURCE,
+        authority="authorized_source_commit",
+        # Does not change the artifact; decides whether it is accepted.
+        affects_artifact_bytes=False,
+    ),
 )
+
+REQUIRED_BUILD_CONFIGURATION_INPUTS: Final[tuple[str, ...]] = tuple(
+    member.role for member in BUILD_CONFIGURATION_MEMBERS
+)
+
+#: The members the build generates rather than reads from the source tree.
+DERIVED_BUILD_INPUT_ROLES: Final[tuple[str, ...]] = tuple(
+    member.role
+    for member in BUILD_CONFIGURATION_MEMBERS
+    if member.status == DERIVED_BUILD_INPUT
+)
+
+
+def build_configuration_member(role: str) -> BuildConfigurationMember:
+    """The declared member for a role, or a refusal naming the known roles."""
+    for member in BUILD_CONFIGURATION_MEMBERS:
+        if member.role == role:
+            return member
+    raise BuilderProtocolError(
+        f"{role!r} is not a declared build configuration member. Known roles: "
+        + ", ".join(REQUIRED_BUILD_CONFIGURATION_INPUTS)
+    )
 
 _GIT_SHA = re.compile(r"^[0-9a-f]{40}$")
 _SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
@@ -361,11 +461,17 @@ def require_pinned_dependency_specifier(specifier: str) -> str:
 
 
 def build_configuration_digest(inputs: Mapping[str, str]) -> str:
-    """SHA-256 over a canonical manifest of every build-affecting file.
+    """SHA-256 over a canonical manifest of every build-affecting input.
 
-    Not the container file's own digest: four other file classes influence the
-    image, and a configuration digest that misses them would call two different
-    builds identical.
+    **The single configuration digest.** There is deliberately no second
+    algorithm and no "extended" variant: two digests over overlapping input sets
+    would eventually disagree, and the question "which one did the authorization
+    name" has no good answer.
+
+    Every role in `BUILD_CONFIGURATION_MEMBERS` must be present. An input the
+    manifest omits is an input the authorization does not pin, which is how
+    `requirements.pytorch-cpu.txt` was able to change the image without changing
+    this value.
     """
     missing = [
         name for name in REQUIRED_BUILD_CONFIGURATION_INPUTS if name not in inputs
@@ -374,6 +480,14 @@ def build_configuration_digest(inputs: Mapping[str, str]) -> str:
         raise BuilderProtocolError(
             "the build configuration does not cover every influencing input. "
             "Missing: " + ", ".join(sorted(missing))
+        )
+    unknown = [
+        name for name in inputs if name not in REQUIRED_BUILD_CONFIGURATION_INPUTS
+    ]
+    if unknown:
+        raise BuilderProtocolError(
+            "the build configuration carries inputs it does not declare, which "
+            "are held to no rule: " + ", ".join(sorted(unknown))
         )
     lines = []
     for name in sorted(inputs):
@@ -385,6 +499,75 @@ def build_configuration_digest(inputs: Mapping[str, str]) -> str:
             )
         lines.append(f"{name}={digest}")
     return hashlib.sha256(("\n".join(lines) + "\n").encode("utf-8")).hexdigest()
+
+
+def build_configuration_manifest(inputs: Mapping[str, str]) -> dict[str, Any]:
+    """The digest together with what each member is and why it is bound.
+
+    A bare digest is unreviewable: it says two builds agree without saying what
+    they agreed about. This records, per member, the logical role, the path or
+    derived identity, the SHA-256, whether it is tracked or derived, and the
+    authority it hangs from.
+    """
+    digest = build_configuration_digest(inputs)
+    members = []
+    for member in BUILD_CONFIGURATION_MEMBERS:
+        members.append(
+            {
+                "role": member.role,
+                "path": member.path,
+                "sha256": inputs[member.role],
+                "status": member.status,
+                "authority": member.authority,
+                "affects_artifact_bytes": member.affects_artifact_bytes,
+            }
+        )
+    return {
+        "build_configuration_digest": digest,
+        "members": members,
+        "member_count": len(members),
+        "derived_members": list(DERIVED_BUILD_INPUT_ROLES),
+    }
+
+
+#: Every property a `DERIVED_BUILD_INPUT` must have to be acceptable in place of
+#: a tracked file. A derived member that cannot demonstrate all of them is not a
+#: derived input, it is an unbound one.
+DERIVED_INPUT_PROPERTIES: Final[tuple[str, ...]] = (
+    "generator_pinned_by_source_commit",
+    "generator_inputs_authority_bound",
+    "generation_is_deterministic",
+    "output_sha256_computed",
+    "output_matches_frozen_authority",
+    "build_consumes_verified_bytes",
+    "regeneration_mismatch_hard_fails",
+    "output_digest_in_provenance",
+)
+
+
+def require_derived_input_properties(evidence: Mapping[str, bool]) -> None:
+    """Refuse a derived build input that cannot prove every property.
+
+    Being gitignored is not the defect and tracking the file is not the fix: a
+    generated file committed by hand is a copy that drifts. What makes a derived
+    input acceptable is that it cannot differ from the authority it is derived
+    from, and each property below closes one way it otherwise could.
+    """
+    missing = [name for name in DERIVED_INPUT_PROPERTIES if name not in evidence]
+    if missing:
+        raise BuilderProtocolError(
+            "the derived build input claims no position on: "
+            + ", ".join(sorted(missing))
+            + ". An unstated property is not a satisfied one."
+        )
+    unproven = [name for name in DERIVED_INPUT_PROPERTIES if not evidence[name]]
+    if unproven:
+        raise BuilderProtocolError(
+            "this input is generated but not bound, so it is an unbound build "
+            "input: " + ", ".join(sorted(unproven)) + ". Either establish these "
+            "properties or make the file an immutable tracked input; do not "
+            "leave it derived and unproven."
+        )
 
 
 # ---------------------------------------------------------------------------

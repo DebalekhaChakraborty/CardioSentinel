@@ -16,6 +16,38 @@
 # a tag can be repointed at different code after this file is reviewed. The
 # Buildx binary and the BuildKit daemon image are pinned separately, because
 # pinning the action pins neither.
+#
+# ---------------------------------------------------------------------------
+# What the #151 review changed here, and why
+# ---------------------------------------------------------------------------
+#
+# 1. The base image digest is no longer declared in this file. It comes out of
+#    the verified authorization, so the digest that is built from is the digest
+#    a human authorized rather than a second copy that could drift from it.
+#
+# 2. The previous version's comment claimed the build "re-resolves and verifies"
+#    the base image digest. It did not: it passed a literal through. The claim
+#    is removed rather than the behaviour changed, because re-resolving is the
+#    wrong control -- see the base image note below.
+#
+# 3. A qualification claim is recorded after the gate and before any build job,
+#    so which BUILD_A/BUILD_B pair counts as qualification is fixed before
+#    anyone can see a result.
+#
+# 4. The OCI archives and the reproducibility comparison are retained. The
+#    previous version kept two small JSON files and discarded the artifacts the
+#    whole procedure exists to produce, and left the comparison in a run log.
+#
+# ---------------------------------------------------------------------------
+# The base image, stated correctly
+# ---------------------------------------------------------------------------
+#
+# The authorized value is an immutable manifest digest. The build consumes that
+# digest directly. It does NOT re-resolve `python:3.12.6-slim-bookworm`, and it
+# must not: a tag moves when the upstream image is rebuilt, so re-resolving it
+# at build time would either build something the authorization never named, or
+# fail for a reason unrelated to this repository. The tag below is historical
+# metadata for a human reader and decides nothing.
 
 name: J1 controlled environment artifact build
 
@@ -24,14 +56,24 @@ on:
     # Deliberately no inputs. An input is a value a caller supplies, and no
     # value a caller supplies may contribute to authorization.
 
+# Least privilege, unchanged. In particular there is no `packages: write`:
+# retaining provenance is solved by keeping evidence, not by gaining the ability
+# to push images. Artifact promotion is a separate, later, human-reviewed phase.
 permissions:
   contents: read
 
+# Serialises dispatches so two runs cannot interleave their claims. This is
+# ordering hygiene, not the qualification control: the control is the canonical
+# -run rule in `qualification.py`, which is decided on provider run ordering and
+# applied where evidence becomes durable.
+concurrency:
+  group: j1-environment-artifact-build
+  cancel-in-progress: false
+
 env:
-  # Descriptive only. The digest below is the authority, and the build
-  # re-resolves and verifies it rather than trusting this file.
+  # Descriptive only. Not read by any build step. The authorization carries the
+  # digest, and the digest is the authority.
   BASE_IMAGE_TAG: "python:3.12.6-slim-bookworm"
-  BASE_IMAGE_DIGEST: "python@sha256:c0d63ec61d3a1321f8dc2d46ab6bd38465e005237c0a463712020e5d338eae25"
   TARGET_PLATFORM: "linux/amd64"
 
 jobs:
@@ -42,10 +84,14 @@ jobs:
     name: Builder authorization gate
     runs-on: ubuntu-24.04
     outputs:
-      # Populated only if the gate passes. Every build job reads its source
-      # identity from here, so an unauthorized run has no source to check out
-      # even if a later job were somehow reached.
+      # Populated only if the gate passes. Every later job reads its identity
+      # from here, so an unauthorized run has nothing to check out and nothing
+      # to build from even if a later job were somehow reached.
       authorized_source_commit: ${{ steps.gate.outputs.authorized_source_commit }}
+      builder_authorization_id: ${{ steps.gate.outputs.builder_authorization_id }}
+      base_image_digest: ${{ steps.gate.outputs.base_image_digest }}
+      build_configuration_digest: ${{ steps.gate.outputs.build_configuration_digest }}
+      workflow_sha256: ${{ steps.gate.outputs.workflow_sha256 }}
     steps:
       - name: Check out with history, so the reviewed commit is readable
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -80,11 +126,64 @@ jobs:
             --running-workflow-ref "${{ github.workflow_ref }}" \
             --running-commit "${{ github.sha }}" > gate.json
           python - <<'PY' >> "$GITHUB_OUTPUT"
-          import json, os
+          import json
           with open("gate.json", encoding="utf-8") as handle:
               proof = json.load(handle)
-          print(f"authorized_source_commit={proof['authorized_source_commit']}")
+          for name in (
+              "authorized_source_commit",
+              "builder_authorization_id",
+              "base_image_digest",
+              "build_configuration_digest",
+              "workflow_sha256",
+          ):
+              print(f"{name}={proof[name]}")
           PY
+
+  # ---------------------------------------------------------------------
+  # CLAIM. After permission, before any artifact work. This is what makes the
+  # qualification pair non-selectable: the run commits to being the candidate
+  # before it can see a single digest.
+  # ---------------------------------------------------------------------
+  qualification-claim:
+    name: Qualification claim
+    needs: [builder-authorization]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.builder-authorization.outputs.authorized_source_commit }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: Install the claim tooling
+        run: python -m pip install -e "."
+
+      # `run_id` and `run_attempt` are provider-assigned and monotonic; nobody
+      # can create a run that sorts before one that already exists. That
+      # ordering is what the canonical-pair rule decides on.
+      - name: Record the qualification claim
+        run: |
+          python -m cardiosentinel.journal_extension.j1.controlled_build \
+            qualification-claim \
+            --builder-authorization-id "${{ needs.builder-authorization.outputs.builder_authorization_id }}" \
+            --provider "github-actions" \
+            --run-id "${{ github.run_id }}" \
+            --run-number "${{ github.run_number }}" \
+            --run-attempt "${{ github.run_attempt }}" \
+            --workflow-sha256 "${{ needs.builder-authorization.outputs.workflow_sha256 }}" \
+            --authorized-source-commit "${{ needs.builder-authorization.outputs.authorized_source_commit }}" \
+            --build-configuration-digest "${{ needs.builder-authorization.outputs.build_configuration_digest }}" \
+            --claimed-at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            > j1-qualification-claim.json
+          cat j1-qualification-claim.json
+
+      - name: Retain the claim
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: j1-qualification-claim
+          path: j1-qualification-claim.json
+          if-no-files-found: error
 
   # ---------------------------------------------------------------------
   # CAPABILITY. Can the build path complete? Asked separately, on purpose.
@@ -102,31 +201,40 @@ jobs:
       - name: Install the build tooling
         run: python -m pip install -e ".[dev,ml,neural]"
 
-      # Proves the derived dependency input can be produced and is exactly the
-      # frozen 335-package mapping. A capability attestation never implies
-      # permission, and this job reads no authorization.
+      # Proves the derived dependency input can be produced, is exactly the
+      # frozen 335-package mapping, and regenerates to identical bytes. A
+      # capability attestation never implies permission, and this job reads no
+      # authorization.
       - name: Prove the dependency input reconstructs the frozen authority
         run: |
           python -m cardiosentinel.journal_extension.j1.controlled_build \
             --repository-root . dependency-input --out-dir containers/j1-environment
 
+      # One flag per declared configuration member. Both requirements files are
+      # members now: the PyTorch input changed the image without changing this
+      # digest under the previous five-slot model.
       - name: Prove the build configuration digest covers every input
         run: |
           python -m cardiosentinel.journal_extension.j1.controlled_build \
             configuration-digest \
             --containerfile containers/j1-environment/Containerfile \
-            --dependency-input containers/j1-environment/requirements.pypi.txt \
+            --containerfile-dockerignore containers/j1-environment/Containerfile.dockerignore \
+            --dependency-input-pypi containers/j1-environment/requirements.pypi.txt \
+            --dependency-input-pytorch containers/j1-environment/requirements.pytorch-cpu.txt \
             --build-script containers/j1-environment/build.sh \
             --workflow .github/workflows/j1-environment-artifact-build.yml \
-            --validation-script containers/j1-environment/validate_artifact.sh
+            --artifact-validation-script containers/j1-environment/validate_artifact.sh
 
   # ---------------------------------------------------------------------
-  # BUILD A. Unreachable until both gates above pass.
+  # BUILD A. Unreachable until permission, claim and capability all pass.
   # ---------------------------------------------------------------------
   build-a:
     name: BUILD_A
-    needs: [builder-authorization, build-capability]
+    needs: [builder-authorization, qualification-claim, build-capability]
     runs-on: ubuntu-24.04
+    env:
+      # From the verified authorization, never from this file.
+      BASE_IMAGE_DIGEST: ${{ needs.builder-authorization.outputs.base_image_digest }}
     steps:
       - name: Check out the authorized source commit
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -171,6 +279,17 @@ jobs:
           name: j1-build-a-provenance
           path: build-a.json
           if-no-files-found: error
+      # The artifact itself, not only a record about it. Without this the object
+      # that would become the environment artifact dies with the runner, and
+      # there is nothing left to qualify or later promote. This is transport:
+      # Actions retention is an account setting, and the durable record is the
+      # reviewed evidence PR.
+      - name: Retain the OCI archive
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: j1-build-a-oci-archive
+          path: build-a.oci.tar
+          if-no-files-found: error
 
   # ---------------------------------------------------------------------
   # BUILD B. Independent: a separate job, a separate clean runner, no cache,
@@ -178,8 +297,10 @@ jobs:
   # ---------------------------------------------------------------------
   build-b:
     name: BUILD_B
-    needs: [builder-authorization, build-capability]
+    needs: [builder-authorization, qualification-claim, build-capability]
     runs-on: ubuntu-24.04
+    env:
+      BASE_IMAGE_DIGEST: ${{ needs.builder-authorization.outputs.base_image_digest }}
     steps:
       - name: Check out the authorized source commit
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -221,34 +342,59 @@ jobs:
           name: j1-build-b-provenance
           path: build-b.json
           if-no-files-found: error
+      - name: Retain the OCI archive
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: j1-build-b-oci-archive
+          path: build-b.oci.tar
+          if-no-files-found: error
 
   # ---------------------------------------------------------------------
-  # REPRODUCIBILITY. Compares, and stops on divergence. It never selects.
+  # REPRODUCIBILITY. Compares, records, and stops on divergence. It never
+  # selects, and it never retries.
   # ---------------------------------------------------------------------
   reproducibility:
     name: Reproducibility gate
-    needs: [build-a, build-b]
+    needs: [builder-authorization, qualification-claim, build-a, build-b]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          ref: ${{ needs.builder-authorization.outputs.authorized_source_commit }}
           persist-credentials: false
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
       - name: Install the comparison tooling
         run: python -m pip install -e ".[dev,ml,neural]"
-      - name: Collect both build records
+      # Only the small records. The OCI archives are deliberately not downloaded
+      # here: this job decides whether two builds agree, and it needs their
+      # recomputed digests, not their bytes.
+      - name: Collect the build records and the claim
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           path: build-records
+          pattern: "j1-{build-a-provenance,build-b-provenance,qualification-claim}"
       # Divergence is a hard stop. Neither digest is promoted, neither build is
       # selected, nothing is rebuilt until two happen to agree, and there is no
       # automatic reclassification to documented non-reproducibility. That is a
       # finding requiring human review.
-      - name: Compare BUILD_A and BUILD_B
+      - name: Compare BUILD_A and BUILD_B, and record the outcome
         run: |
           python -m cardiosentinel.journal_extension.j1.controlled_build \
             compare-builds \
             --build-a build-records/j1-build-a-provenance/build-a.json \
-            --build-b build-records/j1-build-b-provenance/build-b.json
+            --build-b build-records/j1-build-b-provenance/build-b.json \
+            --claim build-records/j1-qualification-claim/j1-qualification-claim.json \
+            > j1-reproducibility.json
+          cat j1-reproducibility.json
+      # Retained whatever the outcome, which is the point: a divergence is the
+      # finding, and a finding that exists only in an expiring run log is a
+      # finding nobody can review.
+      - name: Retain the reproducibility record
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: j1-reproducibility-record
+          path: j1-reproducibility.json
+          if-no-files-found: warn

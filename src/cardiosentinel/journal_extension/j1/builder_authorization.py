@@ -58,11 +58,26 @@ from .builder_protocol import (
     TARGET_PLATFORM,
     BuilderProtocolError,
 )
+from .qualification import (
+    PERMITTED_QUALIFICATION_POLICIES,
+    QUALIFICATION_POLICY,
+    QualificationError,
+    require_provenance_destination,
+)
 
 #: Where a human-signed builder authorization would live. Its absence is the
 #: repository's ordinary state and is why every build currently refuses.
 BUILDER_AUTHORIZATION_PATH: Final = (
     "docs/journal-extension/j1/J1_BUILDER_AUTHORIZATION_V1.json"
+)
+
+#: The controlled-build workflow, named once. The builder selection receipt
+#: recorded `j1-environment-build.yml` -- a filename that has never existed in
+#: this repository -- and an authorization copied from that receipt would have
+#: pinned a path no run could resolve. The correct path is checked here rather
+#: than trusted, so the typo cannot propagate into an authorization.
+CONTROLLED_BUILD_WORKFLOW_PATH: Final = (
+    ".github/workflows/j1-environment-artifact-build.yml"
 )
 
 #: Every field the future authorization must carry. None may default.
@@ -86,6 +101,7 @@ BUILDER_AUTHORIZATION_FIELDS: Final[tuple[str, ...]] = (
     "dependency_digest",
     "build_configuration_digest",
     "provenance_destination",
+    "qualification_policy",
     "authorization_timestamp",
     "human_authorizer_identity",
 )
@@ -241,6 +257,28 @@ def verify_builder_authorization(document: Any) -> VerifiedBuilderAuthorization:
             "approved one. A builder authorization consumes the runtime "
             "authority; it does not define a new one."
         )
+    if document["workflow_path"] != CONTROLLED_BUILD_WORKFLOW_PATH:
+        raise BuilderAuthorizationError(
+            f"workflow_path={document['workflow_path']!r} is not the controlled "
+            f"build workflow {CONTROLLED_BUILD_WORKFLOW_PATH}. A path that does "
+            "not exist cannot be reviewed, and an authorization naming one "
+            "would pin nothing."
+        )
+    if document["qualification_policy"] not in PERMITTED_QUALIFICATION_POLICIES:
+        raise BuilderAuthorizationError(
+            f"qualification_policy={document['qualification_policy']!r} is not "
+            f"the frozen policy {QUALIFICATION_POLICY}. The policy is not a "
+            "per-authorization choice: it is what makes the qualification pair "
+            "non-selectable, and an authorization that could vary it could "
+            "select its own evidence."
+        )
+    try:
+        require_provenance_destination(
+            declared=str(document["provenance_destination"]),
+            builder_authorization_id=str(document["builder_authorization_id"]),
+        )
+    except QualificationError as error:
+        raise BuilderAuthorizationError(str(error)) from error
     return VerifiedBuilderAuthorization(fields=dict(document))
 
 
@@ -428,6 +466,18 @@ def main(argv: list[str] | None = None) -> int:
             running_workflow_ref=arguments.running_workflow_ref,
             running_commit=arguments.running_commit,
         )
+        # Carried out of the gate so no later job re-reads the authorization
+        # and no later job supplies these from an input. `human_authorizer_-
+        # identity` is deliberately not among them: it is a name on a decision,
+        # not an operational value, and nothing downstream needs it.
+        for name in (
+            "builder_authorization_id",
+            "build_configuration_digest",
+            "base_image_digest",
+            "provenance_destination",
+            "qualification_policy",
+        ):
+            proof[name] = authorization.fields[name]
     except (BuilderAuthorizationError, BuilderProtocolError, ValueError) as error:
         print("controlled build refused: builder authorization absent", file=sys.stderr)
         print(str(error), file=sys.stderr)
