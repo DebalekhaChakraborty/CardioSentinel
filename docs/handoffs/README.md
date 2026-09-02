@@ -28,7 +28,7 @@ open one.
 | | |
 |---|---|
 | **Latest** | **ECG 27** — the one to read |
-| Covers | four PRs merged — environment authority reviewed and fixed, three collaborators promoted, the authorization contract, and the candidate evaluator. The J1 execution apparatus is complete and provable end to end; environment, authorization and execution remain absent |
+| Covers | eight PRs merged, #143–#150 — the J1 execution apparatus completed and provable end to end, then the whole environment chain built up to the last human gate: authorization contract, approved runtime and dependency lock, build authority, builder candidate and frozen build protocol, and an inert controlled-build workflow with zero runs. Builder authorization, artifact, environment authority and J1 authorization all remain absent |
 
 ## Index, newest first
 

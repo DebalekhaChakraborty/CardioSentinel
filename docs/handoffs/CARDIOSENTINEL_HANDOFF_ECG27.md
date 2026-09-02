@@ -13,11 +13,19 @@ Remember to use ONLY the tactics venv, not any other venv."
 | **Scientific interpreter (use this)** | `/home/AI_POC/venvs/tactics/bin/python` |
 | Application interpreter (do **not** use) | `/home/AI_POC/venvs/debalekha/bin/python` |
 | Repository | `/home/AI_POC/tactics/CardioSentinel` |
-| Branch | `master` at `8b91408`, **green**. **No open PRs.** |
+| Branch | `master` at `675fd765`, **green**. **No open PRs.** |
 
 `tactics` holds 335 packages, Python 3.12.6. **Never install, upgrade or
-downgrade anything in it.** **The Bash working directory silently resets** — put
-`cd` in the same command as the work. **Never `git add -A`.**
+downgrade anything in it.** **Never `git add -A`.**
+
+### The working directory resets, and it is not a nuisance — it is dangerous
+
+Put `cd /home/AI_POC/tactics/CardioSentinel &&` in **every** command. This bit
+me twice in one session. Once it silently swallowed a heredoc. The second time
+`git checkout -b` ran in **`/home/AI_POC`**, the outer repository, creating a
+stray branch there; I only noticed because the next command reported the wrong
+branch. `gh` also fails there with *"none of the git remotes point to a known
+GitHub host"*, which is the cheapest tell that you have drifted.
 
 ### The symlink was gone. Recreate it before running anything.
 
@@ -75,6 +83,28 @@ copied forward from ECG26.
 Bound by `docs/journal-extension/j1/J1_FREEZE_RECEIPT_V1.md` and guarded by
 `tests/reproducibility/test_j1_freeze_binding.py`, which fails if either
 document drifts.
+
+### The J1 chain, and exactly where it stops
+
+```text
+frozen protocol            ✅   authorization contract        ✅
+frozen pre-registration    ✅   approved runtime + dep lock   ✅
+freeze receipt             ✅   build-authority mechanism     ✅
+execution instrument       ✅   builder candidate + protocol  ✅
+candidate evaluator        ✅   controlled-build workflow     ✅ inert
+negative capability        ✅
+environment-authority mech ✅
+────────────────────────────────────────────────────────────────
+builder human-authorized   ❌ ← THE NEXT STEP, AND IT IS A HUMAN ACT
+environment artifact       ❌
+environment authorized     ❌
+J1 authorization           ❌
+J1 execution               ❌
+```
+
+**All seven collaborators are real**; `require_execution_capability` passes over
+the whole graph. **Capability is not permission** — preflight still refuses with
+`authorization absent`, and the same is true one layer down for the builder.
 
 ---
 
@@ -155,11 +185,75 @@ provable end to end** for the first time.
 **Capability is not permission.** The gate reads no data and consults no
 authorization; preflight still refuses with `authorization absent`.
 
+### #147 — the approved runtime, and a lock that already existed
+
+The runtime question turned out not to be a choice. All three V1 experiment
+locks record the environment the inherited scaffold was **built in**:
+`python_version 3.12.6`, 335 packages, `environment_dependency_digest
+b0fd6eaa…`. J1 estimates a conditional contrast *given* that scaffold, so the
+approved runtime is a fact read out of frozen evidence.
+
+**CI is not the scientific interpreter and never was** — Python 3.11 from
+unpinned ranges. Right for proving code correct, wrong for producing evidence.
+
+I first reported "there is no dependency lock." **That was wrong: I searched for
+a lockfile by filename.** The lock exists inside the frozen experiment locks,
+PEP 503 normalised, with its digest compiled into V1's source as
+`FROZEN_DEPENDENCY_DIGEST` and enforced by `require_exact_scientific_environment`
+— whose refusal ends *"Do not change packages to satisfy this check."*
+
+### #148 — what makes an artifact authoritative
+
+Not that it exists, that Docker built it, or that its digest was written down.
+`build_authority.py` freezes the manifest schema, the builder ladder and the
+reproducibility contract. **A tag is not authority — and neither is
+`registry/name@sha256:…`**, which carries a *location*; identity is the digest,
+because two mirrors share one identity.
+
+### #149 — builder candidate and the frozen build protocol
+
+GitHub Actions, `CANDIDATE`. Target platform traced from evidence: all three
+locks record `device=cpu`, `cuda_version=None`, `torch==2.13.0+cpu` — a CPU-only
+wheel that cannot use CUDA, so a GPU target would change the dependency digest.
+
+**Dependency reconstruction turned up a finding.** The 335-package set does not
+come from one index: 332 PyPI, **2 from `download.pytorch.org/whl/cpu`**
+(`torch`/`torchvision` `+cpu` are HTTP 404 on PyPI), and **1 first-party**
+(`cardiosentinel==0.1.0`, which no index resolves — the *source commit* pins it,
+not the version string). A build pointed only at PyPI fails on two and silently
+mis-resolves a third.
+
+### #150 — the inert controlled-build workflow, and two corrections to it
+
+`.github/workflows/j1-environment-artifact-build.yml` exists so a human
+authorization can name a real object. `workflow_dispatch` only, **no inputs at
+all**, gate first, every artifact job behind it. Verified against the provider:
+after merge GitHub registered it and it has **zero runs**.
+
+**Review caught a defect I had shipped: the identity rule was unsatisfiable.**
+It required `github.sha == authorization.workflow_commit`. The authorization
+lives in the repository, so the commit that adds it *is* the commit the workflow
+runs at — the document would have had to contain the SHA of the commit
+containing itself. It could never have been written.
+
+Fixed by naming the reviewed **bytes**: `workflow_path`,
+`workflow_review_commit`, `workflow_sha256` over raw committed bytes. The
+authorization may live in a **later** commit; one differing byte refuses. Both
+digests are recomputed — one from the working tree, one from git's object store
+— and the two failures are separate exception types.
+
+Also pinned what pinning the action does not pin: **Buildx `v0.36.1`** (settled
+decision, not recency) and the **BuildKit `linux/amd64` image manifest**
+`sha256:040d3412…`, resolved by addressing the index by its own digest,
+re-hashing it to itself, finding exactly one non-attestation `linux/amd64`
+descriptor, and comparing that descriptor against an independent SHA-256 over
+2261 fetched bytes.
+
 ### Verification at the end of the session
 
-`tests/reproducibility` **52**, `tests/journal_extension` **306**,
+`tests/reproducibility` **52**, `tests/journal_extension` **559**,
 `tests/neural/test_b4b_sealed_test_identity.py` **23**, all three in one
-interpreter — **381 passed**. `ruff check .` clean.
+interpreter — **634 passed**. `ruff check .` clean.
 
 ---
 
@@ -209,18 +303,31 @@ and absolute values are development evidence only.
 4. **A string search is not a dependency analysis.** Prove by **AST and import
    graph, never source text** — a guard's own refusal list contains the words it
    refuses. V1 recorded that false positive five times.
-5. **`git commit` sweeps the whole index.** Stage explicit paths, or
+5. **A gitignored path swallows work silently.** `build/` is ignored as a
+   Python packaging convention. I wrote the container build files there; they
+   existed on disk, every local test passed, and **not one would have reached
+   the repository**. They live in `containers/j1-environment/` now, and a test
+   runs `git check-ignore` and `git ls-files` over every build input. Check
+   `git status` actually lists what you wrote.
+6. **PyYAML parses a bare `on:` key as the boolean `True`.** A workflow test
+   that looks up the string `"on"` finds nothing and passes while the workflow
+   triggers on every push. Resolve the key explicitly.
+7. **Do not write a digest you have not resolved.** I typed an
+   `actions/download-artifact` SHA into the workflow from memory before
+   checking it. It happened to be right. That is luck, not process, and it is
+   the exact failure this programme exists to prevent.
+8. **`git commit` sweeps the whole index.** Stage explicit paths, or
    `git add -u <path>`.
-6. **`grep` is ugrep here** and skips gitignored paths. Use `git grep` /
+9. **`grep` is ugrep here** and skips gitignored paths. Use `git grep` /
    `git ls-files` for anything authoritative.
-7. **`gh pr checks` has no `--json`** (gh 2.23.0). Read failures with
+10. **`gh pr checks` has no `--json`** (gh 2.23.0). Read failures with
    `gh api repos/.../actions/jobs/<id>/logs`.
-8. **`gh pr edit` fails silently** on a body change. Use
+11. **`gh pr edit` fails silently** on a body change. Use
    `gh api -X PATCH repos/.../pulls/<n> -f body=...`.
-9. **Never `ruff format`.** `ruff check` only. `scripts/provenance` is in
+12. **Never `ruff format`.** `ruff check` only. `scripts/provenance` is in
    `extend-exclude`, so its 116 pre-existing errors are out of scope.
-10. **Poll CI in a background waiter**, never one long blocking wait.
-11. **The shared working tree is one checkout.** A peer session in
+13. **Poll CI in a background waiter**, never one long blocking wait.
+14. **The shared working tree is one checkout.** A peer session in
     `/home/AI_POC/tactics/CardioSentinel` sees your `git checkout`. Run
     `ListAgents` and `git worktree list` before claiming a handoff task, and say
     so before you switch branches.
@@ -229,42 +336,59 @@ and absolute values are development evidence only.
 
 ## 5. WHAT IS OPEN
 
-The agreed order, and it is an order, not a menu:
-
 ```text
-candidate evaluator  ✅ done (#146)
+builder human authorization   ← next, and it is a human act
         v
-qualified environment record   <- BLOCKED, and blocked outside this machine
+two controlled artifact builds
         v
-authorization document
+environment authority record
         v
-human signs
+J1_AUTHORIZATION_V1
         v
 ONE J1 attempt
 ```
 
-1. **No environment has been built or submitted, and this machine cannot do
-   it.** That is the package's own thesis: a local machine may generate a
-   candidate, it cannot promote itself. A real record needs a reproducibly
-   built, **digest-addressed artifact that exists outside this box** — a
-   container image in a registry. `verify_authority_record` takes
-   `artifact_exists` as an injected callable precisely because checking it
-   means reaching a registry. **Producing that artifact, or authorizing its
-   construction, is an owner decision.** The mechanism is qualified; nothing has
-   passed through it.
-2. **Then `J1_AUTHORIZATION_V1`**, populating the contract merged in #145.
+1. **The next step is a human builder authorization, and you must not write
+   it.** It would live at `docs/journal-extension/j1/J1_BUILDER_AUTHORIZATION_V1.json`
+   and needs 21 fields with no placeholders. **These four are already
+   determined, recomputed on merged master and handed over as evidence, not as
+   an authorization:**
+
+   ```text
+   workflow_path           .github/workflows/j1-environment-artifact-build.yml
+   workflow_review_commit  675fd7656b333bdf950a63222ecba214d1c4d8b1
+   workflow_sha256         32ffdfc28bf8f3044f069190b1f0b15617733487de985f3e0e477ce7af02ec6d
+   runner_class            ubuntu-24.04
+   ```
+
+   The digest was taken from git's object store over raw committed bytes and
+   cross-checked against the working tree. Verify it yourself before signing —
+   that is the whole point of the recomputation rule.
+
+2. **Then two controlled builds**, under the frozen protocol. On divergence the
+   procedure **stops**: neither digest promoted, no rebuild until they agree, no
+   automatic reclassification to `NOT_REPRODUCIBLE_DOCUMENTED`. Reproducibility
+   is falsifiable here, not proven — nothing has been built twice.
+
+3. **Then the environment authority record.** Four of its twelve fields are
+   already determined by frozen evidence (`approved_runtime_fields()`); the
+   other eight need the artifact.
+
+4. **Then `J1_AUTHORIZATION_V1`**, populating the contract merged in #145.
    **Authorization is a human act — do not perform it autonomously.**
-3. **The provenance sink value comes from the authorization**, and the **TRAIN
-   manifest is supplied by it**, never discovered by the instrument.
-4. **The S3 mirror re-check is still owed and still blocked.**
-   `aws sts get-caller-identity` returns `Your session has expired. Please
-   reauthenticate using 'aws login'.` Evidence bucket, Object Lock to 2027;
-   drafts bucket, versioned, no lock; 994 files at the last count. Retention
-   expires **2027-08-22**.
-5. **Three frozen records name the retired `docs/paper/` files in prose** —
-   ECG16 and two audits. Historical, not drift.
-6. **The symlink question is still open** (§0). It went missing between ECG26
-   and this session, which argues for settling it.
+
+5. **The S3 mirror re-check is still owed and still blocked.**
+   `aws sts get-caller-identity` returns session expired. Evidence bucket has
+   Object Lock to 2027; retention expires **2027-08-22**.
+
+6. **The residual trust has not moved and is the real content of the builder
+   authorization.** GitHub controls the runner image, the hardware and the code
+   behind those pinned SHAs. **Pinning by SHA constrains what code runs, not
+   what executes it.** Accept it knowingly or not at all.
+
+7. **`tactics` is a witness, not an authority.** It currently matches the frozen
+   V1 environment exactly. One `pip install` destroys that match. Its failure
+   would remove a convenient check, not rewrite the frozen authority.
 
 ## 6. THE SCIENCE IS UNCHANGED
 
@@ -285,18 +409,20 @@ are open, and every one needs a run.
 and the weaker check in code — then building the fixture to the prose, so the
 suite went green over the gap.
 
-It happened three times. In #143 the specification said padded values are
-refused *because stripping would merge two records that differ*, and the
-separators — the same failure, one door over — were unguarded. In #145 I wrote
-that `protocol_sha256` "must equal the frozen protocol digest" and implemented
-"looks like 64 hex", **and my own fixture declared `"a"*64`**, so 112 passing
-tests certified a check the document did not describe. In #146's receipt I
-listed two collaborators as real when no object exposed the method the gate
-calls.
+It happened repeatedly, and the shape never changed. In #143 the specification
+said padded values are refused *because stripping would merge two records that
+differ*, and the separators — the same failure, one door over — were unguarded.
+In #145 I wrote that `protocol_sha256` "must equal the frozen protocol digest"
+and implemented "looks like 64 hex", **and my own fixture declared `"a"*64`**,
+so 112 passing tests certified a check the document did not describe. In #146's
+receipt I called two collaborators real when no object exposed the method the
+gate calls. In #150 I shipped an identity rule that could never be satisfied by
+any document anyone could write, and review caught it, not me.
 
-The first was someone else's and I caught it reviewing. The second and third
-were mine and I caught them only because a later step forced me to actually run
-the thing. **A green suite is evidence about the fixtures, not about the
-claim** — the fixture and the code were written by the same hand, in the same
-hour, from the same misunderstanding. Bind a check to an external fact the
-fixture cannot supply, or it proves nothing.
+Every one of those passed its tests. **A green suite is evidence about the
+fixtures**, and the fixture and the code were written by the same hand, in the
+same hour, from the same misunderstanding. The habit that actually caught things
+was different: bind a check to something the fixture cannot supply — a digest
+recomputed from git, a package list read from frozen evidence, a query to a
+registry, `git check-ignore`. When ECG 28 writes a guarantee, ask what external
+fact would falsify it, and check *that*.
