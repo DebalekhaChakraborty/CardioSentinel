@@ -57,14 +57,30 @@ builder_id = <provider>:<repository>//<workflow path>@<workflow commit>#<runner 
 | `provider` | `github-actions` |
 | `workflow_repository` | `DebalekhaChakraborty/CardioSentinel` |
 | `workflow_path` | `.github/workflows/j1-environment-build.yml` |
-| `workflow_commit` | **PENDING — the workflow does not exist yet** |
-| `runner_class` | pinned label, **not** `ubuntu-latest` |
+| `workflow_commit` | **PENDING — named by the future authorization, not by the workflow** |
+| `runner_class` | `ubuntu-24.04` — pinned, **not** `ubuntu-latest` |
 
-**The concrete identity cannot be completed in this task**, and that is not an
-omission. The workflow file does not exist, so no commit contains it. Creating
-one under `.github/workflows/` would make it **live on push** — an uncontrolled
-build attempt — so the protocol specifies the workflow instead of shipping it.
-A test asserts `ci.yml` is still the only workflow in the repository.
+### Update, 2026-09-02: the workflow has been materialized
+
+`.github/workflows/j1-environment-artifact-build.yml` now exists. The identity a
+human can authorize is therefore a real object rather than a description.
+
+**It is inert.** Its only trigger is `workflow_dispatch`, with **no inputs at
+all** — an input is a value a caller supplies, and no supplied value may
+contribute to authorization. Its first job verifies a builder authorization that
+does not exist and exits non-zero; every artifact-producing job depends on that
+job. Invoking the workflow is not authorization.
+
+**The workflow still does not name its own commit, and no placeholder was
+written into it.** A workflow cannot contain the commit that contains it. The
+self-reference is resolved from the other direction: the workflow reports the
+identity it is *running as* — `github.workflow_ref` and `github.sha` — and the
+authorization must already name exactly that. A run at a commit no human named
+is refused.
+
+**The `workflow_commit` field above stays `PENDING` in this receipt** because
+this receipt is not the authorization. The merge commit containing the reviewed
+workflow bytes binds them externally, and the future authorization names it.
 
 `require_specific_builder_identity` refuses `GitHub Actions`, `github`,
 `actions`, `CI`, `the builder`, `build server` and `pipeline` as repository
@@ -151,6 +167,7 @@ workflow author pins from this table or re-resolves and records the new values.
 | Provider | GitHub |
 | Builder class | hosted ephemeral runner |
 | Builder state | **`CANDIDATE`** |
+| Workflow object | **materialized 2026-09-02, inert, manual-only** |
 | Machine qualification | mechanism qualified; **no builder instance qualified** |
 | **Human authorization status** | **`PENDING`** |
 

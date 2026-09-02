@@ -79,3 +79,8 @@ docs/paper/
 # artifacts are tracked, and it exists so a reviewer can reproduce the
 # demonstration from a clone plus one public ECG record.
 !reproducibility/demo_bundle/**
+
+# Generated at build time from the frozen 335-package authority.
+# The generator and its proof are tracked; its output is not, so a
+# stale copy can never be mistaken for the authority.
+containers/j1-environment/requirements.*.txt

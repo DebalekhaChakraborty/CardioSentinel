@@ -1,0 +1,53 @@
+# J1 controlled environment artifact.
+#
+# NOT AUTHORIZED. This file describes a build that no human has yet permitted.
+# The workflow that would run it refuses before reaching here, because no
+# builder authorization exists.
+#
+# The base image is addressed by digest. The tag below is descriptive metadata
+# for a human reader and is not what resolves: a tag can be repointed at
+# different bytes tomorrow.
+#
+#   descriptive tag : python:3.12.6-slim-bookworm
+#   platform        : linux/amd64  (glibc 2.36, Debian 12 bookworm)
+#
+# The digest is supplied as a build argument so the workflow can re-resolve and
+# verify it rather than trusting a value frozen into this file months earlier.
+
+ARG BASE_IMAGE_DIGEST
+FROM ${BASE_IMAGE_DIGEST}
+
+# Reproducibility: a fixed epoch, no bytecode written at build time, no pip
+# version check that would vary the logs, and no cache directory to carry
+# non-deterministic metadata into a layer.
+ARG SOURCE_DATE_EPOCH=0
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_ROOT_USER_ACTION=ignore \
+    SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}
+
+WORKDIR /opt/cardiosentinel
+
+# The approved set does not come from one index, and this is not a convenience:
+# torch and torchvision carry `+cpu` local versions that do not exist on PyPI.
+# Each file is an exact pin, mechanically proven to be the frozen mapping.
+COPY containers/j1-environment/requirements.pypi.txt \
+     containers/j1-environment/requirements.pytorch-cpu.txt ./
+
+RUN python -m pip install --no-deps --require-hashes=false \
+        --index-url https://pypi.org/simple \
+        -r requirements.pypi.txt \
+ && python -m pip install --no-deps \
+        --index-url https://download.pytorch.org/whl/cpu \
+        -r requirements.pytorch-cpu.txt
+
+# cardiosentinel is resolved by no index. It is installed from the source tree
+# at the authorized commit, and that commit is what pins it -- the version
+# string 0.1.0 identifies nothing on its own.
+COPY . /opt/cardiosentinel/src-tree
+RUN python -m pip install --no-deps --no-build-isolation /opt/cardiosentinel/src-tree
+
+# The image carries no entrypoint that could start scientific work. J1 execution
+# is gated by its own authorization, which does not exist either.
+CMD ["python", "-c", "import sys; print(sys.version)"]
