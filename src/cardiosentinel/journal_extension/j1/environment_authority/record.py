@@ -118,7 +118,7 @@ class EnvironmentAuthorityRecord:
         return document
 
 
-def _reject_uncanonical(label: str, text: str, forbidden: tuple[str, ...]) -> None:
+def reject_uncanonical(label: str, text: str, forbidden: tuple[str, ...]) -> None:
     """Refuse padding and refuse structure. Neither is stripped or escaped."""
     if text != text.strip():
         raise EnvironmentAuthorityError(
@@ -144,8 +144,8 @@ def _serialize_mapping(mapping: dict[str, str]) -> str:
                 "a dependency mapping must name string versions by string "
                 f"name; got {key!r}: {value!r}."
             )
-        _reject_uncanonical(f"dependency name {key!r}", key, FORBIDDEN_IN_DEPENDENCY)
-        _reject_uncanonical(
+        reject_uncanonical(f"dependency name {key!r}", key, FORBIDDEN_IN_DEPENDENCY)
+        reject_uncanonical(
             f"dependency {key!r} version", value, FORBIDDEN_IN_DEPENDENCY
         )
     return ",".join(f"{key}={mapping[key]}" for key in sorted(mapping))
@@ -170,7 +170,7 @@ def canonical_serialization(record: EnvironmentAuthorityRecord) -> bytes:
     lines = []
     for name in ENVIRONMENT_RECORD_FIELDS:
         value = _serialize_value(getattr(record, name))
-        _reject_uncanonical(repr(name), value, FORBIDDEN_IN_FIELD_VALUE)
+        reject_uncanonical(repr(name), value, FORBIDDEN_IN_FIELD_VALUE)
         lines.append(f"{name}={value}")
     dependencies = _serialize_mapping(record.runtime_dependencies)
     lines.append(f"runtime_dependencies={dependencies}")

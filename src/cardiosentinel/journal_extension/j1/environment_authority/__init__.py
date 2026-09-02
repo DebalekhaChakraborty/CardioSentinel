@@ -15,6 +15,7 @@ from .record import (
     canonical_serialization,
     environment_sha256,
     reject_mutable_local_state,
+    reject_uncanonical,
 )
 from .states import EnvironmentAuthorityState
 from .verifier import (
@@ -36,6 +37,7 @@ __all__ = [
     "canonical_serialization",
     "environment_sha256",
     "reject_mutable_local_state",
+    "reject_uncanonical",
     "verify_authority_record",
     "verify_runtime_matches",
 ]
