@@ -1,0 +1,254 @@
+# J1 controlled environment artifact build.
+#
+# BUILDER NOT AUTHORIZED. This workflow is complete and cannot start.
+#
+# There is no automatic trigger: no push, pull_request, schedule, tag, release
+# or repository event. Manual invocation is the only entry point, and invoking
+# it is not authorization -- the first executable job verifies a human builder
+# authorization that does not exist, and every artifact-producing job depends
+# on that job succeeding.
+#
+# The pattern is the one the J1 execution instrument already uses:
+#
+#     capable of completing, but not permitted to start
+#
+# Action pins are commit SHAs. The version comment beside each is descriptive:
+# a tag can be repointed at different code after this file is reviewed. The
+# Buildx binary and the BuildKit daemon image are pinned separately, because
+# pinning the action pins neither.
+
+name: J1 controlled environment artifact build
+
+on:
+  workflow_dispatch:
+    # Deliberately no inputs. An input is a value a caller supplies, and no
+    # value a caller supplies may contribute to authorization.
+
+permissions:
+  contents: read
+
+env:
+  # Descriptive only. The digest below is the authority, and the build
+  # re-resolves and verifies it rather than trusting this file.
+  BASE_IMAGE_TAG: "python:3.12.6-slim-bookworm"
+  BASE_IMAGE_DIGEST: "python@sha256:c0d63ec61d3a1321f8dc2d46ab6bd38465e005237c0a463712020e5d338eae25"
+  TARGET_PLATFORM: "linux/amd64"
+
+jobs:
+  # ---------------------------------------------------------------------
+  # PERMISSION. Fail-closed, and first.
+  # ---------------------------------------------------------------------
+  builder-authorization:
+    name: Builder authorization gate
+    runs-on: ubuntu-24.04
+    outputs:
+      # Populated only if the gate passes. Every build job reads its source
+      # identity from here, so an unauthorized run has no source to check out
+      # even if a later job were somehow reached.
+      authorized_source_commit: ${{ steps.gate.outputs.authorized_source_commit }}
+    steps:
+      - name: Check out with history, so the reviewed commit is readable
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          # The gate reads the workflow bytes out of git at the reviewed
+          # commit. A shallow checkout would not contain that object.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up the gate's interpreter
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      # Workflow tooling only. This is not the artifact's 335-package set:
+      # nothing here materializes a dependency for the image, and no build
+      # step has run.
+      - name: Install the gate
+        run: python -m pip install -e "."
+
+      # Refuses. There is no builder authorization in the repository, and no
+      # flag makes this exit zero. The gate binds execution to the reviewed
+      # workflow *bytes*, recomputed from both this checkout and git's object
+      # store at the reviewed commit -- so an authorization may live in a
+      # later commit than the workflow it authorizes, which it must, since a
+      # file cannot contain the SHA of the commit that contains it.
+      - name: Verify a human authorized this workflow at this commit
+        id: gate
+        run: |
+          python -m cardiosentinel.journal_extension.j1.builder_authorization \
+            --repository-root . \
+            --running-workflow-ref "${{ github.workflow_ref }}" \
+            --running-commit "${{ github.sha }}" > gate.json
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          with open("gate.json", encoding="utf-8") as handle:
+              proof = json.load(handle)
+          print(f"authorized_source_commit={proof['authorized_source_commit']}")
+          PY
+
+  # ---------------------------------------------------------------------
+  # CAPABILITY. Can the build path complete? Asked separately, on purpose.
+  # ---------------------------------------------------------------------
+  build-capability:
+    name: Build capability
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: Install the build tooling
+        run: python -m pip install -e ".[dev,ml,neural]"
+
+      # Proves the derived dependency input can be produced and is exactly the
+      # frozen 335-package mapping. A capability attestation never implies
+      # permission, and this job reads no authorization.
+      - name: Prove the dependency input reconstructs the frozen authority
+        run: |
+          python -m cardiosentinel.journal_extension.j1.controlled_build \
+            --repository-root . dependency-input --out-dir containers/j1-environment
+
+      - name: Prove the build configuration digest covers every input
+        run: |
+          python -m cardiosentinel.journal_extension.j1.controlled_build \
+            configuration-digest \
+            --containerfile containers/j1-environment/Containerfile \
+            --dependency-input containers/j1-environment/requirements.pypi.txt \
+            --build-script containers/j1-environment/build.sh \
+            --workflow .github/workflows/j1-environment-artifact-build.yml \
+            --validation-script containers/j1-environment/validate_artifact.sh
+
+  # ---------------------------------------------------------------------
+  # BUILD A. Unreachable until both gates above pass.
+  # ---------------------------------------------------------------------
+  build-a:
+    name: BUILD_A
+    needs: [builder-authorization, build-capability]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the authorized source commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          # The authorization supplies source identity; the workflow does not
+          # choose it. This is populated from the verified authorization, never
+          # from github.sha, main or "latest successful commit".
+          ref: ${{ needs.builder-authorization.outputs.authorized_source_commit }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      # Four separate identities, deliberately not collapsed into "Docker
+      # version": the action's commit, the Buildx binary release, the BuildKit
+      # daemon image digest, and the runner class. Pinning the action alone
+      # leaves the binary and the daemon floating.
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+        with:
+          version: v0.36.1
+          driver: docker-container
+          # The linux/amd64 image manifest, not the multi-platform index.
+          # The builder is frozen to linux/amd64, so the strongest authority
+          # names the exact platform image that will execute rather than an
+          # index that still requires a resolution step. Resolved from the
+          # registry and recomputed over the raw manifest bytes on 2026-09-02.
+          # Index sha256:28a89871... is retained as evidence in the receipt.
+          driver-opts: |
+            image=moby/buildkit@sha256:040d34121c27906c4ff9ac152a30d52bf2c5d328d3bb748916bb3d2743c02528
+      - name: Install the build tooling
+        run: python -m pip install -e ".[dev,ml,neural]"
+      - name: Materialize the derived dependency input
+        run: |
+          python -m cardiosentinel.journal_extension.j1.controlled_build \
+            --repository-root . dependency-input --out-dir containers/j1-environment
+      - name: Build the artifact as an OCI layout archive
+        run: containers/j1-environment/build.sh BUILD_A . build-a.oci.tar
+      - name: Recompute the artifact digest from the manifest bytes
+        run: containers/j1-environment/validate_artifact.sh build-a.oci.tar > build-a.json
+      - name: Retain provenance
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: j1-build-a-provenance
+          path: build-a.json
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------
+  # BUILD B. Independent: a separate job, a separate clean runner, no cache,
+  # and it never receives BUILD_A's artifact.
+  # ---------------------------------------------------------------------
+  build-b:
+    name: BUILD_B
+    needs: [builder-authorization, build-capability]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the authorized source commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.builder-authorization.outputs.authorized_source_commit }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      # Four separate identities, deliberately not collapsed into "Docker
+      # version": the action's commit, the Buildx binary release, the BuildKit
+      # daemon image digest, and the runner class. Pinning the action alone
+      # leaves the binary and the daemon floating.
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+        with:
+          version: v0.36.1
+          driver: docker-container
+          # The linux/amd64 image manifest, not the multi-platform index.
+          # The builder is frozen to linux/amd64, so the strongest authority
+          # names the exact platform image that will execute rather than an
+          # index that still requires a resolution step. Resolved from the
+          # registry and recomputed over the raw manifest bytes on 2026-09-02.
+          # Index sha256:28a89871... is retained as evidence in the receipt.
+          driver-opts: |
+            image=moby/buildkit@sha256:040d34121c27906c4ff9ac152a30d52bf2c5d328d3bb748916bb3d2743c02528
+      - name: Install the build tooling
+        run: python -m pip install -e ".[dev,ml,neural]"
+      - name: Materialize the derived dependency input
+        run: |
+          python -m cardiosentinel.journal_extension.j1.controlled_build \
+            --repository-root . dependency-input --out-dir containers/j1-environment
+      - name: Build the artifact as an OCI layout archive
+        run: containers/j1-environment/build.sh BUILD_B . build-b.oci.tar
+      - name: Recompute the artifact digest from the manifest bytes
+        run: containers/j1-environment/validate_artifact.sh build-b.oci.tar > build-b.json
+      - name: Retain provenance
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: j1-build-b-provenance
+          path: build-b.json
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------
+  # REPRODUCIBILITY. Compares, and stops on divergence. It never selects.
+  # ---------------------------------------------------------------------
+  reproducibility:
+    name: Reproducibility gate
+    needs: [build-a, build-b]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: Install the comparison tooling
+        run: python -m pip install -e ".[dev,ml,neural]"
+      - name: Collect both build records
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          path: build-records
+      # Divergence is a hard stop. Neither digest is promoted, neither build is
+      # selected, nothing is rebuilt until two happen to agree, and there is no
+      # automatic reclassification to documented non-reproducibility. That is a
+      # finding requiring human review.
+      - name: Compare BUILD_A and BUILD_B
+        run: |
+          python -m cardiosentinel.journal_extension.j1.controlled_build \
+            compare-builds \
+            --build-a build-records/j1-build-a-provenance/build-a.json \
+            --build-b build-records/j1-build-b-provenance/build-b.json

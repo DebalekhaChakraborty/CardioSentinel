@@ -463,9 +463,31 @@ def test_the_module_neither_builds_nor_promotes_anything() -> None:
                 )
 
 
-def test_no_workflow_file_was_added_to_the_repository() -> None:
-    """A file under .github/workflows/ is live on push. Adding one here would
-    be an uncontrolled build attempt, so the protocol specifies the workflow
-    rather than shipping it."""
+def test_the_controlled_build_workflow_is_present_and_inert() -> None:
+    """This assertion replaced one that required the workflow to be *absent*.
+
+    At #149 the protection was absence: a file under `.github/workflows/` is
+    live on push, so shipping one would have been an uncontrolled build
+    attempt. The workflow now exists, because a human authorization must be
+    able to name an actual object, and the protection changed shape from
+    absence to proven inertness -- which is stronger only if it is checked
+    structurally. It is: `test_j1_controlled_build_workflow.py` parses the
+    trigger set and the job dependency graph rather than grepping the file.
+
+    What this test keeps is the narrow claim that belongs here: no *additional*
+    workflow appeared, and the one that did is manual-only.
+    """
+    import yaml
+
     workflows = sorted((REPOSITORY_ROOT / ".github" / "workflows").glob("*.yml"))
-    assert [p.name for p in workflows] == ["ci.yml"]
+    assert [p.name for p in workflows] == [
+        "ci.yml",
+        "j1-environment-artifact-build.yml",
+    ]
+    document = yaml.safe_load(
+        (REPOSITORY_ROOT / ".github/workflows/j1-environment-artifact-build.yml")
+        .read_text(encoding="utf-8")
+    )
+    # PyYAML parses a bare `on:` key as the boolean True.
+    triggers = document["on"] if "on" in document else document[True]
+    assert set(triggers) == {"workflow_dispatch"}

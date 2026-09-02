@@ -48,23 +48,55 @@ every future workflow it covers, including ones written after the review.
 The authorizable identity is a **workflow file at a commit, on a named runner
 class**:
 
-```text
-builder_id = <provider>:<repository>//<workflow path>@<workflow commit>#<runner class>
-```
+The authorizable object is the **reviewed workflow file**:
 
 | Field | Value |
 |---|---|
 | `provider` | `github-actions` |
-| `workflow_repository` | `DebalekhaChakraborty/CardioSentinel` |
-| `workflow_path` | `.github/workflows/j1-environment-build.yml` |
-| `workflow_commit` | **PENDING — the workflow does not exist yet** |
-| `runner_class` | pinned label, **not** `ubuntu-latest` |
+| `repository` | `DebalekhaChakraborty/CardioSentinel` |
+| `workflow_path` | `.github/workflows/j1-environment-artifact-build.yml` |
+| `workflow_review_commit` | the historical commit at which the bytes were reviewed |
+| `workflow_sha256` | SHA-256 over the **raw committed bytes** at that commit |
+| `runner_class` | `ubuntu-24.04` — pinned, **not** `ubuntu-latest` |
 
-**The concrete identity cannot be completed in this task**, and that is not an
-omission. The workflow file does not exist, so no commit contains it. Creating
-one under `.github/workflows/` would make it **live on push** — an uncontrolled
-build attempt — so the protocol specifies the workflow instead of shipping it.
-A test asserts `ci.yml` is still the only workflow in the repository.
+### Correction, 2026-09-02: the previous identity rule was unsatisfiable
+
+An earlier version required the running commit to equal a `workflow_commit`
+field. **The authorization lives in the repository**, so the commit that adds it
+is the commit the workflow then runs at, and the document would have had to
+contain the SHA of the commit containing itself. It could never have been
+written, and no build could ever have been authorized.
+
+What a human reviews is a **file**, so that is what the authorization names.
+The authorization may live in a **later** commit than the workflow — the
+ordinary case. Execution from a later commit is permitted **only while the
+workflow bytes are unchanged**; one differing byte is a hard refusal.
+
+Two failures, reported separately because they mean different things:
+**reviewed historical workflow drift** (the reviewed commit never held those
+bytes) and **current workflow differs from the authorized reviewed bytes**.
+
+### Update, 2026-09-02: the workflow has been materialized
+
+`.github/workflows/j1-environment-artifact-build.yml` now exists. The identity a
+human can authorize is therefore a real object rather than a description.
+
+**It is inert.** Its only trigger is `workflow_dispatch`, with **no inputs at
+all** — an input is a value a caller supplies, and no supplied value may
+contribute to authorization. Its first job verifies a builder authorization that
+does not exist and exits non-zero; every artifact-producing job depends on that
+job. Invoking the workflow is not authorization.
+
+**The workflow still does not name its own commit, and no placeholder was
+written into it.** A workflow cannot contain the commit that contains it. The
+self-reference is resolved from the other direction: the workflow reports the
+identity it is *running as* — `github.workflow_ref` and `github.sha` — and the
+authorization must already name exactly that. A run at a commit no human named
+is refused.
+
+**The `workflow_commit` field above stays `PENDING` in this receipt** because
+this receipt is not the authorization. The merge commit containing the reviewed
+workflow bytes binds them externally, and the future authorization names it.
 
 `require_specific_builder_identity` refuses `GitHub Actions`, `github`,
 `actions`, `CI`, `the builder`, `build server` and `pipeline` as repository
@@ -115,9 +147,51 @@ descriptive; the SHA is what gets pinned.
 | Action | Tag | Immutable commit |
 |---|---|---|
 | `actions/checkout` | v4 | `11d5960a326750d5838078e36cf38b85af677262` |
+| `actions/setup-python` | v5 | `a26af69be951a213d495a4c3e4e4022e16d87065` |
 | `docker/setup-buildx-action` | v3 | `8d2750c68a42422c14e847fe6c8ac0403b4cbd6f` |
-| `docker/build-push-action` | v6 | `10e90e3645eae34f1e60eeb005ba3a3d33f178e8` |
 | `actions/upload-artifact` | v4 | `ea165f8d65b6e75b540449e92b4886f43607fa02` |
+| `actions/download-artifact` | v4 | `d3f86a106a0bac45b974a628896c90dbdf5c8093` |
+
+### Four build-tool identities, deliberately not collapsed
+
+**Pinning the action pins the action.** It pins neither the Buildx binary the
+action installs nor the BuildKit daemon image that binary starts.
+
+| Identity | Value | Evidence |
+|---|---|---|
+| `setup_buildx_action_commit` | `8d2750c68a42422c14e847fe6c8ac0403b4cbd6f` | GitHub API, tag `v3` |
+| `buildx_version` | **`v0.36.1`** | `docker/buildx` releases API |
+| `buildkit_image_digest` | **`sha256:040d34121c27906c4ff9ac152a30d52bf2c5d328d3bb748916bb3d2743c02528`** | Docker Hub registry API; **linux/amd64 image manifest**, recomputed over 2261 raw manifest bytes |
+| `runner_class` | `ubuntu-24.04` | pinned label |
+
+### Buildx `v0.36.1` — a settled programme decision
+
+Not an inherited default:
+
+- `v0.36.1` is a stable upstream release with meaningful exposure since
+  **2026-08-04**;
+- `v0.37.0` was published only shortly before the J1 builder freeze;
+- **J1 has no requirement that benefits from adopting the newest release**;
+- reproducibility authority prefers an explicitly reviewed stable tool over
+  unnecessary recency.
+
+### BuildKit authority is the linux/amd64 manifest, not the index
+
+The controlled builder is frozen to `linux/amd64`, so the strongest authority
+names **the exact platform image that will execute** rather than an index that
+still requires a further platform-resolution step. This now follows the same
+rule as the artifact, rather than inverting it.
+
+| Object | Digest | Role |
+|---|---|---|
+| linux/amd64 image manifest | `sha256:040d34121c27906c4ff9ac152a30d52bf2c5d328d3bb748916bb3d2743c02528` | **executable authority** |
+| Multi-platform image index | `sha256:28a898719c18a33f4e8000685287fa36fd0dd9560c6440227d3a732d79bb41d8` | provenance evidence only |
+
+Both were verified by recomputation: the index was addressed by its digest and
+re-hashed to itself, exactly one non-attestation `linux/amd64` descriptor was
+found within it, and the manifest's registry descriptor digest was compared
+against an independent SHA-256 over the fetched bytes before either value was
+written here. Media type: `application/vnd.oci.image.manifest.v1+json`.
 
 These are **recorded resolutions**, not a commitment to use every action. The
 workflow author pins from this table or re-resolves and records the new values.
@@ -151,6 +225,7 @@ workflow author pins from this table or re-resolves and records the new values.
 | Provider | GitHub |
 | Builder class | hosted ephemeral runner |
 | Builder state | **`CANDIDATE`** |
+| Workflow object | **materialized 2026-09-02, inert, manual-only** |
 | Machine qualification | mechanism qualified; **no builder instance qualified** |
 | **Human authorization status** | **`PENDING`** |
 
