@@ -452,8 +452,19 @@ def test_the_commit_fields_are_full_shas_and_now_differ() -> None:
         assert len(value) == 40
         assert set(value) <= set("0123456789abcdef")
     assert review != source
-    # The source commit must be this checkout's HEAD-side history, and the
-    # review commit must be an ancestor of it.
+
+
+def test_the_review_commit_is_an_ancestor_of_the_source_commit() -> None:
+    """The workflow was reviewed before the source it will build was written.
+
+    Split from the shape check above because it needs git history, and `ci.yml`
+    checks out at the default depth. The shape and difference of the two commits
+    are decidable anywhere; their ancestry is not.
+    """
+    review = _machine_value("workflow_review_commit")
+    source = _machine_value("authorized_source_commit")
+    _require_commit(review)
+    _require_commit(source)
     assert _git("merge-base", "--is-ancestor", review, source).returncode == 0
 
 
