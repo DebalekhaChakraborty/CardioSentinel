@@ -27,13 +27,14 @@ open one.
 
 | | |
 |---|---|
-| **Latest** | **ECG 28** — the one to read |
-| Covers | six PRs merged, #151–#156 — the builder apparatus adversarially reviewed (F1–F6, R1–R2), remediated, and authorized. **The first authorized controlled build was dispatched and failed**: run `33800630377` died in its gate on a `numpy` import before recording any qualification claim. Authorization 001 is retired-not-spent; the import boundary was repaired; V4 re-derives the corrected object. Ends mid-task, holding on CI before writing authorization 002. Artifact, environment authority and J1 authorization all remain absent |
+| **Latest** | **ECG 29** — the one to read |
+| Covers | one PR opened and **not merged**, #157 — `J1-ENV-BUILDER-AUTH-002` written and its act receipt recorded, re-derived rather than transcribed. Writing it broke **seven** tests that asserted the authorization was absent; all seven were rewritten to assert the new truth. **The first CI run was green and misleading**: the gate admit-path test had silently moved from passed to skipped, and the only tell was one digit in the skip column. The `fetch-depth: 0` fix for that was itself refused by the build-input guard, correctly, and was dropped. Artifact, environment authority and J1 authorization all remain absent |
 
 ## Index, newest first
 
 | Session | Date | The danger it named for the session after it |
 |---|---|---|
+| **ECG 29** | 2026-09-03 | reading a green CI run as evidence that the test you just wrote had run |
 | **ECG 28** | 2026-09-03 | a test that passes tells you about the environment it ran in |
 | **ECG 27** | 2026-09-01 | writing the guarantee in prose and the weaker check in code, then building the fixture to the prose |
 | **ECG 26** | 2026-09-01 | verifying a scoped test run and calling it verified — twice |
