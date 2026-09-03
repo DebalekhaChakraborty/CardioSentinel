@@ -237,27 +237,21 @@ def _require_reviewed_commit_readable() -> None:
         )
 
 
-def test_the_gate_admits_the_authorized_workflow() -> None:
-    """Superseded live state, and the whole point of #154.
+def test_the_gate_refuses_and_the_refusal_is_its_own() -> None:
+    """`J1-ENV-BUILDER-AUTH-001` was retired, so the gate refuses again.
 
-    Until #154 this asserted the gate refuses. It refused because no human had
-    authorized a builder, not because refusing was the gate's purpose -- so the
-    assertion is re-pointed at the new truth rather than deleted. What it proves
-    now is stronger than absence ever was: the gate admits *this* workflow, and
-    says which authorization let it through.
+    The interesting assertion is the second one. Run 33800630377 also produced
+    a non-zero exit and the words "builder authorization absent" on stderr --
+    while the gate had in fact crashed during import, having verified nothing.
+    An exit code alone cannot tell those two apart, so this requires the gate to
+    have reached its own logic rather than died on the way there.
     """
-    _require_reviewed_commit_readable()
     completed = _run_gate(REPOSITORY_ROOT)
-    assert completed.returncode == 0, completed.stderr
-    proof = json.loads(completed.stdout)
-    assert proof["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-001"
-    assert (
-        proof["workflow_sha256_recomputed_from_review_commit"]
-        == proof["workflow_sha256"]
-    )
-    assert (
-        proof["workflow_sha256_recomputed_from_checkout"] == proof["workflow_sha256"]
-    )
+    assert completed.returncode != 0
+    assert "builder authorization absent" in completed.stderr
+    assert "ModuleNotFoundError" not in completed.stderr, completed.stderr
+    for package in ("numpy", "torch", "scipy", "sklearn"):
+        assert f"No module named '{package}'" not in completed.stderr
 
 
 def test_the_gate_still_fails_closed_without_an_authorization(
@@ -328,13 +322,16 @@ def test_no_automatic_retry_loop() -> None:
 # -- the future authorization schema ---------------------------------------
 
 
-def test_the_builder_authorization_is_present_and_valid() -> None:
-    """Superseded live state: a human authorized this builder on 2026-09-03."""
-    document = load_builder_authorization(REPOSITORY_ROOT)
-    assert document is not None
-    verified = verify_builder_authorization(document)
-    identity = str(verified.fields["human_authorizer_identity"])
-    assert identity and "synthetic" not in identity.lower()
+def test_no_builder_authorization_is_active() -> None:
+    """`J1-ENV-BUILDER-AUTH-001` is retired, not spent.
+
+    It was never spent -- its run failed before any qualification claim -- but
+    it names a source commit that this remediation supersedes, and the source
+    tree is image content. Leaving it active would let an accidental dispatch
+    build the broken gate into the artifact.
+    """
+    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
+    assert load_builder_authorization(REPOSITORY_ROOT) is None
 
 
 def test_an_absent_authorization_refuses_in_its_own_words() -> None:
