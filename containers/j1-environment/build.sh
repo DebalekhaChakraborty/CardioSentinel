@@ -17,6 +17,18 @@ CONTEXT="${2:?source context required}"
 OUTPUT="${3:?output archive path required}"
 BASE_IMAGE_DIGEST="${BASE_IMAGE_DIGEST:?base image digest required}"
 
+# The value comes from the verified builder authorization, not from this file
+# and not from the workflow's environment block. Checked here anyway, because a
+# tag reaching `FROM` would build whatever that tag points at today: a moving
+# reference is exactly what the digest exists to exclude. This is a shape check
+# -- that the reference is digest-addressed -- not a re-resolution of the tag,
+# which would reintroduce the mutability the digest removes.
+if [[ ! "${BASE_IMAGE_DIGEST}" =~ ^[^[:space:]@]+@sha256:[0-9a-f]{64}$ ]]; then
+  echo "base image ${BASE_IMAGE_DIGEST} is not addressed by digest as" \
+       "repository@sha256:<64 hex>; refusing to build" >&2
+  exit 1
+fi
+
 # Single platform, no attestations: both would turn the output into an index,
 # whose digest identifies a list rather than the image J1 would execute.
 docker buildx build \

@@ -1,0 +1,62 @@
+# Build context exclusions for the J1 controlled environment artifact.
+#
+# NOT AUTHORIZED. Nothing here builds anything.
+#
+# **This file is artifact-affecting and is a member of the build configuration
+# manifest.** The Containerfile ends with `COPY . /opt/cardiosentinel/src-tree`,
+# so whatever the build context contains ends up in a layer. Without this file
+# the context is "whatever is in the runner's working directory", which is not
+# the authorized source commit and is not the same twice.
+#
+# The specific defect this closes: `.git` is a directory of pack files whose
+# bytes depend on when and how the repository was cloned. Two clean checkouts of
+# the *same commit* routinely differ inside `.git`, so BUILD_A and BUILD_B would
+# have diverged for a reason that has nothing to do with the environment being
+# built -- and the two-build procedure would have reported a reproducibility
+# failure about git's packing strategy.
+#
+# BuildKit resolves `<containerfile>.dockerignore` before `<context>/.dockerignore`,
+# so this applies to this build and to no other.
+#
+# What is deliberately *not* excluded: `containers/j1-environment/requirements.*.txt`.
+# The Containerfile copies them explicitly in an earlier layer, excluding them
+# would break that COPY, and they are derived deterministically from the frozen
+# lock -- they are build inputs, not context noise.
+
+# Version control metadata. Not deterministic, not needed: the project version
+# is static in pyproject.toml, so no build step reads git history.
+.git
+.gitignore
+.gitattributes
+
+# Python build and test residue. Present or absent depending on what ran on the
+# runner before the build, and byte-varying when present.
+**/__pycache__
+**/*.py[cod]
+**/*.egg-info
+.pytest_cache
+.ruff_cache
+.mypy_cache
+build/
+dist/
+*.egg
+
+# Virtual environments. Enormous, machine-specific, and never part of the image:
+# the image installs the approved set from the derived dependency inputs.
+.venv
+venv
+venvs
+
+# Artifacts of this build procedure itself. Including a previous build's output
+# in the next build's context is exactly the contamination the two-build
+# independence rule exists to rule out.
+*.oci.tar
+build-a.json
+build-b.json
+j1-reproducibility.json
+j1-qualification-claim.json
+
+# Editor and OS noise.
+.DS_Store
+.idea
+.vscode

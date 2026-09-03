@@ -283,10 +283,12 @@ def test_the_schema_names_every_required_field() -> None:
         "runner_class",
         "authorized_source_commit",
         "build_configuration_digest",
+        "provenance_destination",
+        "qualification_policy",
         "human_authorizer_identity",
     ):
         assert field in BUILDER_AUTHORIZATION_FIELDS
-    assert len(BUILDER_AUTHORIZATION_FIELDS) == 21
+    assert len(BUILDER_AUTHORIZATION_FIELDS) == 22
 
 
 # -- what a future authorization must survive ------------------------------
@@ -296,6 +298,10 @@ def _authorization(**overrides: object) -> dict[str, object]:
     """Entirely fabricated. Nothing here is written to disk."""
     from cardiosentinel.journal_extension.j1.approved_runtime import (
         APPROVED_DEPENDENCY_DIGEST,
+    )
+    from cardiosentinel.journal_extension.j1.qualification import (
+        QUALIFICATION_POLICY,
+        durable_evidence_destination,
     )
 
     document: dict[str, object] = {
@@ -317,7 +323,11 @@ def _authorization(**overrides: object) -> dict[str, object]:
         "dependency_authority_identity": "j1-approved-runtime-v1",
         "dependency_digest": APPROVED_DEPENDENCY_DIGEST,
         "build_configuration_digest": "d" * 64,
-        "provenance_destination": "s3://synthetic-provenance/j1/",
+        # Derived from the id above, because the schema now refuses any other
+        # value: the destination is a function of the authorization, not a
+        # free-text field a fixture can invent.
+        "provenance_destination": durable_evidence_destination("SYNTHETIC-NOT-REAL"),
+        "qualification_policy": QUALIFICATION_POLICY,
         "authorization_timestamp": "2026-09-02T00:00:00Z",
         "human_authorizer_identity": "synthetic signatory",
     }
