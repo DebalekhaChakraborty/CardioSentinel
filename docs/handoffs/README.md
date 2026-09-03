@@ -27,13 +27,14 @@ open one.
 
 | | |
 |---|---|
-| **Latest** | **ECG 27** — the one to read |
-| Covers | eight PRs merged, #143–#150 — the J1 execution apparatus completed and provable end to end, then the whole environment chain built up to the last human gate: authorization contract, approved runtime and dependency lock, build authority, builder candidate and frozen build protocol, and an inert controlled-build workflow with zero runs. Builder authorization, artifact, environment authority and J1 authorization all remain absent |
+| **Latest** | **ECG 28** — the one to read |
+| Covers | six PRs merged, #151–#156 — the builder apparatus adversarially reviewed (F1–F6, R1–R2), remediated, and authorized. **The first authorized controlled build was dispatched and failed**: run `33800630377` died in its gate on a `numpy` import before recording any qualification claim. Authorization 001 is retired-not-spent; the import boundary was repaired; V4 re-derives the corrected object. Ends mid-task, holding on CI before writing authorization 002. Artifact, environment authority and J1 authorization all remain absent |
 
 ## Index, newest first
 
 | Session | Date | The danger it named for the session after it |
 |---|---|---|
+| **ECG 28** | 2026-09-03 | a test that passes tells you about the environment it ran in |
 | **ECG 27** | 2026-09-01 | writing the guarantee in prose and the weaker check in code, then building the fixture to the prose |
 | **ECG 26** | 2026-09-01 | verifying a scoped test run and calling it verified — twice |
 | **ECG 25** | 2026-08-30 | a presentation layer quietly acquiring authority the runtime never gave it |
