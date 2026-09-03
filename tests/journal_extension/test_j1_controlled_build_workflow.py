@@ -189,16 +189,15 @@ def test_no_override_input_or_flag_exists_anywhere() -> None:
         assert forbidden not in text
 
 
-def test_the_gate_refuses_right_now() -> None:
-    """End to end, as a subprocess, exactly as the workflow invokes it."""
-    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
-    completed = subprocess.run(
+def _run_gate(repository_root: Path) -> subprocess.CompletedProcess[str]:
+    """The gate, as a subprocess, exactly as the workflow invokes it."""
+    return subprocess.run(
         [
             sys.executable,
             "-m",
             "cardiosentinel.journal_extension.j1.builder_authorization",
             "--repository-root",
-            str(REPOSITORY_ROOT),
+            str(repository_root),
             "--running-workflow-ref",
             "owner/repo/.github/workflows/j1-environment-artifact-build.yml@x",
             "--running-commit",
@@ -208,6 +207,40 @@ def test_the_gate_refuses_right_now() -> None:
         text=True,
         cwd=REPOSITORY_ROOT,
     )
+
+
+def test_the_gate_admits_the_authorized_workflow() -> None:
+    """Superseded live state, and the whole point of #154.
+
+    Until #154 this asserted the gate refuses. It refused because no human had
+    authorized a builder, not because refusing was the gate's purpose -- so the
+    assertion is re-pointed at the new truth rather than deleted. What it proves
+    now is stronger than absence ever was: the gate admits *this* workflow, and
+    says which authorization let it through.
+    """
+    completed = _run_gate(REPOSITORY_ROOT)
+    assert completed.returncode == 0, completed.stderr
+    proof = json.loads(completed.stdout)
+    assert proof["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-001"
+    assert (
+        proof["workflow_sha256_recomputed_from_review_commit"]
+        == proof["workflow_sha256"]
+    )
+    assert (
+        proof["workflow_sha256_recomputed_from_checkout"] == proof["workflow_sha256"]
+    )
+
+
+def test_the_gate_still_fails_closed_without_an_authorization(
+    tmp_path: Path,
+) -> None:
+    """Fail-closed is a property of the gate, not of this repository's state.
+
+    Pointed at a tree carrying no authorization, the same gate refuses in the
+    same words. An authorization existing here must not make the mechanism
+    permissive anywhere else.
+    """
+    completed = _run_gate(tmp_path)
     assert completed.returncode != 0
     assert "builder authorization absent" in completed.stderr
 
@@ -266,8 +299,13 @@ def test_no_automatic_retry_loop() -> None:
 # -- the future authorization schema ---------------------------------------
 
 
-def test_no_builder_authorization_exists() -> None:
-    assert load_builder_authorization(REPOSITORY_ROOT) is None
+def test_the_builder_authorization_is_present_and_valid() -> None:
+    """Superseded live state: a human authorized this builder on 2026-09-03."""
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    assert document is not None
+    verified = verify_builder_authorization(document)
+    identity = str(verified.fields["human_authorizer_identity"])
+    assert identity and "synthetic" not in identity.lower()
 
 
 def test_an_absent_authorization_refuses_in_its_own_words() -> None:

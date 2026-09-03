@@ -35,6 +35,10 @@ from cardiosentinel.journal_extension.j1.approved_runtime import (
     APPROVED_PYTHON_RUNTIME_IDENTITY,
     approved_runtime_fields,
 )
+from cardiosentinel.journal_extension.j1.authorization import (
+    AuthorizationError,
+    verify_authorization,
+)
 from cardiosentinel.journal_extension.j1.builder_authorization import (
     BUILDER_AUTHORIZATION_FIELDS,
     BUILDER_AUTHORIZATION_PATH,
@@ -127,6 +131,14 @@ SETUP_BUILDX_ACTION = (
 )
 
 SYNTHETIC_AUTHORIZATION_ID = "SYNTHETIC-V3-NOT-A-REAL-AUTHORIZATION"
+
+#: The authorization a human recorded in #154, after reviewing the V3 packet.
+#: Named here so a test can tell it apart from the fixture above -- the one
+#: confusion this module exists to make impossible.
+REAL_AUTHORIZATION_ID = "J1-ENV-BUILDER-AUTH-001"
+AUTHORIZATION_SHA256 = (
+    "86c32cfd4d3e2a48f903f9c61d25dfb377937cd5d9220e4ac9718dd66f84b5e7"
+)
 
 
 # -- reading the packet ----------------------------------------------------
@@ -235,16 +247,50 @@ def test_the_packet_exists_and_is_not_the_canonical_authorization() -> None:
     assert PACKET_RELATIVE != BUILDER_AUTHORIZATION_PATH
 
 
-def test_no_builder_authorization_exists_before_or_after_this_module() -> None:
-    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
-    assert load_builder_authorization(REPOSITORY_ROOT) is None
+def test_the_builder_authorization_is_present_and_valid() -> None:
+    """Superseded live state, recorded by #154.
+
+    This module asserted absence at every commit up to #154, and the assertion
+    was correct each time. It is re-pointed rather than removed: the same
+    question asked of the new truth is a stronger check than absence was.
+    """
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    assert document is not None
+    verified = verify_builder_authorization(document)
+    assert verified.fields["builder_authorization_id"] == REAL_AUTHORIZATION_ID
 
 
-def test_the_packet_is_not_loadable_as_an_authorization() -> None:
+def test_the_packet_is_still_not_the_authorization() -> None:
+    """Two different documents. The packet describes; the JSON authorizes."""
     with pytest.raises(json.JSONDecodeError):
         json.loads(_packet_text())
-    with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
-        verify_builder_authorization(load_builder_authorization(REPOSITORY_ROOT))
+    assert PACKET_RELATIVE != BUILDER_AUTHORIZATION_PATH
+    assert (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).is_file()
+
+
+def test_the_authorization_matches_the_packet_it_was_taken_from() -> None:
+    """A human may only authorize the object that was reviewed.
+
+    Every machine-verified value in the merged V3 packet must appear unchanged
+    in the authorization. A digest quietly differing here would mean the thing
+    authorized and the thing reviewed were different objects.
+    """
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    assert document is not None
+    table = _field_table()
+    for name, row in table.items():
+        if row["status"] != "MACHINE-VERIFIED":
+            continue
+        assert document[name] == row["value"], name
+
+
+def test_the_authorization_derives_its_own_provenance_destination() -> None:
+    """The human chose an id; the destination was not a separate choice."""
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    assert document is not None
+    assert document["provenance_destination"] == durable_evidence_destination(
+        document["builder_authorization_id"]
+    )
 
 
 # -- the readiness claim ---------------------------------------------------
@@ -563,29 +609,50 @@ def test_the_machine_values_verify_against_real_git_history() -> None:
     assert proof["running_commit_descends_from_review_commit"] == "verified"
 
 
-def test_human_authorization_does_not_exist() -> None:
-    """Claim two, and it is a different claim.
+def test_human_authorization_now_exists_and_a_person_made_it() -> None:
+    """Claim two, and it is still a different claim.
 
-    A synthetic document passing every validator proves the machine rules are
-    satisfiable. It does not create permission, and nothing in this module
-    writes the one file that would.
+    Machine sufficiency was provable before any human acted, and it did not
+    create permission. Permission arrived separately, in #154, as a document
+    naming a person and a moment.
     """
-    verify_builder_authorization(_authorization_from_packet())
-    assert load_builder_authorization(REPOSITORY_ROOT) is None
-    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    assert document is not None
+    verified = verify_builder_authorization(document)
+    identity = str(verified.fields["human_authorizer_identity"])
+    assert identity
+    assert "synthetic" not in identity.lower()
+    assert str(verified.fields["authorization_timestamp"]) != ""
 
 
 def test_machine_sufficiency_is_not_authorization() -> None:
     """The two claims must not be collapsible into one.
 
-    The synthetic id is deliberately unmistakable, so a reader who finds it in a
-    real authorization knows it came from a fixture rather than a person.
+    Still true, and now checkable against a real document beside the fixture:
+    the synthetic id is unmistakable, the real one is different, and no fixture
+    value leaked into what was actually authorized.
     """
-    document = _authorization_from_packet()
-    assert "SYNTHETIC" in document["builder_authorization_id"]
-    assert "synthetic" in document["human_authorizer_identity"]
-    assert document["builder_authorization_id"] not in _packet_text()
-    assert load_builder_authorization(REPOSITORY_ROOT) is None
+    fixture = _authorization_from_packet()
+    assert "SYNTHETIC" in fixture["builder_authorization_id"]
+    assert "synthetic" in fixture["human_authorizer_identity"]
+    assert fixture["builder_authorization_id"] not in _packet_text()
+
+    real = load_builder_authorization(REPOSITORY_ROOT)
+    assert real is not None
+    assert real["builder_authorization_id"] != fixture["builder_authorization_id"]
+    assert "SYNTHETIC" not in real["builder_authorization_id"].upper()
+    assert "synthetic" not in real["human_authorizer_identity"].lower()
+
+
+def test_a_builder_authorization_does_not_authorize_j1_science() -> None:
+    """The invariant that had to survive #154, asserted where it is easiest to lose.
+
+    The builder is authorized. J1 is not. They are different documents verified
+    by different code, and the existence of one says nothing about the other.
+    """
+    assert load_builder_authorization(REPOSITORY_ROOT) is not None
+    with pytest.raises(AuthorizationError, match="J1 authorization absent"):
+        verify_authorization(None)
 
 
 @pytest.mark.parametrize("field", HUMAN_FIELDS + DERIVED_FIELDS)
@@ -691,14 +758,28 @@ def test_the_packet_poses_the_human_questions_without_answering_them() -> None:
 # -- negative capability ---------------------------------------------------
 
 
-def test_nothing_was_built_and_no_evidence_directory_exists() -> None:
+def test_authorized_but_nothing_built() -> None:
+    """The live state after #154, in one place.
+
+    Authorizing a builder and running it are separate acts, and only the first
+    has happened. The JSON that grants permission is the *only* JSON here: an
+    evidence directory or a build record appearing beside it would mean the
+    second act had occurred too.
+    """
     for pattern in ("*.oci.tar", "build-a.json", "build-b.json"):
         assert not list(REPOSITORY_ROOT.glob(pattern)), pattern
-    assert not list((REPOSITORY_ROOT / J1_DOCS).glob("*.json"))
+    documents = sorted(p.name for p in (REPOSITORY_ROOT / J1_DOCS).glob("*.json"))
+    assert documents == [Path(BUILDER_AUTHORIZATION_PATH).name], documents
     assert not (REPOSITORY_ROOT / J1_DOCS / "evidence").exists()
 
 
-def test_the_gate_still_refuses_after_every_test_in_this_module() -> None:
-    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
-    with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
-        verify_builder_authorization(load_builder_authorization(REPOSITORY_ROOT))
+def test_the_authorization_is_unchanged_after_every_test_in_this_module() -> None:
+    """No test here may edit the document that grants permission.
+
+    The digest is recomputed at the end and compared against the bytes on disk
+    at the start, so a fixture that wrote to the canonical path -- the one
+    mistake this module must never make -- shows up as a mismatch.
+    """
+    raw = (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == AUTHORIZATION_SHA256
+    verify_builder_authorization(load_builder_authorization(REPOSITORY_ROOT))
