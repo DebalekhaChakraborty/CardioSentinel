@@ -703,26 +703,21 @@ def test_the_only_trigger_is_manual_dispatch_with_no_inputs() -> None:
 # -- negative capability ---------------------------------------------------
 
 
-def test_the_builder_authorization_is_present_and_valid() -> None:
-    """Superseded live state. The refusal mechanism itself is unchanged."""
-    assert (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
-    document = load_builder_authorization(REPOSITORY_ROOT)
-    assert document is not None
-    verify_builder_authorization(document)
-    # Absence still refuses, in the same words. What changed is this
-    # repository's state, not what the verifier does with nothing.
+def test_no_builder_authorization_is_active() -> None:
+    """`J1-ENV-BUILDER-AUTH-001` is retired; the refusal mechanism is unchanged."""
+    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
+    assert load_builder_authorization(REPOSITORY_ROOT) is None
     with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
         verify_builder_authorization(None)
 
 
-def test_j1_science_remains_unauthorized_by_a_builder_authorization() -> None:
-    """The invariant that had to survive #154.
+def test_j1_science_is_unauthorized_independently_of_the_builder() -> None:
+    """Two authorizations, two documents, two verifiers.
 
-    A builder authorization is a statement about a build. It creates no data
-    authority and no permission to execute J1: the two are different documents,
-    verified by different code, and one existing says nothing about the other.
+    This held while a builder authorization existed and holds now that none
+    does. That is the point: one says nothing about the other, in either
+    direction.
     """
-    assert load_builder_authorization(REPOSITORY_ROOT) is not None
     with pytest.raises(AuthorizationError, match="J1 authorization absent"):
         verify_authorization(None)
 

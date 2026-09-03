@@ -90,6 +90,17 @@ RETAINED_RECEIPTS = {
     f"{J1_DOCS}/J1_BUILDER_SELECTION_RECEIPT_V1.md": (
         "3130fac6e8198fb28fff55682bd93af47f81df921ab5919aafb8d36d42aa58cc"
     ),
+    #: V3 joined them here. It was the live packet until the controlled build
+    #: dispatched under the authorization it described failed in its gate, and
+    #: the remediation changed the source tree it names. Its bytes record the
+    #: object that `J1-ENV-BUILDER-AUTH-001` reviewed, and are not rewritten to
+    #: the remediation commit.
+    f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V3.md": (
+        "209cd8689749bdf422d134d974ef0f2a0f286b31478716accce6263c6cb22115"
+    ),
+    f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_ACT_V1.md": (
+        "7643a81062db0b0294c35334a425509aabfc74f6fc834a64afad7afb242528d6"
+    ),
 }
 
 PERMITTED_STATUSES = (
@@ -225,11 +236,23 @@ def test_every_retained_receipt_is_byte_unchanged(
     assert hashlib.sha256(raw).hexdigest() == digest, relative
 
 
+#: The receipts V3 itself supersedes and must therefore name. V3 and the
+#: authorization act joined `RETAINED_RECEIPTS` later, and a document cannot
+#: name its own digest -- that is the self-reference the freeze receipt records
+#: as unsatisfiable.
+SUPERSEDED_BY_V3 = (
+    f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V1.md",
+    f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V2.md",
+    f"{J1_DOCS}/J1_CONTROLLED_ENVIRONMENT_BUILD_PROTOCOL_V1.md",
+    f"{J1_DOCS}/J1_BUILDER_SELECTION_RECEIPT_V1.md",
+)
+
+
 def test_v3_names_the_receipts_it_supersedes_with_their_digests() -> None:
     text = _packet_text()
-    for relative, digest in RETAINED_RECEIPTS.items():
+    for relative in SUPERSEDED_BY_V3:
         assert Path(relative).name in text, relative
-        assert digest in text, relative
+        assert RETAINED_RECEIPTS[relative] in text, relative
 
 
 def test_v3_records_the_lineage_without_rewriting_it() -> None:
@@ -247,50 +270,45 @@ def test_the_packet_exists_and_is_not_the_canonical_authorization() -> None:
     assert PACKET_RELATIVE != BUILDER_AUTHORIZATION_PATH
 
 
-def test_the_builder_authorization_is_present_and_valid() -> None:
-    """Superseded live state, recorded by #154.
+def test_no_builder_authorization_is_active() -> None:
+    """`J1-ENV-BUILDER-AUTH-001` is retired, and V3 with it.
 
-    This module asserted absence at every commit up to #154, and the assertion
-    was correct each time. It is re-pointed rather than removed: the same
-    question asked of the new truth is a stronger check than absence was.
+    The authorization was never spent: its one dispatched run failed in the gate
+    before any qualification claim. It is retired because it names a source
+    commit that the import-boundary remediation supersedes, and the source tree
+    is image content.
     """
-    document = load_builder_authorization(REPOSITORY_ROOT)
-    assert document is not None
-    verified = verify_builder_authorization(document)
-    assert verified.fields["builder_authorization_id"] == REAL_AUTHORIZATION_ID
+    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
+    assert load_builder_authorization(REPOSITORY_ROOT) is None
 
 
-def test_the_packet_is_still_not_the_authorization() -> None:
+def test_the_packet_is_not_the_authorization_and_never_was() -> None:
     """Two different documents. The packet describes; the JSON authorizes."""
     with pytest.raises(json.JSONDecodeError):
         json.loads(_packet_text())
     assert PACKET_RELATIVE != BUILDER_AUTHORIZATION_PATH
-    assert (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).is_file()
 
 
-def test_the_authorization_matches_the_packet_it_was_taken_from() -> None:
-    """A human may only authorize the object that was reviewed.
-
-    Every machine-verified value in the merged V3 packet must appear unchanged
-    in the authorization. A digest quietly differing here would mean the thing
-    authorized and the thing reviewed were different objects.
-    """
-    document = load_builder_authorization(REPOSITORY_ROOT)
-    assert document is not None
-    table = _field_table()
-    for name, row in table.items():
-        if row["status"] != "MACHINE-VERIFIED":
-            continue
-        assert document[name] == row["value"], name
+def test_the_retired_authorizations_id_is_recorded_not_erased() -> None:
+    """Removing the active file must not delete the record of what happened."""
+    receipt = (
+        REPOSITORY_ROOT / J1_DOCS
+        / "J1_ENV_BUILDER_AUTH_001_PRECLAIM_FAILURE_RECEIPT.md"
+    ).read_text(encoding="utf-8")
+    assert REAL_AUTHORIZATION_ID in receipt
+    assert AUTHORIZATION_SHA256 in receipt, "the retired bytes must be digest-named"
+    assert "33800630377" in receipt
+    prose = " ".join(receipt.split())
+    assert "WAS NOT SPENT BY QUALIFICATION CLAIM" in prose
+    assert "WILL NOT BE REUSED AFTER SOURCE REMEDIATION" in prose
 
 
-def test_the_authorization_derives_its_own_provenance_destination() -> None:
-    """The human chose an id; the destination was not a separate choice."""
-    document = load_builder_authorization(REPOSITORY_ROOT)
-    assert document is not None
-    assert document["provenance_destination"] == durable_evidence_destination(
-        document["builder_authorization_id"]
+def test_the_provenance_destination_rule_is_unchanged_by_the_retirement() -> None:
+    """The rule is a property of the mechanism, not of any one authorization."""
+    assert durable_evidence_destination(REAL_AUTHORIZATION_ID).endswith(
+        f"{REAL_AUTHORIZATION_ID}/"
     )
+    assert _field_table()["provenance_destination"]["value"] == PROVENANCE_RULE
 
 
 # -- the readiness claim ---------------------------------------------------
@@ -609,48 +627,27 @@ def test_the_machine_values_verify_against_real_git_history() -> None:
     assert proof["running_commit_descends_from_review_commit"] == "verified"
 
 
-def test_human_authorization_now_exists_and_a_person_made_it() -> None:
-    """Claim two, and it is still a different claim.
+def test_machine_sufficiency_is_still_not_authorization() -> None:
+    """The claim that survived a human authorization arriving *and* being retired.
 
-    Machine sufficiency was provable before any human acted, and it did not
-    create permission. Permission arrived separately, in #154, as a document
-    naming a person and a moment.
-    """
-    document = load_builder_authorization(REPOSITORY_ROOT)
-    assert document is not None
-    verified = verify_builder_authorization(document)
-    identity = str(verified.fields["human_authorizer_identity"])
-    assert identity
-    assert "synthetic" not in identity.lower()
-    assert str(verified.fields["authorization_timestamp"]) != ""
-
-
-def test_machine_sufficiency_is_not_authorization() -> None:
-    """The two claims must not be collapsible into one.
-
-    Still true, and now checkable against a real document beside the fixture:
-    the synthetic id is unmistakable, the real one is different, and no fixture
-    value leaked into what was actually authorized.
+    Every machine rule in V3 remains satisfiable -- the workflow bytes, protocol
+    digest and configuration digest are all unchanged by this remediation. None
+    of that is permission, and no permission currently exists.
     """
     fixture = _authorization_from_packet()
     assert "SYNTHETIC" in fixture["builder_authorization_id"]
     assert "synthetic" in fixture["human_authorizer_identity"]
     assert fixture["builder_authorization_id"] not in _packet_text()
-
-    real = load_builder_authorization(REPOSITORY_ROOT)
-    assert real is not None
-    assert real["builder_authorization_id"] != fixture["builder_authorization_id"]
-    assert "SYNTHETIC" not in real["builder_authorization_id"].upper()
-    assert "synthetic" not in real["human_authorizer_identity"].lower()
+    verify_builder_authorization(fixture)
+    assert load_builder_authorization(REPOSITORY_ROOT) is None
 
 
-def test_a_builder_authorization_does_not_authorize_j1_science() -> None:
-    """The invariant that had to survive #154, asserted where it is easiest to lose.
+def test_j1_science_is_unauthorized_independently_of_the_builder() -> None:
+    """Two authorizations, two documents, two verifiers.
 
-    The builder is authorized. J1 is not. They are different documents verified
-    by different code, and the existence of one says nothing about the other.
+    This held while a builder authorization existed and holds now that none
+    does. One says nothing about the other, in either direction.
     """
-    assert load_builder_authorization(REPOSITORY_ROOT) is not None
     with pytest.raises(AuthorizationError, match="J1 authorization absent"):
         verify_authorization(None)
 
@@ -758,28 +755,20 @@ def test_the_packet_poses_the_human_questions_without_answering_them() -> None:
 # -- negative capability ---------------------------------------------------
 
 
-def test_authorized_but_nothing_built() -> None:
-    """The live state after #154, in one place.
+def test_nothing_was_built_and_no_evidence_directory_exists() -> None:
+    """One dispatch happened and produced nothing. That is the whole record.
 
-    Authorizing a builder and running it are separate acts, and only the first
-    has happened. The JSON that grants permission is the *only* JSON here: an
-    evidence directory or a build record appearing beside it would mean the
-    second act had occurred too.
+    Run 33800630377 failed in its gate, so there is no claim, no build record,
+    no archive and no evidence directory -- and no JSON at all under the J1
+    documents, the authorization having been retired.
     """
     for pattern in ("*.oci.tar", "build-a.json", "build-b.json"):
         assert not list(REPOSITORY_ROOT.glob(pattern)), pattern
-    documents = sorted(p.name for p in (REPOSITORY_ROOT / J1_DOCS).glob("*.json"))
-    assert documents == [Path(BUILDER_AUTHORIZATION_PATH).name], documents
+    assert not list((REPOSITORY_ROOT / J1_DOCS).glob("*.json"))
     assert not (REPOSITORY_ROOT / J1_DOCS / "evidence").exists()
 
 
-def test_the_authorization_is_unchanged_after_every_test_in_this_module() -> None:
-    """No test here may edit the document that grants permission.
-
-    The digest is recomputed at the end and compared against the bytes on disk
-    at the start, so a fixture that wrote to the canonical path -- the one
-    mistake this module must never make -- shows up as a mismatch.
-    """
-    raw = (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).read_bytes()
-    assert hashlib.sha256(raw).hexdigest() == AUTHORIZATION_SHA256
-    verify_builder_authorization(load_builder_authorization(REPOSITORY_ROOT))
+def test_the_gate_still_refuses_after_every_test_in_this_module() -> None:
+    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
+    with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
+        verify_builder_authorization(load_builder_authorization(REPOSITORY_ROOT))
