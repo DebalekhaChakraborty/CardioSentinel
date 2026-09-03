@@ -335,28 +335,99 @@ ordering hygiene, not the control.
 
 ---
 
-## 9. Failure classes — frozen before the first failure
+## 9. Failure classes, and the single-claim rule
+
+# `THE CURRENT BUILDER AUTHORIZATION IS SINGLE-CLAIM`
+
+**An earlier draft of this section was incoherent, and the contradiction is
+recorded rather than quietly corrected.** It said a post-claim failure left the
+claim standing "so a retry runs under it". No such mechanism exists or could:
+the canonical identity is `(run_id, run_attempt)`, so any retry — a re-run of
+the same GitHub run, or a fresh dispatch — necessarily produces a *later* claim,
+which `require_canonical_qualification_run` necessarily refuses. Permitting a
+retry that can never become evidence is not a permission; it is an invitation to
+attempt an authorization repeatedly until one attempt looks right.
+
+The stricter rule is frozen instead. **Once a qualification claim has been
+recorded, that builder authorization is spent.**
 
 ```text
-PRE_ARTIFACT_INFRASTRUCTURE   nothing claimed, nothing seen
-POST_CLAIM_PRE_ARTIFACT       claim stands, no artifact digest produced
-ARTIFACT_VISIBLE              at least one artifact digest has been seen
-COMPLETED_QUALIFICATION       both builds completed and were compared
-PROTOCOL_VIOLATION            the run did something the protocol forbids
+PRE_ARTIFACT_INFRASTRUCTURE   automatic retry permitted ONLY while no claim exists
+POST_CLAIM_PRE_ARTIFACT       terminal for this authorization
+ARTIFACT_VISIBLE              terminal for this authorization
+COMPLETED_QUALIFICATION       terminal
+PROTOCOL_VIOLATION            terminal
 ```
 
-**Automatic re-dispatch is permitted for exactly one class:**
-`PRE_ARTIFACT_INFRASTRUCTURE`. `require_retry_permitted` refuses the rest.
+`require_retry_permitted(failure_class, *, claim_recorded)` takes the claim's
+existence as a required argument with **no default**: the permissive value is
+the dangerous one, and a caller that has not decided whether a claim exists has
+not decided whether a retry is allowed.
 
-Past artifact visibility, a retry is a decision taken with knowledge of a
-result. **If the canonical run reached artifact visibility and diverged, the
-divergence is the finding.** Promote neither digest, do not rebuild until two
-agree, and do not reclassify to `NOT_REPRODUCIBLE_DOCUMENTED`. A further attempt
-requires explicit human review, and a new authorization and qualification
-lineage where the inputs change.
+A further attempt after any post-claim failure requires all three of:
 
-"Rerun until two images match" is the failure mode this table exists to make
+```text
+human review  +  a new builder_authorization_id  +  a new qualification lineage
+```
+
+`require_new_lineage` refuses a further attempt that reuses the previous id.
+**Authorization ids are not interchangeable**: the durable evidence destination
+is derived from the id, so reusing one would file a second attempt's evidence on
+top of the first's.
+
+`run_attempt` stays in the canonical identity. It is what prevents re-running a
+GitHub run *after seeing its result* and presenting attempt 2 as the qualifying
+pair.
+
+**If the canonical run reached artifact visibility and diverged, the divergence
+is the finding.** Promote neither digest, do not rebuild until two agree, and do
+not reclassify to `NOT_REPRODUCIBLE_DOCUMENTED`.
+
+"Rerun until two images match" is the failure mode this section exists to make
 unreachable.
+
+---
+
+## 9a. Recording precedes enforcement
+
+A divergence is a **valid observed outcome**, not an exception. An earlier
+implementation computed the comparison and raised on disagreement in one call,
+so the single outcome the two-build procedure exists to detect was the one
+outcome that wrote no record: the finding survived only as a line in an expiring
+run log.
+
+Two phases, and they are separate commands:
+
+```text
+collect BUILD_A + BUILD_B + claim
+        ↓
+PHASE A   reproducibility-record     records the observation; a divergence does not raise
+        ↓
+          validate the record is present, non-empty and complete
+        ↓
+          upload the record          if-no-files-found: error
+        ↓
+PHASE B   enforce-reproducibility    reads the retained record; DIVERGED exits non-zero
+```
+
+| Outcome | `reproducibility_class` | `failure_class` |
+|---|---|---|
+| digests agree | `BIT_REPRODUCIBLE` | `COMPLETED_QUALIFICATION` |
+| digests differ | `DIVERGED` | `ARTIFACT_VISIBLE` |
+
+The divergence record carries **both** artifact digests and the whole frozen
+provenance. Phase B reads that file rather than recomputing, so the failure and
+the retained evidence are the same object.
+
+**Invalid inputs are not divergences.** Differing source commits, base image
+digests, dependency digests, build configuration digests or target platforms,
+one build id presented twice, or a malformed provenance record all raise in
+`require_comparable_builds` and are never classified `DIVERGED`. Two builds from
+different inputs disagreeing says nothing about reproducibility, and recording
+it as a finding would manufacture one out of a mistake.
+
+**Absence of the record is a protocol failure, not a missing file.** The upload
+uses `if-no-files-found: error`, and an empty record is refused explicitly.
 
 ---
 

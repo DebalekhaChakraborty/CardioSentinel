@@ -286,40 +286,179 @@ def read_oci_archive_manifest(archive: Path) -> dict[str, Any]:
     }
 
 
-def compare_builds(first: dict[str, Any], second: dict[str, Any]) -> dict[str, Any]:
-    """The reproducibility gate. Divergence stops; it never selects a winner."""
-    shared = (
-        "source_commit",
-        "base_image_digest",
-        "dependency_digest",
-        "build_configuration_digest",
-        "target_platform",
-    )
-    differing = [k for k in shared if first.get(k) != second.get(k)]
+#: The two builds agreed. The preferred outcome, and the only one that permits
+#: an artifact to go forward to qualification.
+BIT_REPRODUCIBLE: Final = "BIT_REPRODUCIBLE"
+#: Identical inputs produced different artifacts. A **valid observed outcome**,
+#: not an error -- which is the whole reason the two-build procedure exists. It
+#: is recorded first and refused second.
+DIVERGED: Final = "DIVERGED"
+
+REPRODUCIBILITY_CLASSES: Final[tuple[str, ...]] = (BIT_REPRODUCIBLE, DIVERGED)
+
+#: Every field a build provenance record must carry before it can be compared.
+#: A record missing one of these is malformed input, not evidence about
+#: reproducibility.
+REQUIRED_BUILD_RECORD_FIELDS: Final[tuple[str, ...]] = (
+    "build_id",
+    "source_commit",
+    "base_image_digest",
+    "dependency_digest",
+    "build_configuration_digest",
+    "target_platform",
+    "output_artifact_digest",
+)
+
+#: The inputs the reproducibility contract holds fixed. Two builds that differ
+#: in any of them are not a reproducibility experiment.
+SHARED_CONTRACT_INPUTS: Final[tuple[str, ...]] = (
+    "source_commit",
+    "base_image_digest",
+    "dependency_digest",
+    "build_configuration_digest",
+    "target_platform",
+)
+
+
+def require_comparable_builds(
+    first: dict[str, Any], second: dict[str, Any]
+) -> None:
+    """Refuse inputs that cannot answer the reproducibility question at all.
+
+    **These are protocol failures, not reproducibility findings.** Two builds
+    from different source commits disagreeing tells you nothing about whether
+    the environment is reproducible, and recording that as `DIVERGED` would
+    manufacture a finding out of a mistake. They raise; a genuine divergence
+    does not.
+    """
+    for label, record in (("BUILD_A", first), ("BUILD_B", second)):
+        if not isinstance(record, dict):
+            raise ControlledBuildError(
+                f"{label} provenance is malformed: expected an object, got "
+                f"{type(record).__name__}."
+            )
+        missing = [n for n in REQUIRED_BUILD_RECORD_FIELDS if not record.get(n)]
+        if missing:
+            raise ControlledBuildError(
+                f"{label} provenance is malformed; it carries no "
+                + ", ".join(sorted(missing))
+                + ". A record missing a contract field is invalid input, not a "
+                "reproducibility observation."
+            )
+    differing = [
+        name
+        for name in SHARED_CONTRACT_INPUTS
+        if first.get(name) != second.get(name)
+    ]
     if differing:
         raise ControlledBuildError(
             "the two builds do not share the contract's inputs, so they say "
-            f"nothing about reproducibility. Differing: {sorted(differing)}."
+            f"nothing about reproducibility. Differing: {sorted(differing)}. "
+            "This is an invalid qualification input, not a divergence."
         )
     if first["build_id"] == second["build_id"]:
         raise ControlledBuildError(
             "both records carry the same build_id; that is one build recorded "
-            "twice."
+            "twice, which is an invalid qualification input rather than a "
+            "reproducibility result."
         )
+
+
+def reproducibility_record(
+    *,
+    first: dict[str, Any],
+    second: dict[str, Any],
+    claim: dict[str, Any],
+) -> dict[str, Any]:
+    """Phase A -- record the observation. **A divergence never raises here.**
+
+    An earlier version computed the comparison and the refusal in one call, so a
+    divergence raised before any record was written: the single outcome the
+    procedure exists to detect was the one outcome that left no evidence, and
+    the finding survived only as a line in an expiring run log.
+
+    Invalid inputs still raise, because there is nothing to observe.
+    """
+    verified = verify_qualification_claim(claim)
+    require_comparable_builds(first, second)
+
     a = first["output_artifact_digest"]
     b = second["output_artifact_digest"]
-    if a != b:
+    agreed = a == b
+    return {
+        "qualification_policy": QUALIFICATION_POLICY,
+        "builder_authorization_id": verified.authorization_id,
+        "workflow_run_id": verified.fields["workflow_run_id"],
+        "workflow_run_attempt": verified.fields["workflow_run_attempt"],
+        "build_a_artifact_digest": a,
+        "build_b_artifact_digest": b,
+        "build_a_archive_sha256": first.get("archive_sha256"),
+        "build_b_archive_sha256": second.get("archive_sha256"),
+        "reproducibility_class": BIT_REPRODUCIBLE if agreed else DIVERGED,
+        "failure_class": classify_divergence(
+            build_a_digest=a, build_b_digest=b
+        ),
+        "build_ids": [first["build_id"], second["build_id"]],
+        "source_commit": first["source_commit"],
+        "base_image_digest": first["base_image_digest"],
+        "dependency_digest": first["dependency_digest"],
+        "build_configuration_digest": first["build_configuration_digest"],
+        "target_platform": first["target_platform"],
+        # Deliberately absent on divergence, and absent here in both cases: no
+        # single artifact is selected by this record. Promotion is a later act.
+        "promoted_artifact": None,
+    }
+
+
+def enforce_reproducibility(record: Any) -> dict[str, Any]:
+    """Phase B -- read the written record and refuse a divergence.
+
+    Separate from Phase A so the evidence exists on disk before anything fails.
+    This reads a record rather than recomputing one: enforcing against a value
+    the enforcement step derived itself would not prove the retained evidence
+    says what the failure claims.
+    """
+    if not isinstance(record, dict) or not record:
+        raise ControlledBuildError(
+            "the reproducibility record is empty or malformed. Once BUILD_A and "
+            "BUILD_B produced valid records, failing to produce the comparison "
+            "record is itself a protocol failure, not a missing file."
+        )
+    missing = [
+        name
+        for name in (
+            "reproducibility_class",
+            "build_a_artifact_digest",
+            "build_b_artifact_digest",
+        )
+        if not record.get(name)
+    ]
+    if missing:
+        raise ControlledBuildError(
+            "the reproducibility record does not carry "
+            + ", ".join(sorted(missing))
+            + "; it cannot be enforced against."
+        )
+    classification = record["reproducibility_class"]
+    if classification not in REPRODUCIBILITY_CLASSES:
+        raise ControlledBuildError(
+            f"reproducibility_class={classification!r} is not one of "
+            + ", ".join(REPRODUCIBILITY_CLASSES)
+        )
+    if classification == DIVERGED:
         raise ControlledBuildError(
             "identical inputs produced different artifacts.\n"
-            f"  BUILD_A: {a}\n  BUILD_B: {b}\n"
+            f"  BUILD_A: {record['build_a_artifact_digest']}\n"
+            f"  BUILD_B: {record['build_b_artifact_digest']}\n"
             "STOP. Neither digest is promoted, neither build is selected, and "
             "this is not reclassified as documented non-reproducibility. A "
-            "divergence is a finding requiring human review."
+            "divergence is a finding requiring human review, and the record of "
+            "it has already been written and retained."
         )
     return {
-        "reproducibility_class": "BIT_REPRODUCIBLE",
-        "output_artifact_digest": a,
-        "build_ids": [first["build_id"], second["build_id"]],
+        "reproducibility_class": BIT_REPRODUCIBLE,
+        "output_artifact_digest": record["build_a_artifact_digest"],
+        "build_ids": record.get("build_ids", []),
     }
 
 
@@ -366,50 +505,26 @@ def _command_qualification_claim(arguments: argparse.Namespace) -> dict[str, Any
     return claim.as_document()
 
 
-def reproducibility_record(
-    *,
-    first: dict[str, Any],
-    second: dict[str, Any],
-    claim: dict[str, Any],
+def _command_reproducibility_record(
+    arguments: argparse.Namespace,
 ) -> dict[str, Any]:
-    """The durable statement of what the two builds showed.
-
-    Previously the comparison existed only as a line in a run log, which expires
-    with the run. It is a record now, because the outcome of the two-build
-    procedure is the whole point of running it -- including, and especially,
-    when the outcome is a divergence.
-    """
-    verified = verify_qualification_claim(claim)
-    outcome = compare_builds(first, second)
-    return {
-        "qualification_policy": QUALIFICATION_POLICY,
-        "builder_authorization_id": verified.authorization_id,
-        "workflow_run_id": verified.fields["workflow_run_id"],
-        "workflow_run_attempt": verified.fields["workflow_run_attempt"],
-        "build_a_artifact_digest": first["output_artifact_digest"],
-        "build_b_artifact_digest": second["output_artifact_digest"],
-        "build_a_archive_sha256": first.get("archive_sha256"),
-        "build_b_archive_sha256": second.get("archive_sha256"),
-        "reproducibility_class": outcome["reproducibility_class"],
-        "failure_class": classify_divergence(
-            build_a_digest=first["output_artifact_digest"],
-            build_b_digest=second["output_artifact_digest"],
-        ),
-        "build_ids": outcome["build_ids"],
-        "source_commit": first["source_commit"],
-        "base_image_digest": first["base_image_digest"],
-        "dependency_digest": first["dependency_digest"],
-        "build_configuration_digest": first["build_configuration_digest"],
-        "target_platform": first["target_platform"],
-    }
-
-
-def _command_compare(arguments: argparse.Namespace) -> dict[str, Any]:
     return reproducibility_record(
         first=json.loads(Path(arguments.build_a).read_text(encoding="utf-8")),
         second=json.loads(Path(arguments.build_b).read_text(encoding="utf-8")),
         claim=json.loads(Path(arguments.claim).read_text(encoding="utf-8")),
     )
+
+
+def _command_enforce_reproducibility(
+    arguments: argparse.Namespace,
+) -> dict[str, Any]:
+    raw = Path(arguments.record).read_text(encoding="utf-8")
+    if not raw.strip():
+        raise ControlledBuildError(
+            f"{arguments.record} is empty. An empty comparison record is a "
+            "protocol failure, not an absent result."
+        )
+    return enforce_reproducibility(json.loads(raw))
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -447,11 +562,17 @@ def build_parser() -> argparse.ArgumentParser:
     artifact.add_argument("--oci-archive", required=True)
     artifact.set_defaults(handler=_command_artifact_digest)
 
-    compare = sub.add_parser("compare-builds")
-    compare.add_argument("--build-a", required=True)
-    compare.add_argument("--build-b", required=True)
-    compare.add_argument("--claim", required=True)
-    compare.set_defaults(handler=_command_compare)
+    # Two commands, deliberately not one. Recording and enforcement are
+    # separate steps so the evidence is on disk before anything can fail.
+    record = sub.add_parser("reproducibility-record")
+    record.add_argument("--build-a", required=True)
+    record.add_argument("--build-b", required=True)
+    record.add_argument("--claim", required=True)
+    record.set_defaults(handler=_command_reproducibility_record)
+
+    enforce = sub.add_parser("enforce-reproducibility")
+    enforce.add_argument("--record", required=True)
+    enforce.set_defaults(handler=_command_enforce_reproducibility)
     return parser
 
 

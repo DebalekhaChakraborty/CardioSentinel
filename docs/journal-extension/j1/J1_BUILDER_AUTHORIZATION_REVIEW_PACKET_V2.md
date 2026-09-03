@@ -58,7 +58,7 @@ pointed at the wrong thing entirely.
 
 | Source | SHA-256 |
 |---|---|
-| working tree (this branch) | `0a2b054fe11b94a8f6d1501fcae34a18845edd5a9109dd4b2fed92bae5ab7742` |
+| working tree (this branch) | `6bf187e25367a9cdd267f19cec27b0c0bb58dd6cc0142b26d670df3998ad5f53` |
 | git object store at a review commit | **not yet — established by this PR's merge** |
 
 V1's three-way agreement cannot be reproduced here, and saying so is the point:
@@ -71,13 +71,13 @@ recorded as what it is.
 | | |
 |---|---|
 | Identity | `J1_CONTROLLED_ENVIRONMENT_BUILD_PROTOCOL_V2` |
-| Digest | `30f9066ce55b45494ef109ef8dcc4b54fe3ec3f428d18d236d6127646474fd34` |
+| Digest | `3454c4096fe025a5c88f744cc92b15c1975a9ddf3d2e2e59259770b5b4dea412` |
 | Supersedes | V1 at `e980d0f7b22851a6dadd1158ba979cb95395ebc765c71ce5b068ce55fcb651aa`, byte-unchanged |
 
 ### Build configuration digest — seven members, was five
 
 ```text
-build_configuration_digest = b2cc017402038c1db88bbb118b69496152a876bc062f08ab615eaf347492af50
+build_configuration_digest = c9e9b5a636e65957c19103c22d29fdaf7d0dc8b9ed073a2aab146a86b2adf12c
 ```
 
 | Role | Status | SHA-256 |
@@ -87,7 +87,7 @@ build_configuration_digest = b2cc017402038c1db88bbb118b69496152a876bc062f08ab615
 | `dependency_input_pypi` | derived | `550b79b43c28ef2f09468f8a23cdacb34dabb993afc3e176a55bc2091c5506d9` |
 | `dependency_input_pytorch` | derived | `a6436381cc2a0315c00c8d4bc80aa47607790dcce709e472b675bffc73ae952b` |
 | `build_script` | tracked | `06b1e4568c8228df91217f2c4ddf8b16864c9c9432df0048d53dff2e54b2a7d8` |
-| `workflow` | tracked | `0a2b054fe11b94a8f6d1501fcae34a18845edd5a9109dd4b2fed92bae5ab7742` |
+| `workflow` | tracked | `6bf187e25367a9cdd267f19cec27b0c0bb58dd6cc0142b26d670df3998ad5f53` |
 | `artifact_validation_script` | tracked | `84d0f2fae0ded1cc9a77b2c3df6131352446533a4ca44c3b57c256aab5c15a52` |
 
 The `workflow` member equals the reviewed-bytes digest above. The V1 value
@@ -146,6 +146,63 @@ provenance records, both OCI archives and the reproducibility record out of the
 run; the durable record is a later human-reviewed evidence PR into the path
 above. The workflow has `contents: read` and cannot write it, which is
 deliberate.
+
+---
+
+## 3a. Two corrections after adversarial review of the remediation
+
+Both were found by review of this PR, not of #151, and both are recorded rather
+than quietly fixed.
+
+### R1 — the post-claim retry rule contradicted the canonical identity
+
+The failure table said a post-claim failure left the claim standing "so a retry
+runs under it". **No such mechanism exists or could.** Canonical identity is
+`(run_id, run_attempt)`, so any retry — a re-run of the same GitHub run or a
+fresh dispatch — produces a *later* claim, which the canonical-run rule refuses.
+Permitting a retry that can never become evidence is not a permission; it is an
+invitation to attempt an authorization until one attempt looks right.
+
+# `THE CURRENT BUILDER AUTHORIZATION IS SINGLE-CLAIM`
+
+Once a claim is recorded, that authorization is spent. Automatic retry survives
+only for `PRE_ARTIFACT_INFRASTRUCTURE`, and only while no claim exists;
+`require_retry_permitted` now takes `claim_recorded` as a required argument with
+**no default**, because the permissive value is the dangerous one. A further
+attempt needs human review **and** a new `builder_authorization_id` **and** a new
+lineage — ids are not interchangeable, since the evidence destination is derived
+from the id.
+
+`run_attempt` stays in the identity. It is what stops a run being re-run *after
+its result is visible* and presented as the qualifying pair.
+
+### R2 — a divergence produced no record at all
+
+The comparison computed and refused in one call, raising on disagreement before
+writing anything. **The single outcome the two-build procedure exists to detect
+was the one outcome that left no evidence** — it survived only as a line in an
+expiring run log, which is the same defect #151 found in the old workflow, one
+layer down.
+
+Recording is now separate from enforcement:
+
+```text
+PHASE A  reproducibility-record    a divergence is an outcome, and does not raise
+         validate present/non-empty/complete
+         upload                    if-no-files-found: error
+PHASE B  enforce-reproducibility   reads the retained record; DIVERGED exits non-zero
+```
+
+| Outcome | `reproducibility_class` | `failure_class` |
+|---|---|---|
+| digests agree | `BIT_REPRODUCIBLE` | `COMPLETED_QUALIFICATION` |
+| digests differ | `DIVERGED` | `ARTIFACT_VISIBLE` |
+
+**Invalid inputs are not divergences.** Differing contract inputs, one build id
+twice, or malformed provenance raise in `require_comparable_builds` and are never
+classified `DIVERGED`: two builds from different inputs disagreeing says nothing
+about reproducibility, and recording it as a finding would manufacture one out of
+a mistake.
 
 ---
 
@@ -218,10 +275,10 @@ environment authority record, artifact promotion, or J1 authorization.
 | `repository` | `DebalekhaChakraborty/CardioSentinel` | git remote | `git remote -v` | MACHINE-VERIFIED |
 | `workflow_path` | `.github/workflows/j1-environment-artifact-build.yml` | the controlled-build workflow | compared against `CONTROLLED_BUILD_WORKFLOW_PATH`, which the verifier enforces | MACHINE-VERIFIED |
 | `workflow_review_commit` | — | established by the merge of this remediation PR | deferred; a working tree is not a commit | BLOCKED |
-| `workflow_sha256` | `0a2b054fe11b94a8f6d1501fcae34a18845edd5a9109dd4b2fed92bae5ab7742` | the workflow bytes on this branch | SHA-256 over raw bytes; re-verified through the real verifier in a seeded repository | MACHINE-VERIFIED |
+| `workflow_sha256` | `6bf187e25367a9cdd267f19cec27b0c0bb58dd6cc0142b26d670df3998ad5f53` | the workflow bytes on this branch | SHA-256 over raw bytes; re-verified through the real verifier in a seeded repository | MACHINE-VERIFIED |
 | `runner_class` | `ubuntu-24.04` | the workflow | literal `runs-on` in the bytes; no `ubuntu-latest` present | MACHINE-VERIFIED |
 | `controlled_build_protocol_identity` | `J1_CONTROLLED_ENVIRONMENT_BUILD_PROTOCOL_V2` | the superseding protocol document | derived from the committed path | MACHINE-VERIFIED |
-| `controlled_build_protocol_digest` | `30f9066ce55b45494ef109ef8dcc4b54fe3ec3f428d18d236d6127646474fd34` | raw protocol V2 bytes | SHA-256 over raw bytes | MACHINE-VERIFIED |
+| `controlled_build_protocol_digest` | `3454c4096fe025a5c88f744cc92b15c1975a9ddf3d2e2e59259770b5b4dea412` | raw protocol V2 bytes | SHA-256 over raw bytes | MACHINE-VERIFIED |
 | `source_repository` | `DebalekhaChakraborty/CardioSentinel` | git remote | `git remote -v` | MACHINE-VERIFIED |
 | `authorized_source_commit` | — | must contain the remediated build inputs, which are not merged yet | deferred to the merge of this PR | BLOCKED |
 | `target_platform` | `linux/amd64` | `builder_protocol.TARGET_PLATFORM`, traced to V1 locks | constant, compared against the workflow | MACHINE-VERIFIED |
@@ -229,7 +286,7 @@ environment authority record, artifact promotion, or J1 authorization.
 | `base_image_digest` | `python@sha256:c0d63ec61d3a1321f8dc2d46ab6bd38465e005237c0a463712020e5d338eae25` | protocol V2 §6 | present in the protocol; digest-addressed form enforced by `build.sh` and the verifier | MACHINE-VERIFIED |
 | `dependency_authority_identity` | `v1-frozen-experiment-lock-335-packages` | `approved_runtime.approved_runtime_fields()` | resolved by calling the authority mechanism | MACHINE-VERIFIED |
 | `dependency_digest` | `b0fd6eaa592537b7e4d5574ca68b675e85e923ae3c4a5ba411028ba6fcd7297a` | `FROZEN_DEPENDENCY_DIGEST` compiled into V1 | three agreeing readings; the verifier refuses any other value | MACHINE-VERIFIED |
-| `build_configuration_digest` | `b2cc017402038c1db88bbb118b69496152a876bc062f08ab615eaf347492af50` | `controlled_build.configuration_digest` over all seven members | recomputed from two independent generations of the derived inputs | MACHINE-VERIFIED |
+| `build_configuration_digest` | `c9e9b5a636e65957c19103c22d29fdaf7d0dc8b9ed073a2aab146a86b2adf12c` | `controlled_build.configuration_digest` over all seven members | recomputed from two independent generations of the derived inputs | MACHINE-VERIFIED |
 | `provenance_destination` | — | derived from `builder_authorization_id` by `durable_evidence_destination` | enforced by the verifier once the id exists | HUMAN-DECISION-REQUIRED |
 | `qualification_policy` | `FIRST_AUTHORIZED_QUALIFICATION_RUN_IS_CANONICAL` | `qualification.QUALIFICATION_POLICY` | constant; the verifier refuses any other value | MACHINE-VERIFIED |
 | `authorization_timestamp` | — | the moment of the human act | none available | HUMAN-DECISION-REQUIRED |

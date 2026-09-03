@@ -12,6 +12,7 @@ than to a constant written beside the assertion.
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from pathlib import Path
 from typing import Any
@@ -39,8 +40,13 @@ from cardiosentinel.journal_extension.j1.builder_protocol import (
     require_derived_input_properties,
 )
 from cardiosentinel.journal_extension.j1.controlled_build import (
+    BIT_REPRODUCIBLE,
+    DIVERGED,
     ControlledBuildError,
     configuration_digest,
+    enforce_reproducibility,
+    reproducibility_record,
+    require_comparable_builds,
     write_dependency_input,
 )
 from cardiosentinel.journal_extension.j1.qualification import (
@@ -55,10 +61,12 @@ from cardiosentinel.journal_extension.j1.qualification import (
     QUALIFICATION_FAILURE_CLASSES,
     QUALIFICATION_POLICY,
     REPRODUCIBILITY_RECORD_ARTIFACT,
+    SINGLE_CLAIM_POLICY,
     QualificationError,
     classify_divergence,
     durable_evidence_destination,
     require_canonical_qualification_run,
+    require_new_lineage,
     require_provenance_destination,
     require_retry_permitted,
     verify_qualification_claim,
@@ -533,21 +541,95 @@ def test_the_claim_is_recorded_after_the_gate_and_before_any_build() -> None:
 # -- failure and retry semantics -------------------------------------------
 
 
-def test_only_pre_claim_infrastructure_failure_may_retry_automatically() -> None:
-    require_retry_permitted(PRE_ARTIFACT_INFRASTRUCTURE)
-    for blocked in (
-        POST_CLAIM_PRE_ARTIFACT,
-        ARTIFACT_VISIBLE,
-        COMPLETED_QUALIFICATION,
-        PROTOCOL_VIOLATION,
-    ):
+def test_before_any_claim_an_infrastructure_failure_may_be_redispatched() -> None:
+    """Nothing was reserved and nothing was seen, so this is a fresh attempt."""
+    require_retry_permitted(PRE_ARTIFACT_INFRASTRUCTURE, claim_recorded=False)
+
+
+def test_after_a_claim_the_authorization_is_spent(
+) -> None:
+    """R1: single-claim. Even the pre-artifact class is terminal once claimed."""
+    with pytest.raises(QualificationError, match="already exists"):
+        require_retry_permitted(PRE_ARTIFACT_INFRASTRUCTURE, claim_recorded=True)
+
+
+def test_post_claim_pre_artifact_is_terminal_for_this_authorization() -> None:
+    """The class whose old prose said a retry 'runs under' the claim. It cannot."""
+    for claimed in (True, False):
         with pytest.raises(QualificationError, match="not permitted"):
-            require_retry_permitted(blocked)
+            require_retry_permitted(
+                POST_CLAIM_PRE_ARTIFACT, claim_recorded=claimed
+            )
+
+
+@pytest.mark.parametrize(
+    "failure_class",
+    [ARTIFACT_VISIBLE, COMPLETED_QUALIFICATION, PROTOCOL_VIOLATION],
+)
+def test_every_other_class_is_terminal(failure_class: str) -> None:
+    for claimed in (True, False):
+        with pytest.raises(QualificationError, match="not permitted"):
+            require_retry_permitted(failure_class, claim_recorded=claimed)
+
+
+def test_the_retry_rule_names_the_three_things_a_further_attempt_needs() -> None:
+    with pytest.raises(QualificationError) as raised:
+        require_retry_permitted(ARTIFACT_VISIBLE, claim_recorded=True)
+    message = str(raised.value)
+    assert "human review" in message
+    assert "new builder_authorization_id" in message
+    assert "new qualification lineage" in message
+
+
+def test_claim_recorded_has_no_default() -> None:
+    """The permissive value is the dangerous one, so it may not be implicit."""
+    with pytest.raises(TypeError):
+        require_retry_permitted(PRE_ARTIFACT_INFRASTRUCTURE)  # type: ignore[call-arg]
 
 
 def test_an_undeclared_failure_class_is_refused() -> None:
     with pytest.raises(QualificationError, match="not a declared"):
-        require_retry_permitted("SOMETHING_WENT_WRONG")
+        require_retry_permitted("SOMETHING_WENT_WRONG", claim_recorded=False)
+
+
+def test_a_further_attempt_may_not_reuse_the_authorization_id() -> None:
+    """Ids are not interchangeable: the evidence destination is derived from one."""
+    with pytest.raises(QualificationError, match="may not reuse"):
+        require_new_lineage(
+            previous_authorization_id=SYNTHETIC_ID,
+            proposed_authorization_id=SYNTHETIC_ID,
+        )
+    assert (
+        require_new_lineage(
+            previous_authorization_id=SYNTHETIC_ID,
+            proposed_authorization_id="SECOND-LINEAGE-NOT-REAL",
+        )
+        == "SECOND-LINEAGE-NOT-REAL"
+    )
+
+
+def test_a_new_authorization_id_starts_a_separate_lineage() -> None:
+    """An earlier claim under authorization A must not shadow authorization B."""
+    first = _claim(100)
+    second_lineage = _claim(200, builder_authorization_id="SECOND-LINEAGE-NOT-REAL")
+    proof = require_canonical_qualification_run(
+        claim=second_lineage, observed_claims=[first, second_lineage]
+    )
+    assert proof["canonical_run_id"] == 200
+    assert proof["claims_observed"] == 1
+
+
+def test_a_later_dispatch_under_the_same_authorization_stays_non_canonical() -> None:
+    first = _claim(100)
+    later_dispatch = _claim(500)
+    with pytest.raises(QualificationError, match="not the canonical"):
+        require_canonical_qualification_run(
+            claim=later_dispatch, observed_claims=[first, later_dispatch]
+        )
+
+
+def test_the_single_claim_policy_is_named() -> None:
+    assert SINGLE_CLAIM_POLICY == "THE_CURRENT_BUILDER_AUTHORIZATION_IS_SINGLE_CLAIM"
 
 
 def test_divergence_classifies_as_artifact_visible() -> None:
@@ -642,3 +724,151 @@ def test_the_controlled_build_module_still_cannot_build_anything() -> None:
         )
 
         read_oci_archive_manifest(REPOSITORY_ROOT / "nothing-here.oci.tar")
+
+
+# -- R2: a divergence must leave evidence before anything fails ------------
+
+
+def _build_record(build_id: str, digest: str) -> dict[str, Any]:
+    return {
+        "build_id": build_id,
+        "source_commit": "b" * 40,
+        "base_image_digest": "python@sha256:" + "c" * 64,
+        "dependency_digest": "d" * 64,
+        "build_configuration_digest": "e" * 64,
+        "target_platform": "linux/amd64",
+        "output_artifact_digest": digest,
+        "archive_sha256": "1" * 64,
+    }
+
+
+def _claim_document() -> dict[str, Any]:
+    return dict(_claim(100).fields)
+
+
+def test_a_divergence_produces_a_complete_record_without_raising() -> None:
+    """The exact previous failure: the one outcome that left no evidence.
+
+    Every numbered assertion in the brief, in order.
+    """
+    a = _build_record("BUILD_A", "sha256:" + "a" * 64)
+    b = _build_record("BUILD_B", "sha256:" + "b" * 64)
+
+    # 1. record generation does not raise merely because the digests differ
+    record = reproducibility_record(first=a, second=b, claim=_claim_document())
+
+    # 2. a complete record is produced, and survives a JSON round trip
+    restored = json.loads(json.dumps(record))
+    assert restored
+
+    # 3. both digests are present
+    assert restored["build_a_artifact_digest"] == "sha256:" + "a" * 64
+    assert restored["build_b_artifact_digest"] == "sha256:" + "b" * 64
+
+    # 4 and 5. the classification is the observation, not an error
+    assert restored["reproducibility_class"] == DIVERGED
+    assert restored["failure_class"] == ARTIFACT_VISIBLE
+
+    # 6. the gate, run separately, rejects it
+    with pytest.raises(ControlledBuildError, match="different artifacts"):
+        enforce_reproducibility(restored)
+
+    # 7. nothing was selected or promoted
+    assert restored["promoted_artifact"] is None
+    assert "output_artifact_digest" not in restored
+
+
+def test_agreement_records_and_passes_the_gate() -> None:
+    digest = "sha256:" + "a" * 64
+    record = reproducibility_record(
+        first=_build_record("BUILD_A", digest),
+        second=_build_record("BUILD_B", digest),
+        claim=_claim_document(),
+    )
+    assert record["reproducibility_class"] == BIT_REPRODUCIBLE
+    assert record["failure_class"] == COMPLETED_QUALIFICATION
+    assert enforce_reproducibility(record)["output_artifact_digest"] == digest
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "source_commit",
+        "base_image_digest",
+        "dependency_digest",
+        "build_configuration_digest",
+        "target_platform",
+    ],
+)
+def test_differing_contract_inputs_are_invalid_not_diverged(field: str) -> None:
+    """Two builds from different inputs say nothing about reproducibility."""
+    a = _build_record("BUILD_A", "sha256:" + "a" * 64)
+    b = _build_record("BUILD_B", "sha256:" + "a" * 64)
+    b[field] = "linux/arm64" if field == "target_platform" else "9" * 40
+    with pytest.raises(ControlledBuildError, match="invalid qualification input"):
+        reproducibility_record(first=a, second=b, claim=_claim_document())
+
+
+def test_one_build_presented_twice_is_invalid_not_diverged() -> None:
+    a = _build_record("BUILD_A", "sha256:" + "a" * 64)
+    b = _build_record("BUILD_A", "sha256:" + "b" * 64)
+    with pytest.raises(ControlledBuildError, match="one build recorded"):
+        reproducibility_record(first=a, second=b, claim=_claim_document())
+
+
+@pytest.mark.parametrize("missing", ["build_id", "output_artifact_digest"])
+def test_malformed_provenance_is_invalid_not_diverged(missing: str) -> None:
+    a = _build_record("BUILD_A", "sha256:" + "a" * 64)
+    b = _build_record("BUILD_B", "sha256:" + "a" * 64)
+    del b[missing]
+    with pytest.raises(ControlledBuildError, match="malformed"):
+        require_comparable_builds(a, b)
+
+
+def test_an_empty_or_incomplete_record_cannot_be_enforced_against() -> None:
+    with pytest.raises(ControlledBuildError, match="empty or malformed"):
+        enforce_reproducibility({})
+    with pytest.raises(ControlledBuildError, match="does not carry"):
+        enforce_reproducibility({"reproducibility_class": DIVERGED})
+
+
+def test_an_unknown_reproducibility_class_is_refused() -> None:
+    record = reproducibility_record(
+        first=_build_record("BUILD_A", "sha256:" + "a" * 64),
+        second=_build_record("BUILD_B", "sha256:" + "a" * 64),
+        claim=_claim_document(),
+    )
+    record["reproducibility_class"] = "NOT_REPRODUCIBLE_DOCUMENTED"
+    with pytest.raises(ControlledBuildError, match="is not one of"):
+        enforce_reproducibility(record)
+
+
+# -- the workflow records, retains, then enforces --------------------------
+
+
+def test_the_workflow_uploads_the_record_before_enforcing() -> None:
+    names = [
+        step.get("name", "") for step in _steps(_job("reproducibility"))
+    ]
+    record_at = names.index("Compute the reproducibility record")
+    upload_at = names.index("Retain the reproducibility record")
+    enforce_at = names.index("Enforce the reproducibility result")
+    assert record_at < upload_at < enforce_at
+
+
+def test_the_record_upload_treats_absence_as_an_error() -> None:
+    """`warn` would let a missing comparison pass as if nothing happened."""
+    upload = next(
+        step
+        for step in _steps(_job("reproducibility"))
+        if step.get("name") == "Retain the reproducibility record"
+    )
+    assert upload["with"]["if-no-files-found"] == "error"
+    assert upload.get("if") == "always()"
+
+
+def test_recording_and_enforcement_are_separate_commands() -> None:
+    text = WORKFLOW_PATH.read_text(encoding="utf-8")
+    assert "reproducibility-record" in text
+    assert "enforce-reproducibility" in text
+    assert "compare-builds" not in text

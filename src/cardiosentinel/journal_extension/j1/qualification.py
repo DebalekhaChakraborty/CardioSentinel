@@ -322,13 +322,19 @@ def require_canonical_qualification_run(
 # ---------------------------------------------------------------------------
 
 #: The run failed before it claimed anything. Nothing was reserved and no
-#: artifact existed, so re-dispatching starts a genuinely fresh attempt.
+#: artifact existed, so re-dispatching starts a genuinely fresh attempt --
+#: provided no claim exists, which is what makes it a fresh attempt.
 PRE_ARTIFACT_INFRASTRUCTURE: Final = "PRE_ARTIFACT_INFRASTRUCTURE"
-#: The claim exists; no artifact digest was produced. The claim stands, so a
-#: retry runs under it rather than creating a competing pair.
+#: A claim exists; no artifact digest was produced. **Terminal for this
+#: authorization.** An earlier draft of this module said the claim "stands, so a
+#: retry runs under it", and that was incoherent: the canonical identity is
+#: `(run_id, run_attempt)`, so a retry is necessarily a *later* claim and the
+#: canonical-run rule necessarily refuses it. There is no mechanism by which a
+#: second attempt reuses the first attempt's claim, and inventing one would mean
+#: an attempt could be repeated until it succeeded.
 POST_CLAIM_PRE_ARTIFACT: Final = "POST_CLAIM_PRE_ARTIFACT"
 #: At least one artifact digest became visible. From here a retry is a choice
-#: informed by a result, so it is never automatic.
+#: informed by a result. Terminal for this authorization.
 ARTIFACT_VISIBLE: Final = "ARTIFACT_VISIBLE"
 #: Both builds completed and were compared. The outcome is the outcome.
 COMPLETED_QUALIFICATION: Final = "COMPLETED_QUALIFICATION"
@@ -343,35 +349,77 @@ QUALIFICATION_FAILURE_CLASSES: Final[tuple[str, ...]] = (
     PROTOCOL_VIOLATION,
 )
 
-#: Automatic re-dispatch is permitted for exactly one class: the one where
-#: nothing has been claimed and nothing has been seen. "Rerun until two images
-#: match" is the failure mode this table exists to make unreachable.
-AUTOMATIC_RETRY_PERMITTED: Final[Mapping[str, bool]] = {
-    PRE_ARTIFACT_INFRASTRUCTURE: True,
-    POST_CLAIM_PRE_ARTIFACT: False,
-    ARTIFACT_VISIBLE: False,
-    COMPLETED_QUALIFICATION: False,
-    PROTOCOL_VIOLATION: False,
-}
+# ---------------------------------------------------------------------------
+# Single-claim authorization
+# ---------------------------------------------------------------------------
+
+SINGLE_CLAIM_POLICY: Final = "THE_CURRENT_BUILDER_AUTHORIZATION_IS_SINGLE_CLAIM"
+
+NEW_LINEAGE_REQUIREMENT: Final = (
+    "A further attempt requires all three of: human review, a new "
+    "builder_authorization_id, and a new qualification lineage. No rerun of the "
+    "same authorization can become qualification evidence."
+)
 
 
-def require_retry_permitted(failure_class: str) -> None:
-    """Refuse an automatic retry that would let a run be attempted into agreement."""
+#: Classes that could occur before any claim exists. Only these are candidates
+#: for automatic re-dispatch, and only while no claim has been recorded.
+RETRY_CANDIDATE_CLASSES: Final[tuple[str, ...]] = (PRE_ARTIFACT_INFRASTRUCTURE,)
+
+
+def require_retry_permitted(failure_class: str, *, claim_recorded: bool) -> None:
+    """Refuse any retry that would let an authorization be attempted twice.
+
+    **A builder authorization is single-claim.** Once a qualification claim has
+    been recorded under it, that authorization is spent: every later run --
+    a new dispatch or a re-run of the same one -- produces a later claim, which
+    the canonical-run rule refuses. Saying "retry is permitted, it just cannot
+    become the evidence" would be a distinction without a difference dressed as
+    a permission.
+
+    `claim_recorded` has no default. The permissive value is the dangerous one,
+    and a caller that has not decided whether a claim exists has not decided
+    whether a retry is allowed.
+    """
     if failure_class not in QUALIFICATION_FAILURE_CLASSES:
         raise QualificationError(
             f"{failure_class!r} is not a declared qualification failure class. "
             "Known: " + ", ".join(QUALIFICATION_FAILURE_CLASSES)
         )
-    if not AUTOMATIC_RETRY_PERMITTED[failure_class]:
+    if failure_class in RETRY_CANDIDATE_CLASSES and not claim_recorded:
+        return
+    if failure_class in RETRY_CANDIDATE_CLASSES and claim_recorded:
         raise QualificationError(
-            f"automatic retry is not permitted after {failure_class}. "
-            "Once an artifact digest has been seen, a retry is a decision taken "
-            "with knowledge of a result: if the canonical run reached artifact "
-            "visibility and diverged, the divergence is the finding. Promote "
-            "neither digest, do not rebuild until two agree, and do not "
-            "reclassify. A further attempt requires human review and, where the "
-            "inputs change, a new authorization and qualification lineage."
+            f"a qualification claim already exists, so {failure_class} is not a "
+            "pre-claim failure and this authorization is spent. "
+            + NEW_LINEAGE_REQUIREMENT
         )
+    raise QualificationError(
+        f"retry is not permitted after {failure_class}, automatically or by "
+        "hand. If the canonical run reached artifact visibility and diverged, "
+        "the divergence is the finding: promote neither digest, do not rebuild "
+        "until two agree, and do not reclassify. " + NEW_LINEAGE_REQUIREMENT
+    )
+
+
+def require_new_lineage(
+    *, previous_authorization_id: str, proposed_authorization_id: str
+) -> str:
+    """A further attempt must be a different authorization, not the same one again.
+
+    Ids are not interchangeable: the durable evidence destination is derived
+    from the id, so reusing one would file a second attempt's evidence on top of
+    the first attempt's.
+    """
+    require_authorization_id(previous_authorization_id)
+    require_authorization_id(proposed_authorization_id)
+    if previous_authorization_id == proposed_authorization_id:
+        raise QualificationError(
+            "a further qualification attempt may not reuse "
+            f"builder_authorization_id={proposed_authorization_id!r}. "
+            + NEW_LINEAGE_REQUIREMENT
+        )
+    return proposed_authorization_id
 
 
 def classify_divergence(*, build_a_digest: str, build_b_digest: str) -> str:

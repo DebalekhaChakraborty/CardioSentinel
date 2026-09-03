@@ -375,20 +375,39 @@ jobs:
         with:
           path: build-records
           pattern: "j1-{build-a-provenance,build-b-provenance,qualification-claim}"
-      # Divergence is a hard stop. Neither digest is promoted, neither build is
-      # selected, nothing is rebuilt until two happen to agree, and there is no
-      # automatic reclassification to documented non-reproducibility. That is a
-      # finding requiring human review.
-      - name: Compare BUILD_A and BUILD_B, and record the outcome
+      # PHASE A -- record the observation. A divergence is a valid outcome here
+      # and does not fail this step. An earlier version computed and refused in
+      # one call, so the single outcome the procedure exists to detect was the
+      # one outcome that left no evidence behind.
+      - name: Compute the reproducibility record
         run: |
           python -m cardiosentinel.journal_extension.j1.controlled_build \
-            compare-builds \
+            reproducibility-record \
             --build-a build-records/j1-build-a-provenance/build-a.json \
             --build-b build-records/j1-build-b-provenance/build-b.json \
             --claim build-records/j1-qualification-claim/j1-qualification-claim.json \
             > j1-reproducibility.json
           cat j1-reproducibility.json
-      # Retained whatever the outcome, which is the point: a divergence is the
+
+      # A structural check before the upload, so an empty or truncated record
+      # fails here rather than being retained as if it said something.
+      - name: Validate the record is present, non-empty and complete
+        run: |
+          test -s j1-reproducibility.json
+          python - <<'PY'
+          import json
+          with open("j1-reproducibility.json", encoding="utf-8") as handle:
+              record = json.load(handle)
+          for field in (
+              "reproducibility_class",
+              "build_a_artifact_digest",
+              "build_b_artifact_digest",
+          ):
+              if not record.get(field):
+                  raise SystemExit(f"reproducibility record carries no {field}")
+          PY
+
+      # Retained BEFORE enforcement, and required to exist. A divergence is the
       # finding, and a finding that exists only in an expiring run log is a
       # finding nobody can review.
       - name: Retain the reproducibility record
@@ -397,4 +416,15 @@ jobs:
         with:
           name: j1-reproducibility-record
           path: j1-reproducibility.json
-          if-no-files-found: warn
+          # Absence is not acceptable: once both builds produced valid records,
+          # failing to produce the comparison is itself a protocol failure.
+          if-no-files-found: error
+
+      # PHASE B -- enforce. Reads the retained record rather than recomputing,
+      # so the failure and the evidence are the same object. Divergence stops
+      # here: neither digest promoted, neither build selected, no rebuild until
+      # two agree, and no reclassification to documented non-reproducibility.
+      - name: Enforce the reproducibility result
+        run: |
+          python -m cardiosentinel.journal_extension.j1.controlled_build \
+            enforce-reproducibility --record j1-reproducibility.json
