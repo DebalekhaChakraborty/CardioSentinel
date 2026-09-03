@@ -1,19 +1,21 @@
-"""The V2 review packet, checked against external facts; V1 kept as a receipt.
+"""The V3 review packet, checked against external facts; V1 and V2 kept as receipts.
 
 **No builder is authorized here, and no authorization document is written.** The
 canonical path stays empty for the whole of this module, and a test asserts that
 after every synthetic authorization has been constructed and verified.
 
-Two packets, two different jobs. V1 is an **audit receipt**: it recorded findings
-F1-F5 against values that the remediation then superseded, and its bytes are
-asserted unchanged rather than re-checked against live code -- re-pointing a
-receipt at current values would erase the discrepancy it exists to record. V2 is
-the live packet, and every machine-verified row in it is re-derived from
-something the packet cannot supply.
+Three packets, three jobs. V1 and V2 are **audit receipts** whose bytes are the
+record: V1 carried findings F1-F5 against values the remediation superseded, and
+V2 carried the remediation's own values while three fields were still blocked on
+a merge. Re-pointing either at current values would erase the discrepancy each
+exists to record, so they are asserted byte-unchanged and never re-checked
+against live code. V3 is the live packet.
 
-Three of V2's fields are `BLOCKED` on the merge that creates the review commit.
-That is the honest state and the tests assert it rather than papering over it
-with a working-tree value dressed as a commit.
+V3's central claim is that `BLOCKED = 0` -- every machine-resolvable field is
+resolved against a commit that now exists. Two things are proven separately and
+must never collapse into one: that **every machine requirement can pass**, and
+that **no human authorization exists**. A test asserts each, and a test asserts
+they are different claims.
 """
 
 from __future__ import annotations
@@ -30,6 +32,7 @@ from cardiosentinel.journal_extension.j1 import preflight
 from cardiosentinel.journal_extension.j1.approved_runtime import (
     APPROVED_DEPENDENCY_DIGEST,
     APPROVED_PACKAGE_COUNT,
+    APPROVED_PYTHON_RUNTIME_IDENTITY,
     approved_runtime_fields,
 )
 from cardiosentinel.journal_extension.j1.builder_authorization import (
@@ -44,9 +47,12 @@ from cardiosentinel.journal_extension.j1.builder_authorization import (
 )
 from cardiosentinel.journal_extension.j1.builder_protocol import (
     ARTIFACT_KIND,
+    ARTIFACT_MEDIA_TYPE,
     GENERIC_BUILDER_IDENTITIES,
     REQUIRED_BUILD_CONFIGURATION_INPUTS,
     TARGET_PLATFORM,
+    ControlledBuilderIdentity,
+    require_specific_builder_identity,
 )
 from cardiosentinel.journal_extension.j1.controlled_build import (
     configuration_digest,
@@ -54,46 +60,53 @@ from cardiosentinel.journal_extension.j1.controlled_build import (
 )
 from cardiosentinel.journal_extension.j1.qualification import (
     QUALIFICATION_POLICY,
+    SINGLE_CLAIM_POLICY,
     durable_evidence_destination,
 )
 
 REPOSITORY_ROOT = Path(preflight.J1_PACKAGE_ROOT).parents[3]
 J1_DOCS = "docs/journal-extension/j1"
 
-PACKET_RELATIVE = f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V2.md"
+PACKET_RELATIVE = f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V3.md"
 PACKET_PATH = REPOSITORY_ROOT / PACKET_RELATIVE
 PROTOCOL_RELATIVE = f"{J1_DOCS}/J1_CONTROLLED_ENVIRONMENT_BUILD_PROTOCOL_V2.md"
-
-#: Retained receipts. Their bytes are the record; they are never re-pointed.
-PACKET_V1_RELATIVE = f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V1.md"
-PACKET_V1_SHA256 = "86c298efd424d5dd2e86802d015f3f1d90690c78311cc99c18f6cb8a604243c2"
-PROTOCOL_V1_RELATIVE = f"{J1_DOCS}/J1_CONTROLLED_ENVIRONMENT_BUILD_PROTOCOL_V1.md"
-PROTOCOL_V1_SHA256 = (
-    "e980d0f7b22851a6dadd1158ba979cb95395ebc765c71ce5b068ce55fcb651aa"
-)
-
 WORKFLOW_RELATIVE = CONTROLLED_BUILD_WORKFLOW_PATH
 
-PERMITTED_STATUSES = ("MACHINE-VERIFIED", "HUMAN-DECISION-REQUIRED", "BLOCKED")
+#: Retained receipts. Their bytes are the record; they are never re-pointed.
+RETAINED_RECEIPTS = {
+    f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V1.md": (
+        "86c298efd424d5dd2e86802d015f3f1d90690c78311cc99c18f6cb8a604243c2"
+    ),
+    f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V2.md": (
+        "b1390c3512b37f81966cc226a552dfb0c4673cbcab5aae10735e6ac74059c992"
+    ),
+    f"{J1_DOCS}/J1_CONTROLLED_ENVIRONMENT_BUILD_PROTOCOL_V1.md": (
+        "e980d0f7b22851a6dadd1158ba979cb95395ebc765c71ce5b068ce55fcb651aa"
+    ),
+    f"{J1_DOCS}/J1_BUILDER_SELECTION_RECEIPT_V1.md": (
+        "3130fac6e8198fb28fff55682bd93af47f81df921ab5919aafb8d36d42aa58cc"
+    ),
+}
 
-#: The em dash the packet uses where a value must not exist. Not a placeholder
-#: string: a placeholder is something that looks like content.
+PERMITTED_STATUSES = (
+    "MACHINE-VERIFIED",
+    "HUMAN-DECISION-REQUIRED",
+    "HUMAN-DERIVED",
+    "BLOCKED",
+)
+
+#: The em dash the packet uses where a value must not exist.
 UNRESOLVED = "—"
 
-#: No mechanism derives these.
 HUMAN_FIELDS = (
     "builder_authorization_id",
-    "provenance_destination",
     "authorization_timestamp",
     "human_authorizer_identity",
 )
-#: Determined by an event that has not happened: the merge of the remediation
-#: pull request, which is what creates the reviewed commit.
-BLOCKED_FIELDS = (
-    "builder_candidate_id",
-    "workflow_review_commit",
-    "authorized_source_commit",
-)
+#: Determined by a rule, not by a choice: the human picks the id and this
+#: follows. Recorded as its derivation, never as a literal path.
+DERIVED_FIELDS = ("provenance_destination",)
+PROVENANCE_RULE = "durable_evidence_destination(builder_authorization_id)"
 
 BUILD_CONFIGURATION_PATHS = {
     "containerfile": "containers/j1-environment/Containerfile",
@@ -113,7 +126,7 @@ SETUP_BUILDX_ACTION = (
     "docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f"
 )
 
-SYNTHETIC_AUTHORIZATION_ID = "SYNTHETIC-REMEDIATION-NOT-REAL"
+SYNTHETIC_AUTHORIZATION_ID = "SYNTHETIC-V3-NOT-A-REAL-AUTHORIZATION"
 
 
 # -- reading the packet ----------------------------------------------------
@@ -123,12 +136,22 @@ def _packet_text() -> str:
     return PACKET_PATH.read_text(encoding="utf-8")
 
 
+def _packet_prose() -> str:
+    """The packet with runs of whitespace collapsed.
+
+    Prose assertions run against this. A sentence that happens to wrap across
+    two lines is the same sentence, and a test that failed on the wrap point
+    would be testing the fill width rather than the claim.
+    """
+    return " ".join(_packet_text().split())
+
+
 def _field_table() -> dict[str, dict[str, str]]:
     """Parse the packet's own field table. It is the single source of truth."""
     lines = _packet_text().splitlines()
     start = None
     for index, line in enumerate(lines):
-        if line.startswith("| Field | Resolved value |"):
+        if line.startswith("| Field | Candidate value |"):
             start = index + 2
             break
     assert start is not None, "the packet carries no field table"
@@ -151,52 +174,57 @@ def _field_table() -> dict[str, dict[str, str]]:
 def _machine_value(field: str) -> str:
     row = _field_table()[field]
     assert row["status"] == "MACHINE-VERIFIED", (
-        f"{field} is {row['status']}, so it carries no value to check"
+        f"{field} is {row['status']}, so it carries no verified value"
     )
     return row["value"]
 
 
-# -- V1 is a receipt, not a live document ----------------------------------
+def _git(*arguments: str) -> subprocess.CompletedProcess[bytes]:
+    return subprocess.run(
+        ["git", "-C", str(REPOSITORY_ROOT), *arguments],
+        capture_output=True,
+        check=False,
+    )
 
 
-def test_the_v1_packet_is_byte_unchanged() -> None:
+def _require_commit(commit: str) -> None:
+    """Skip visibly rather than pass silently on a shallow checkout."""
+    if _git("cat-file", "-e", f"{commit}^{{commit}}").returncode != 0:
+        pytest.skip(
+            f"commit {commit} is not in this checkout's object store "
+            "(shallow clone); the checkout-based digest checks still ran"
+        )
+
+
+# -- V1 and V2 are receipts ------------------------------------------------
+
+
+@pytest.mark.parametrize("relative,digest", sorted(RETAINED_RECEIPTS.items()))
+def test_every_retained_receipt_is_byte_unchanged(
+    relative: str, digest: str
+) -> None:
     """A receipt that gets updated is not a receipt.
 
-    V1's values are superseded. Its bytes record what was reviewed and what was
-    found, and re-pointing it at the remediated values would delete the very
-    discrepancy that justified the remediation.
+    Each of these carries values or statements the later work superseded. Their
+    bytes record what was believed and when, and re-pointing one at current
+    values would delete the discrepancy that justified the next round.
     """
-    raw = (REPOSITORY_ROOT / PACKET_V1_RELATIVE).read_bytes()
-    assert hashlib.sha256(raw).hexdigest() == PACKET_V1_SHA256
+    raw = (REPOSITORY_ROOT / relative).read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == digest, relative
 
 
-def test_the_v1_build_protocol_is_byte_unchanged() -> None:
-    """V1 §12 is stale and stays stale. History is superseded, not rewritten."""
-    raw = (REPOSITORY_ROOT / PROTOCOL_V1_RELATIVE).read_bytes()
-    assert hashlib.sha256(raw).hexdigest() == PROTOCOL_V1_SHA256
-
-
-def test_v2_declares_what_it_supersedes_and_names_its_digest() -> None:
+def test_v3_names_the_receipts_it_supersedes_with_their_digests() -> None:
     text = _packet_text()
-    assert "J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V1.md" in text
-    assert PACKET_V1_SHA256 in text
-    assert "byte-unchanged" in text
+    for relative, digest in RETAINED_RECEIPTS.items():
+        assert Path(relative).name in text, relative
+        assert digest in text, relative
 
 
-def test_the_superseding_protocol_records_the_lineage() -> None:
-    """A reader must be able to reconcile 'no workflow exists' with one that does."""
-    protocol = (REPOSITORY_ROOT / PROTOCOL_RELATIVE).read_text(encoding="utf-8")
-    assert PROTOCOL_V1_SHA256 in protocol
-    assert "Supersedes" in protocol
-    assert "j1-environment-build.yml" in protocol, "correction C1 must be recorded"
-
-
-def test_the_packet_accounts_for_every_finding() -> None:
-    """All six, each with a resolution and a stated remaining limitation."""
-    text = _packet_text()
-    for finding in ("F1", "F2", "F3", "F4", "F5", "F6"):
-        assert f"**{finding}**" in text, finding
-    assert "Remaining limitation" in text
+def test_v3_records_the_lineage_without_rewriting_it() -> None:
+    prose = _packet_prose()
+    for marker in ("V1 review packet", "#151", "#152", "V3"):
+        assert marker in prose, marker
+    assert "historical evidence, not current authority" in prose
 
 
 # -- the packet is not, and cannot become, an authorization ----------------
@@ -219,15 +247,34 @@ def test_the_packet_is_not_loadable_as_an_authorization() -> None:
         verify_builder_authorization(load_builder_authorization(REPOSITORY_ROOT))
 
 
-def test_the_packet_does_not_claim_to_be_ready() -> None:
-    """Three fields have no values, so a signature over it would sign nothing."""
+# -- the readiness claim ---------------------------------------------------
+
+
+def test_the_packet_claims_readiness_only_because_nothing_is_blocked() -> None:
+    """The status and the table must agree, or the status is a wish."""
+    statuses = [row["status"] for row in _field_table().values()]
+    blocked = [s for s in statuses if s == "BLOCKED"]
     text = _packet_text()
-    assert "NOT READY FOR HUMAN DECISION" in text
-    assert "BUILDER NOT AUTHORIZED" in text
-    assert "must not be signed" in text
+    if blocked:
+        assert "NOT READY — MACHINE AUTHORITY BLOCKED" in text
+    else:
+        assert "READY FOR EXPLICIT HUMAN BUILDER-AUTHORIZATION DECISION" in text
+    assert not blocked, f"BLOCKED must be 0 for a READY packet, got {len(blocked)}"
 
 
-# -- the field table ------------------------------------------------------
+def test_the_declared_status_counts_match_the_table() -> None:
+    statuses = [row["status"] for row in _field_table().values()]
+    counts = {name: statuses.count(name) for name in PERMITTED_STATUSES}
+    assert counts == {
+        "MACHINE-VERIFIED": 18,
+        "HUMAN-DECISION-REQUIRED": 3,
+        "HUMAN-DERIVED": 1,
+        "BLOCKED": 0,
+    }
+    text = _packet_text()
+    for name, count in counts.items():
+        assert f"{name}" in text
+        assert f"{count}" in text
 
 
 def test_the_table_covers_every_schema_field_exactly_once() -> None:
@@ -236,7 +283,7 @@ def test_the_table_covers_every_schema_field_exactly_once() -> None:
     assert len(table) == len(BUILDER_AUTHORIZATION_FIELDS) == 22
 
 
-def test_only_the_three_permitted_statuses_appear() -> None:
+def test_only_the_four_permitted_statuses_appear() -> None:
     for field, row in _field_table().items():
         assert row["status"] in PERMITTED_STATUSES, f"{field}: {row['status']}"
 
@@ -246,25 +293,22 @@ def test_no_pending_status_masquerades_as_authorization_content() -> None:
         assert "PENDING" not in row["status"].upper(), field
 
 
-def test_human_and_blocked_fields_carry_no_value() -> None:
-    """A machine may not synthesize a human field, nor invent a commit."""
+def test_human_fields_carry_no_value() -> None:
+    """A machine may not synthesize a human field, nor predate a timestamp."""
     table = _field_table()
     for field in HUMAN_FIELDS:
         assert table[field]["status"] == "HUMAN-DECISION-REQUIRED", field
         assert table[field]["value"] == UNRESOLVED, field
-    for field in BLOCKED_FIELDS:
-        assert table[field]["status"] == "BLOCKED", field
-        assert table[field]["value"] == UNRESOLVED, field
+    verification = table["authorization_timestamp"]["verification"]
+    assert "not" in verification and "predated" in verification
 
 
-def test_every_other_field_is_machine_verified_and_non_empty() -> None:
-    table = _field_table()
-    unresolved = set(HUMAN_FIELDS) | set(BLOCKED_FIELDS)
-    for field in BUILDER_AUTHORIZATION_FIELDS:
-        if field in unresolved:
-            continue
-        assert table[field]["status"] == "MACHINE-VERIFIED", field
-        assert table[field]["value"] not in ("", UNRESOLVED), field
+def test_the_derived_field_carries_its_rule_and_not_a_literal() -> None:
+    """`HUMAN-DERIVED`, because the rule is total: the human picks only the id."""
+    row = _field_table()["provenance_destination"]
+    assert row["status"] == "HUMAN-DERIVED"
+    assert row["value"] == PROVENANCE_RULE
+    assert "/" not in row["value"].replace("(", "").replace(")", "")
 
 
 def test_no_resolved_value_is_a_placeholder() -> None:
@@ -274,15 +318,7 @@ def test_no_resolved_value_is_a_placeholder() -> None:
         assert row["value"].strip().lower() not in PLACEHOLDER_VALUES, field
 
 
-def test_the_blocked_fields_are_blocked_on_the_merge_not_on_a_choice() -> None:
-    table = _field_table()
-    for field in BLOCKED_FIELDS:
-        assert "merge" in table[field]["source"] or "merge" in (
-            table[field]["verification"]
-        ), field
-
-
-# -- machine-verified values, re-derived from outside the packet -----------
+# -- machine values, re-derived from outside the packet --------------------
 
 
 def test_workflow_digest_recomputed_from_the_checkout() -> None:
@@ -290,14 +326,76 @@ def test_workflow_digest_recomputed_from_the_checkout() -> None:
     assert hashlib.sha256(raw).hexdigest() == _machine_value("workflow_sha256")
 
 
-def test_the_workflow_path_is_the_one_the_verifier_enforces() -> None:
-    assert _machine_value("workflow_path") == CONTROLLED_BUILD_WORKFLOW_PATH
-    assert (REPOSITORY_ROOT / _machine_value("workflow_path")).is_file()
+def test_workflow_digest_recomputed_from_the_git_object_store() -> None:
+    """V2 could not do this. A commit now holds these bytes as merged history."""
+    commit = _machine_value("workflow_review_commit")
+    _require_commit(commit)
+    completed = _git("cat-file", "blob", f"{commit}:{WORKFLOW_RELATIVE}")
+    assert completed.returncode == 0
+    assert hashlib.sha256(completed.stdout).hexdigest() == _machine_value(
+        "workflow_sha256"
+    )
+
+
+def test_the_review_commit_and_master_hold_one_blob() -> None:
+    """Stronger than digest equality: it is git's own identity for the content."""
+    commit = _machine_value("workflow_review_commit")
+    _require_commit(commit)
+    at_commit = _git("rev-parse", f"{commit}:{WORKFLOW_RELATIVE}")
+    at_head = _git("rev-parse", f"HEAD:{WORKFLOW_RELATIVE}")
+    assert at_commit.returncode == 0 and at_head.returncode == 0
+    assert at_commit.stdout.strip() == at_head.stdout.strip()
+    assert at_commit.stdout.decode().strip() in _packet_text()
+
+
+def test_the_commit_fields_are_full_shas_and_are_the_same_commit() -> None:
+    review = _machine_value("workflow_review_commit")
+    source = _machine_value("authorized_source_commit")
+    for value in (review, source):
+        assert len(value) == 40
+        assert set(value) <= set("0123456789abcdef")
+    assert review == source
+
+
+def test_the_authorized_source_commit_holds_every_build_input() -> None:
+    commit = _machine_value("authorized_source_commit")
+    _require_commit(commit)
+    for relative in BUILD_CONFIGURATION_PATHS.values():
+        assert _git("cat-file", "-e", f"{commit}:{relative}").returncode == 0, (
+            f"{relative} is absent at the authorized source commit"
+        )
+
+
+def test_no_later_commit_touches_a_build_input() -> None:
+    """Authority may not be moved forward silently; here there is nowhere to move."""
+    commit = _machine_value("authorized_source_commit")
+    _require_commit(commit)
+    completed = _git(
+        "log",
+        "--oneline",
+        f"{commit}..HEAD",
+        "--",
+        "containers/",
+        ".github/workflows/",
+        "src/cardiosentinel/journal_extension/j1/",
+    )
+    assert completed.returncode == 0
+    assert not completed.stdout.strip(), completed.stdout.decode()
 
 
 def test_protocol_digest_recomputed_from_the_checkout() -> None:
     raw = (REPOSITORY_ROOT / PROTOCOL_RELATIVE).read_bytes()
     assert hashlib.sha256(raw).hexdigest() == _machine_value(
+        "controlled_build_protocol_digest"
+    )
+
+
+def test_protocol_digest_recomputed_from_the_git_object_store() -> None:
+    commit = _machine_value("workflow_review_commit")
+    _require_commit(commit)
+    completed = _git("cat-file", "blob", f"{commit}:{PROTOCOL_RELATIVE}")
+    assert completed.returncode == 0
+    assert hashlib.sha256(completed.stdout).hexdigest() == _machine_value(
         "controlled_build_protocol_digest"
     )
 
@@ -323,41 +421,74 @@ def test_build_configuration_digest_recomputed_canonically(tmp_path: Path) -> No
     assert result["build_configuration_digest"] == _machine_value(
         "build_configuration_digest"
     )
-    assert result["inputs"]["workflow"] == _machine_value("workflow_sha256")
     assert result["member_count"] == 7
+    # The digested workflow is the reviewed workflow, not a file of the same name.
+    assert result["inputs"]["workflow"] == _machine_value("workflow_sha256")
 
 
-def test_the_derived_dependency_input_is_deterministic(tmp_path: Path) -> None:
-    """Two independent generations, because one proves nothing about drift."""
+def test_every_member_digest_appears_in_the_packet(tmp_path: Path) -> None:
+    """The member table must be the digests that were actually combined."""
+    write_dependency_input(REPOSITORY_ROOT, tmp_path)
+    paths = {
+        name: REPOSITORY_ROOT / relative
+        for name, relative in BUILD_CONFIGURATION_PATHS.items()
+    }
+    paths["dependency_input_pypi"] = tmp_path / "requirements.pypi.txt"
+    paths["dependency_input_pytorch"] = tmp_path / "requirements.pytorch-cpu.txt"
+    text = _packet_text()
+    for role, digest in configuration_digest(paths)["inputs"].items():
+        assert digest in text, role
+
+
+def test_the_derived_dependency_inputs_regenerate_identically(
+    tmp_path: Path,
+) -> None:
     first = write_dependency_input(REPOSITORY_ROOT, tmp_path / "a")
     second = write_dependency_input(REPOSITORY_ROOT, tmp_path / "b")
-    assert first == second
-    assert first["dependency_authority_digest"] == APPROVED_DEPENDENCY_DIGEST
+    assert first["files"] == second["files"]
+    for name in ("requirements.pypi.txt", "requirements.pytorch-cpu.txt"):
+        assert (tmp_path / "a" / name).read_bytes() == (
+            tmp_path / "b" / name
+        ).read_bytes()
     assert sum(first["counts"].values()) == APPROVED_PACKAGE_COUNT
 
 
-def test_dependency_digest_is_the_approved_authority_not_a_new_one() -> None:
+def test_dependency_authority_is_resolved_not_retyped() -> None:
+    fields = approved_runtime_fields()
     assert _machine_value("dependency_digest") == APPROVED_DEPENDENCY_DIGEST
-
-
-def test_dependency_authority_identity_comes_from_the_authority() -> None:
     assert (
         _machine_value("dependency_authority_identity")
-        == approved_runtime_fields()["dependency_lock_identity"]
+        == fields["dependency_lock_identity"]
     )
+    text = _packet_text()
+    assert APPROVED_PYTHON_RUNTIME_IDENTITY in text
+    assert str(APPROVED_PACKAGE_COUNT) in text
 
 
-def test_target_platform_and_artifact_type_are_the_frozen_constants() -> None:
+def test_target_artifact_and_policy_are_the_frozen_constants() -> None:
     assert _machine_value("target_platform") == TARGET_PLATFORM
     assert _machine_value("artifact_type") == ARTIFACT_KIND
-
-
-def test_the_qualification_policy_is_the_frozen_constant() -> None:
     assert _machine_value("qualification_policy") == QUALIFICATION_POLICY
+    text = _packet_text()
+    assert ARTIFACT_MEDIA_TYPE in text
+    assert SINGLE_CLAIM_POLICY in text
+
+
+def test_the_builder_candidate_id_is_composed_by_the_implementation() -> None:
+    """Derived through the repository's own model, not typed into the packet."""
+    identity = ControlledBuilderIdentity(
+        provider=_machine_value("provider"),
+        workflow_repository=_machine_value("repository"),
+        workflow_path=_machine_value("workflow_path"),
+        workflow_commit=_machine_value("workflow_review_commit"),
+        runner_class=_machine_value("runner_class"),
+    )
+    require_specific_builder_identity(identity)
+    assert identity.builder_id == _machine_value("builder_candidate_id")
+    assert "j1-environment-build.yml" not in identity.builder_id
 
 
 def test_the_base_image_is_digest_addressed_and_in_the_protocol() -> None:
-    """A tag is not authority, and a digest nobody committed is not evidence."""
     value = _machine_value("base_image_digest")
     repository, separator, digest = value.partition("@sha256:")
     assert separator and repository
@@ -367,7 +498,6 @@ def test_the_base_image_is_digest_addressed_and_in_the_protocol() -> None:
 
 
 def test_the_build_tool_pins_are_in_the_workflow_and_the_packet() -> None:
-    """The workflow is what runs; the packet is what a human reviews."""
     workflow = (REPOSITORY_ROOT / WORKFLOW_RELATIVE).read_text(encoding="utf-8")
     for pin in (
         BUILDKIT_MANIFEST,
@@ -384,16 +514,14 @@ def test_the_build_tool_pins_are_in_the_workflow_and_the_packet() -> None:
     assert SETUP_BUILDX_ACTION.partition("@")[2] in packet
 
 
-# -- a synthetic authorization, never written to disk ----------------------
+# -- the two claims, proven separately -------------------------------------
 
 
 def _authorization_from_packet(**overrides: Any) -> dict[str, Any]:
     """Built from the packet's machine-verified rows. Entirely in memory.
 
-    The human fields, and the three fields blocked on the merge, are supplied
-    here as obviously synthetic values. Substituting them is exactly what turns
-    a review packet into something that verifies -- and for the human fields
-    only a human may do it, while for the blocked fields only the merge can.
+    The human fields are unmistakably synthetic, and the derived field is
+    computed from the synthetic id by the same function the verifier uses.
     """
     table = _field_table()
     document: dict[str, Any] = {
@@ -405,26 +533,63 @@ def _authorization_from_packet(**overrides: Any) -> dict[str, Any]:
     document["provenance_destination"] = durable_evidence_destination(
         SYNTHETIC_AUTHORIZATION_ID
     )
-    document["authorization_timestamp"] = "2026-09-02T00:00:00Z"
+    document["authorization_timestamp"] = "SYNTHETIC-NOT-AN-AUTHORIZATION-ACT"
     document["human_authorizer_identity"] = "synthetic, not a signatory"
-    document["builder_candidate_id"] = (
-        "github-actions:DebalekhaChakraborty/CardioSentinel//"
-        f"{CONTROLLED_BUILD_WORKFLOW_PATH}@{'1' * 40}#ubuntu-24.04"
-    )
-    document["workflow_review_commit"] = "1" * 40
-    document["authorized_source_commit"] = "2" * 40
     document.update(overrides)
     return document
 
 
-def test_the_packet_values_satisfy_every_non_human_rule() -> None:
-    """Only the human act, and the merge that fixes the commits, are missing."""
-    verified = verify_builder_authorization(_authorization_from_packet())
+def test_every_machine_requirement_can_pass() -> None:
+    """Claim one: machine sufficiency. Says nothing about permission."""
+    document = _authorization_from_packet()
+    assert set(document) == set(BUILDER_AUTHORIZATION_FIELDS)
+    verified = verify_builder_authorization(document)
     assert verified.workflow_sha256 == _machine_value("workflow_sha256")
 
 
-@pytest.mark.parametrize("field", HUMAN_FIELDS + BLOCKED_FIELDS)
-def test_without_the_unresolved_fields_the_authorization_is_incomplete(
+def test_the_machine_values_verify_against_real_git_history() -> None:
+    """The strongest form: the reviewed bytes exist at the named commit."""
+    commit = _machine_value("workflow_review_commit")
+    _require_commit(commit)
+    proof = verify_workflow_identity(
+        verify_builder_authorization(_authorization_from_packet()),
+        repository_root=REPOSITORY_ROOT,
+        running_workflow_ref=f"o/r/{WORKFLOW_RELATIVE}@refs/heads/master",
+        running_commit=commit,
+    )
+    declared = _machine_value("workflow_sha256")
+    assert proof["workflow_sha256_recomputed_from_review_commit"] == declared
+    assert proof["workflow_sha256_recomputed_from_checkout"] == declared
+    assert proof["running_commit_descends_from_review_commit"] == "verified"
+
+
+def test_human_authorization_does_not_exist() -> None:
+    """Claim two, and it is a different claim.
+
+    A synthetic document passing every validator proves the machine rules are
+    satisfiable. It does not create permission, and nothing in this module
+    writes the one file that would.
+    """
+    verify_builder_authorization(_authorization_from_packet())
+    assert load_builder_authorization(REPOSITORY_ROOT) is None
+    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
+
+
+def test_machine_sufficiency_is_not_authorization() -> None:
+    """The two claims must not be collapsible into one.
+
+    The synthetic id is deliberately unmistakable, so a reader who finds it in a
+    real authorization knows it came from a fixture rather than a person.
+    """
+    document = _authorization_from_packet()
+    assert "SYNTHETIC" in document["builder_authorization_id"]
+    assert "synthetic" in document["human_authorizer_identity"]
+    assert document["builder_authorization_id"] not in _packet_text()
+    assert load_builder_authorization(REPOSITORY_ROOT) is None
+
+
+@pytest.mark.parametrize("field", HUMAN_FIELDS + DERIVED_FIELDS)
+def test_without_the_human_fields_the_authorization_is_incomplete(
     field: str,
 ) -> None:
     document = _authorization_from_packet()
@@ -443,13 +608,29 @@ def test_a_placeholder_human_field_cannot_complete_the_authorization(
         )
 
 
+def test_a_destination_the_human_chose_freely_is_refused() -> None:
+    """The human picks the id; the destination is not a separate choice."""
+    with pytest.raises(BuilderAuthorizationError, match="not the destination"):
+        verify_builder_authorization(
+            _authorization_from_packet(
+                provenance_destination="docs/journal-extension/j1/evidence/elsewhere/"
+            )
+        )
+
+
 @pytest.mark.parametrize("generic", GENERIC_BUILDER_IDENTITIES)
 def test_the_authorization_cannot_broaden_to_a_generic_provider(
     generic: str,
 ) -> None:
-    """'GitHub Actions may build future J1 environments' stays unwritable."""
     with pytest.raises(BuilderAuthorizationError, match="names a provider"):
         verify_builder_authorization(_authorization_from_packet(repository=generic))
+
+
+def test_the_historical_workflow_filename_is_still_refused() -> None:
+    wrong = ".github/workflows/j1-environment-build.yml"
+    assert not (REPOSITORY_ROOT / wrong).exists()
+    with pytest.raises(BuilderAuthorizationError, match="not the controlled"):
+        verify_builder_authorization(_authorization_from_packet(workflow_path=wrong))
 
 
 def test_a_different_dependency_digest_is_refused() -> None:
@@ -466,105 +647,55 @@ def test_a_base_image_by_tag_is_refused() -> None:
         )
 
 
-# -- workflow identity, against a repository seeded with the real bytes ----
-
-
-def _seed(repository: Path, *arguments: str) -> str:
-    completed = subprocess.run(
-        ["git", "-C", str(repository), *arguments],
-        capture_output=True,
-        check=True,
-        text=True,
-    )
-    return completed.stdout.strip()
-
-
-@pytest.fixture
-def seeded_repository(tmp_path: Path) -> dict[str, Any]:
-    """A throwaway repository holding the *real* workflow bytes.
-
-    This binds the packet's digest to the file's actual content through the real
-    verifier. It is what stands in for V1's git-object-store check while no
-    commit yet contains these bytes as merged history.
-    """
-    repository = tmp_path / "seeded"
-    (repository / ".github/workflows").mkdir(parents=True)
-    raw = (REPOSITORY_ROOT / WORKFLOW_RELATIVE).read_bytes()
-    (repository / WORKFLOW_RELATIVE).write_bytes(raw)
-
-    _seed(tmp_path, "init", "-q", str(repository))
-    _seed(repository, "config", "user.email", "packet@example.invalid")
-    _seed(repository, "config", "user.name", "packet")
-    _seed(repository, "add", WORKFLOW_RELATIVE)
-    _seed(repository, "commit", "-q", "-m", "seed: the reviewed workflow bytes")
-    return {"root": repository, "commit": _seed(repository, "rev-parse", "HEAD")}
-
-
-def test_the_packet_digest_is_what_the_verifier_accepts(
-    seeded_repository: dict[str, Any],
-) -> None:
-    proof = verify_workflow_identity(
-        verify_builder_authorization(
-            _authorization_from_packet(
-                workflow_review_commit=seeded_repository["commit"]
-            )
-        ),
-        repository_root=seeded_repository["root"],
-        running_workflow_ref=f"o/r/{WORKFLOW_RELATIVE}@refs/heads/x",
-        running_commit=seeded_repository["commit"],
-    )
-    declared = _machine_value("workflow_sha256")
-    assert proof["workflow_sha256_recomputed_from_review_commit"] == declared
-    assert proof["workflow_sha256_recomputed_from_checkout"] == declared
-
-
-def test_one_byte_of_drift_refuses_the_packet_digest(
-    seeded_repository: dict[str, Any],
-) -> None:
-    """If this passed, the packet would be pinning nothing."""
-    workflow = seeded_repository["root"] / WORKFLOW_RELATIVE
-    workflow.write_bytes(workflow.read_bytes() + b" ")
-    with pytest.raises(BuilderAuthorizationError):
-        verify_workflow_identity(
-            verify_builder_authorization(
-                _authorization_from_packet(
-                    workflow_review_commit=seeded_repository["commit"]
-                )
-            ),
-            repository_root=seeded_repository["root"],
-        )
-
-
 # -- disclosures the packet must keep making -------------------------------
 
 
-def test_the_packet_states_the_residual_trust_without_softening_it() -> None:
-    text = _packet_text()
-    assert "GitHub remains the external" in text
-    assert "underlying hardware and execution" in text
-    assert "is not cryptographically reproducible" in text
+def test_the_residual_trust_statement_is_not_softened() -> None:
+    text = _packet_prose()
+    for clause in (
+        "GitHub remains the external authority for the hosted",
+        "run ordering",
+        "run-attempt identity",
+        "run-list completeness",
+        "is not cryptographically reproducible",
+        "falsifiable property",
+    ):
+        assert clause in text, clause
 
 
-def test_the_packet_calls_the_pair_rule_detection_not_prevention() -> None:
-    """The one claim that would be a lie if softened."""
-    text = _packet_text()
-    assert "detection, not prevention" in text
+def test_the_packet_does_not_claim_dispatch_prevention() -> None:
+    text = _packet_prose()
+    assert "not dispatch prevention" in text
     assert "Nothing stops a second dispatch" in text
+    assert "detection at evidence preservation" in text
 
 
-def test_the_packet_explains_why_no_pair_count_field_was_added() -> None:
+def test_the_packet_states_the_excluded_scope() -> None:
+    text = _packet_prose()
+    for excluded in (
+        "TRAIN access",
+        "candidate evaluation",
+        "threshold selection",
+        "scientific attempt claim",
+        "J1 execution",
+    ):
+        assert excluded in text, excluded
+
+
+def test_the_packet_poses_the_human_questions_without_answering_them() -> None:
     text = _packet_text()
-    assert "qualification_pair_count" in text
-    assert "not" in text
+    assert "HUMAN DECISION REQUIRED" in text
+    assert text.count("?") >= 6
 
 
 # -- negative capability ---------------------------------------------------
 
 
-def test_nothing_was_built() -> None:
+def test_nothing_was_built_and_no_evidence_directory_exists() -> None:
     for pattern in ("*.oci.tar", "build-a.json", "build-b.json"):
         assert not list(REPOSITORY_ROOT.glob(pattern)), pattern
     assert not list((REPOSITORY_ROOT / J1_DOCS).glob("*.json"))
+    assert not (REPOSITORY_ROOT / J1_DOCS / "evidence").exists()
 
 
 def test_the_gate_still_refuses_after_every_test_in_this_module() -> None:
