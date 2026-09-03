@@ -209,6 +209,34 @@ def _run_gate(repository_root: Path) -> subprocess.CompletedProcess[str]:
     )
 
 
+def _require_reviewed_commit_readable() -> None:
+    """Skip loudly where git cannot answer, rather than assert into a refusal.
+
+    The gate reads the reviewed workflow bytes out of git's object store at
+    `workflow_review_commit`. `ci.yml` checks out at the default depth, so that
+    object is absent there and the gate refuses -- correctly, and fail-closed:
+    it will not admit a workflow whose reviewed bytes it cannot see.
+
+    That refusal is right, so this test must not treat it as a failure. The real
+    controlled-build workflow sets `fetch-depth: 0` on the gate job for exactly
+    this reason, which is where the admit path actually runs.
+    """
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    assert document is not None
+    commit = str(document["workflow_review_commit"])
+    probe = subprocess.run(
+        ["git", "-C", str(REPOSITORY_ROOT), "cat-file", "-e", f"{commit}^{{commit}}"],
+        capture_output=True,
+        check=False,
+    )
+    if probe.returncode != 0:
+        pytest.skip(
+            f"the reviewed commit {commit} is not in this checkout's object "
+            "store (shallow clone). The gate refuses without it, which is "
+            "correct; the controlled-build workflow uses fetch-depth: 0."
+        )
+
+
 def test_the_gate_admits_the_authorized_workflow() -> None:
     """Superseded live state, and the whole point of #154.
 
@@ -218,6 +246,7 @@ def test_the_gate_admits_the_authorized_workflow() -> None:
     now is stronger than absence ever was: the gate admits *this* workflow, and
     says which authorization let it through.
     """
+    _require_reviewed_commit_readable()
     completed = _run_gate(REPOSITORY_ROOT)
     assert completed.returncode == 0, completed.stderr
     proof = json.loads(completed.stdout)
