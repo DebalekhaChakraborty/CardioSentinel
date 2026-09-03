@@ -71,7 +71,7 @@ from cardiosentinel.journal_extension.j1.qualification import (
 REPOSITORY_ROOT = Path(preflight.J1_PACKAGE_ROOT).parents[3]
 J1_DOCS = "docs/journal-extension/j1"
 
-PACKET_RELATIVE = f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V3.md"
+PACKET_RELATIVE = f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V4.md"
 PACKET_PATH = REPOSITORY_ROOT / PACKET_RELATIVE
 PROTOCOL_RELATIVE = f"{J1_DOCS}/J1_CONTROLLED_ENVIRONMENT_BUILD_PROTOCOL_V2.md"
 WORKFLOW_RELATIVE = CONTROLLED_BUILD_WORKFLOW_PATH
@@ -100,6 +100,11 @@ RETAINED_RECEIPTS = {
     ),
     f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_ACT_V1.md": (
         "7643a81062db0b0294c35334a425509aabfc74f6fc834a64afad7afb242528d6"
+    ),
+    #: The account of what authorization 001's single dispatch did and did not
+    #: do. V4 exists because of it, so it is evidence rather than a draft.
+    f"{J1_DOCS}/J1_ENV_BUILDER_AUTH_001_PRECLAIM_FAILURE_RECEIPT.md": (
+        "b02e61c14e0384775d586538e9b9dec5ef62a3922177e0dee469f17bb0599460"
     ),
 }
 
@@ -236,30 +241,51 @@ def test_every_retained_receipt_is_byte_unchanged(
     assert hashlib.sha256(raw).hexdigest() == digest, relative
 
 
-#: The receipts V3 itself supersedes and must therefore name. V3 and the
-#: authorization act joined `RETAINED_RECEIPTS` later, and a document cannot
+#: The receipts the live packet must name with their digests. A document cannot
 #: name its own digest -- that is the self-reference the freeze receipt records
-#: as unsatisfiable.
-SUPERSEDED_BY_V3 = (
-    f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V1.md",
-    f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V2.md",
-    f"{J1_DOCS}/J1_CONTROLLED_ENVIRONMENT_BUILD_PROTOCOL_V1.md",
-    f"{J1_DOCS}/J1_BUILDER_SELECTION_RECEIPT_V1.md",
+#: as unsatisfiable -- so the live packet is excluded from its own list.
+NAMED_BY_THE_LIVE_PACKET = tuple(
+    relative for relative in RETAINED_RECEIPTS if relative != PACKET_RELATIVE
 )
 
 
-def test_v3_names_the_receipts_it_supersedes_with_their_digests() -> None:
+def test_the_live_packet_names_every_retained_receipt_with_its_digest() -> None:
     text = _packet_text()
-    for relative in SUPERSEDED_BY_V3:
+    for relative in NAMED_BY_THE_LIVE_PACKET:
         assert Path(relative).name in text, relative
         assert RETAINED_RECEIPTS[relative] in text, relative
 
 
-def test_v3_records_the_lineage_without_rewriting_it() -> None:
+def test_the_live_packet_records_the_lineage_without_rewriting_it() -> None:
+    """V4 exists because a signed authorization produced a failed build.
+
+    The lineage must be legible from the packet itself: which authorization,
+    what happened to it, and why it may not be reused.
+    """
     prose = _packet_prose()
-    for marker in ("V1 review packet", "#151", "#152", "V3"):
+    for marker in (
+        "J1-ENV-BUILDER-AUTH-001",
+        "PRE_ARTIFACT_INFRASTRUCTURE",
+        "claim_recorded = false",
+        "33800630377",
+        "RETIRED, NOT SPENT",
+        "MUST NOT BE REUSED",
+    ):
         assert marker in prose, marker
-    assert "historical evidence, not current authority" in prose
+
+
+def test_the_live_packet_warns_that_a_matching_config_digest_is_not_enough() -> None:
+    """The trap V4 exists to close.
+
+    Nothing in the seven-member configuration changed, so a reader comparing
+    digests would conclude nothing had changed -- and could reuse authorization
+    001, whose source commit contains the broken gate. The source tree is image
+    content, and the packet has to say so where it cannot be missed.
+    """
+    prose = _packet_prose()
+    assert "separately load-bearing" in prose
+    assert "COPY . /opt/cardiosentinel/src-tree" in prose
+    assert "unchanged build_configuration_digest" in prose
 
 
 # -- the packet is not, and cannot become, an authorization ----------------
@@ -412,13 +438,34 @@ def test_the_review_commit_and_master_hold_one_blob() -> None:
     assert at_commit.stdout.decode().strip() in _packet_text()
 
 
-def test_the_commit_fields_are_full_shas_and_are_the_same_commit() -> None:
+def test_the_commit_fields_are_full_shas_and_now_differ() -> None:
+    """They were the same commit in V3. They are not any more, and must not be.
+
+    The workflow was deliberately untouched by the remediation, so its review
+    commit stands. The source tree moved, so the authorized source commit moved
+    with it. An authorization carrying the old source commit would build the
+    broken gate into the artifact.
+    """
     review = _machine_value("workflow_review_commit")
     source = _machine_value("authorized_source_commit")
     for value in (review, source):
         assert len(value) == 40
         assert set(value) <= set("0123456789abcdef")
-    assert review == source
+    assert review != source
+
+
+def test_the_review_commit_is_an_ancestor_of_the_source_commit() -> None:
+    """The workflow was reviewed before the source it will build was written.
+
+    Split from the shape check above because it needs git history, and `ci.yml`
+    checks out at the default depth. The shape and difference of the two commits
+    are decidable anywhere; their ancestry is not.
+    """
+    review = _machine_value("workflow_review_commit")
+    source = _machine_value("authorized_source_commit")
+    _require_commit(review)
+    _require_commit(source)
+    assert _git("merge-base", "--is-ancestor", review, source).returncode == 0
 
 
 def test_the_authorized_source_commit_holds_every_build_input() -> None:
