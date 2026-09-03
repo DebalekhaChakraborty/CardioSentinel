@@ -73,6 +73,12 @@ J1_DOCS = "docs/journal-extension/j1"
 
 PACKET_RELATIVE = f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V4.md"
 PACKET_PATH = REPOSITORY_ROOT / PACKET_RELATIVE
+#: The act receipt for `J1-ENV-BUILDER-AUTH-002`, recorded from this packet.
+ACT_V2_RELATIVE = f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_ACT_V2.md"
+#: The source commit retired `J1-ENV-BUILDER-AUTH-001` named. Its tree contains
+#: the broken gate and `COPY .` makes the source tree image content, so it must
+#: never reappear in a live authorization.
+RETIRED_001_SOURCE_COMMIT = "1983616f2021fa5587b7f6cec716501c610e4bf6"
 PROTOCOL_RELATIVE = f"{J1_DOCS}/J1_CONTROLLED_ENVIRONMENT_BUILD_PROTOCOL_V2.md"
 WORKFLOW_RELATIVE = CONTROLLED_BUILD_WORKFLOW_PATH
 
@@ -296,16 +302,61 @@ def test_the_packet_exists_and_is_not_the_canonical_authorization() -> None:
     assert PACKET_RELATIVE != BUILDER_AUTHORIZATION_PATH
 
 
-def test_no_builder_authorization_is_active() -> None:
-    """`J1-ENV-BUILDER-AUTH-001` is retired, and V3 with it.
+def test_the_active_authorization_is_002_derived_from_this_packet() -> None:
+    """`J1-ENV-BUILDER-AUTH-001` is retired, and V3 with it; V4 authorized 002.
 
-    The authorization was never spent: its one dispatched run failed in the gate
-    before any qualification claim. It is retired because it names a source
-    commit that the import-boundary remediation supersedes, and the source tree
-    is image content.
+    001 was never spent: its one dispatched run failed in the gate before any
+    qualification claim. It is retired because it names a source commit that the
+    import-boundary remediation supersedes, and the source tree is image content.
+
+    Every machine-verified field of the live authorization is checked against
+    this packet rather than against a copy of itself, so a packet and an
+    authorization that drifted apart cannot both pass.
     """
-    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
-    assert load_builder_authorization(REPOSITORY_ROOT) is None
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    assert document is not None
+    assert document["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-002"
+    verify_builder_authorization(document)
+    from_packet = _authorization_from_packet()
+    for field in BUILDER_AUTHORIZATION_FIELDS:
+        if field in HUMAN_FIELDS or field in DERIVED_FIELDS:
+            continue
+        assert document[field] == from_packet[field], field
+
+
+def test_the_act_receipt_records_002_and_agrees_with_the_canonical_json() -> None:
+    """The act is prose; the JSON authorizes. They must not drift apart.
+
+    Whitespace is normalised before any prose assertion, so a line wrap cannot
+    fail a claim, and the id and timestamp are compared against the canonical
+    document rather than against a second copy of the prose.
+    """
+    act = (REPOSITORY_ROOT / ACT_V2_RELATIVE).read_text(encoding="utf-8")
+    prose = " ".join(act.split())
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    assert document is not None
+
+    assert "BUILDER AUTHORIZED AS 002 — NO BUILD DISPATCHED" in prose
+    assert document["builder_authorization_id"] in prose
+    assert document["authorization_timestamp"] in prose
+    assert document["human_authorizer_identity"] in prose
+    assert document["authorized_source_commit"] in prose
+    assert hashlib.sha256(PACKET_PATH.read_bytes()).hexdigest() in prose
+
+    # 001 is named to be refused, never as something this act may fall back on.
+    assert "must never be reused" in prose
+    assert "J1-ENV-BUILDER-AUTH-001" in prose
+
+    # The retired commit is refused as a *source* commit only. It remains the
+    # legitimate `workflow_review_commit`: the workflow bytes were reviewed
+    # there and have not changed since, and reviewing bytes is not building a
+    # tree. Conflating the two fields is the confusion V4 section 2 exists for.
+    assert document["authorized_source_commit"] != RETIRED_001_SOURCE_COMMIT
+    assert document["workflow_review_commit"] == RETIRED_001_SOURCE_COMMIT
+
+    # The act must not claim any of the things authorizing does not produce.
+    assert "No controlled-build workflow was dispatched" in prose
+    assert "No qualification claim was recorded" in prose
 
 
 def test_the_packet_is_not_the_authorization_and_never_was() -> None:
@@ -675,18 +726,25 @@ def test_the_machine_values_verify_against_real_git_history() -> None:
 
 
 def test_machine_sufficiency_is_still_not_authorization() -> None:
-    """The claim that survived a human authorization arriving *and* being retired.
+    """The claim that survived an authorization arriving, being retired, and 002.
 
-    Every machine rule in V3 remains satisfiable -- the workflow bytes, protocol
-    digest and configuration digest are all unchanged by this remediation. None
-    of that is permission, and no permission currently exists.
+    Every machine rule remains satisfiable by a document no human ever signed.
+    Passing the verifier is therefore not what makes 002 an authorization; the
+    human fields are, and the synthetic fixture has none of them. Permission now
+    exists, and it is a *different document* -- which is the point.
     """
     fixture = _authorization_from_packet()
     assert "SYNTHETIC" in fixture["builder_authorization_id"]
     assert "synthetic" in fixture["human_authorizer_identity"]
     assert fixture["builder_authorization_id"] not in _packet_text()
     verify_builder_authorization(fixture)
-    assert load_builder_authorization(REPOSITORY_ROOT) is None
+
+    canonical = load_builder_authorization(REPOSITORY_ROOT)
+    assert canonical is not None
+    for field in HUMAN_FIELDS:
+        assert canonical[field] != fixture[field], field
+    assert "SYNTHETIC" not in canonical["builder_authorization_id"]
+    assert "synthetic" not in canonical["human_authorizer_identity"]
 
 
 def test_j1_science_is_unauthorized_independently_of_the_builder() -> None:
@@ -806,16 +864,23 @@ def test_nothing_was_built_and_no_evidence_directory_exists() -> None:
     """One dispatch happened and produced nothing. That is the whole record.
 
     Run 33800630377 failed in its gate, so there is no claim, no build record,
-    no archive and no evidence directory -- and no JSON at all under the J1
-    documents, the authorization having been retired.
+    no archive and no evidence directory. The one JSON under the J1 documents is
+    the canonical authorization itself; authorizing a builder produced no
+    evidence, which is exactly what an authorization is not allowed to do.
     """
     for pattern in ("*.oci.tar", "build-a.json", "build-b.json"):
         assert not list(REPOSITORY_ROOT.glob(pattern)), pattern
-    assert not list((REPOSITORY_ROOT / J1_DOCS).glob("*.json"))
+    assert [
+        path.name for path in (REPOSITORY_ROOT / J1_DOCS).glob("*.json")
+    ] == [Path(BUILDER_AUTHORIZATION_PATH).name]
     assert not (REPOSITORY_ROOT / J1_DOCS / "evidence").exists()
 
 
-def test_the_gate_still_refuses_after_every_test_in_this_module() -> None:
-    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
-    with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
-        verify_builder_authorization(load_builder_authorization(REPOSITORY_ROOT))
+def test_the_gate_admits_002_after_every_test_in_this_module() -> None:
+    """Nothing above mutated the canonical document on disk."""
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    verified = verify_builder_authorization(document)
+    assert verified.fields["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-002"
+    assert verified.authorized_source_commit == _machine_value(
+        "authorized_source_commit"
+    )

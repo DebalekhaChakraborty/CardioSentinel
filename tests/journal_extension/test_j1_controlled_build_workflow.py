@@ -38,6 +38,16 @@ WORKFLOW_PATH = (
     REPOSITORY_ROOT / ".github/workflows/j1-environment-artifact-build.yml"
 )
 
+#: The authorization currently in the repository.
+ACTIVE_AUTHORIZATION_ID = "J1-ENV-BUILDER-AUTH-002"
+#: The source commit 002 names -- the #155 merge, carrying the import-boundary
+#: remediation.
+AUTHORIZED_SOURCE_COMMIT = "8c7a385ddd60072abaf8fd2cfe493f1cefe12885"
+#: The source commit retired `J1-ENV-BUILDER-AUTH-001` named. Its tree contains
+#: the broken gate, and `COPY .` makes the source tree image content, so this
+#: value must never reappear as an `authorized_source_commit`.
+RETIRED_001_SOURCE_COMMIT = "1983616f2021fa5587b7f6cec716501c610e4bf6"
+
 #: Jobs that could touch a base image, a registry or an artifact.
 ARTIFACT_PRODUCING_JOBS = ("build-a", "build-b", "reproducibility")
 
@@ -237,18 +247,31 @@ def _require_reviewed_commit_readable() -> None:
         )
 
 
-def test_the_gate_refuses_and_the_refusal_is_its_own() -> None:
-    """`J1-ENV-BUILDER-AUTH-001` was retired, so the gate refuses again.
+def test_the_gate_admits_002_and_the_admission_is_its_own() -> None:
+    """`J1-ENV-BUILDER-AUTH-002` is active, so the gate admits -- on its own logic.
 
-    The interesting assertion is the second one. Run 33800630377 also produced
-    a non-zero exit and the words "builder authorization absent" on stderr --
-    while the gate had in fact crashed during import, having verified nothing.
-    An exit code alone cannot tell those two apart, so this requires the gate to
-    have reached its own logic rather than died on the way there.
+    The interesting assertions are the last ones. Run 33800630377 produced a
+    non-zero exit and the words "builder authorization absent" on stderr while
+    the gate had in fact crashed during import, having verified nothing. An exit
+    code alone cannot tell those two apart in either direction, so this requires
+    the gate to have reached its own logic rather than died on the way there,
+    and to have recomputed both workflow digests rather than trusted a declared
+    one.
     """
+    _require_reviewed_commit_readable()
     completed = _run_gate(REPOSITORY_ROOT)
-    assert completed.returncode != 0
-    assert "builder authorization absent" in completed.stderr
+    assert completed.returncode == 0, completed.stderr
+    admitted = json.loads(completed.stdout)
+    assert admitted["builder_authorization_id"] == ACTIVE_AUTHORIZATION_ID
+    assert admitted["authorized_source_commit"] == AUTHORIZED_SOURCE_COMMIT
+    # Both digests are recomputed by the gate; neither is the declared value
+    # echoed back. Equality across all three is the binding claim.
+    assert admitted["workflow_sha256_recomputed_from_review_commit"] == (
+        admitted["workflow_sha256"]
+    )
+    assert admitted["workflow_sha256_recomputed_from_checkout"] == (
+        admitted["workflow_sha256"]
+    )
     assert "ModuleNotFoundError" not in completed.stderr, completed.stderr
     for package in ("numpy", "torch", "scipy", "sklearn"):
         assert f"No module named '{package}'" not in completed.stderr
@@ -322,16 +345,21 @@ def test_no_automatic_retry_loop() -> None:
 # -- the future authorization schema ---------------------------------------
 
 
-def test_no_builder_authorization_is_active() -> None:
-    """`J1-ENV-BUILDER-AUTH-001` is retired, not spent.
+def test_the_active_builder_authorization_is_002_and_not_001() -> None:
+    """`J1-ENV-BUILDER-AUTH-001` is retired, not spent, and was not reused.
 
     It was never spent -- its run failed before any qualification claim -- but
-    it names a source commit that this remediation supersedes, and the source
-    tree is image content. Leaving it active would let an accidental dispatch
-    build the broken gate into the artifact.
+    it names source commit `1983616f`, whose tree contains the broken gate, and
+    `COPY .` makes the source tree image content. Reusing it would build that
+    defect into the artifact, so 002 supersedes it by naming a different
+    `authorized_source_commit`.
     """
-    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
-    assert load_builder_authorization(REPOSITORY_ROOT) is None
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    assert document is not None
+    assert document["builder_authorization_id"] == ACTIVE_AUTHORIZATION_ID
+    assert document["authorized_source_commit"] == AUTHORIZED_SOURCE_COMMIT
+    assert document["authorized_source_commit"] != RETIRED_001_SOURCE_COMMIT
+    verify_builder_authorization(document)
 
 
 def test_an_absent_authorization_refuses_in_its_own_words() -> None:
