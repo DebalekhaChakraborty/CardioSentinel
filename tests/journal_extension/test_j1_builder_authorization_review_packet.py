@@ -76,6 +76,9 @@ PACKET_RELATIVE = f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V4.md"
 PACKET_PATH = REPOSITORY_ROOT / PACKET_RELATIVE
 #: The act receipt for `J1-ENV-BUILDER-AUTH-002`, recorded from this packet.
 ACT_V2_RELATIVE = f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_ACT_V2.md"
+#: The account of what 002's canonical run did. It independently records the
+#: Containerfile digest of the object that was actually built.
+RECEIPT_002_NAME = "J1_ENV_BUILDER_AUTH_002_POSTCLAIM_FAILURE_RECEIPT.md"
 #: The canonical qualification claim run 33902875021 produced under 002, as the
 #: provider emitted it. The object identity the build actually used lives here.
 COMMITTED_CLAIM_PATH = (
@@ -240,6 +243,11 @@ def _member_table() -> dict[str, str]:
 
 def _machine_value_member(role: str) -> str:
     return _member_table()[role]
+
+
+def _live_containerfile_digest() -> str:
+    relative = BUILD_CONFIGURATION_PATHS["containerfile"]
+    return hashlib.sha256((REPOSITORY_ROOT / relative).read_bytes()).hexdigest()
 
 
 def _git(*arguments: str) -> subprocess.CompletedProcess[bytes]:
@@ -555,21 +563,48 @@ def test_the_authorized_source_commit_holds_every_build_input() -> None:
         )
 
 
-def test_no_later_commit_touches_a_build_input() -> None:
-    """Authority may not be moved forward silently; here there is nowhere to move."""
+def test_the_build_inputs_moved_and_the_move_is_not_silent() -> None:
+    """Authority may not be moved forward *silently*. This move is not silent.
+
+    While 002 was live this asserted that nothing had touched a build input
+    since `authorized_source_commit`. The apparatus remediation deliberately
+    does touch one -- the Containerfile carried the defect that spent 002 -- so
+    the guarantee changes shape rather than being deleted:
+
+    # SOURCE IDENTITY CHANGED -- RE-DERIVATION REQUIRED
+
+    What must remain true is that the divergence is *visible*: the live
+    configuration no longer matches the packet, exactly one member accounts for
+    it, and the workflow is not among the things that moved. None of those need
+    git history, so this never skips; where history is present it also names the
+    commits responsible.
+    """
+    assert _live_containerfile_digest() != _machine_value_member("containerfile")
+    assert _machine_value_member("workflow") == hashlib.sha256(
+        (REPOSITORY_ROOT / WORKFLOW_RELATIVE).read_bytes()
+    ).hexdigest()
+
     commit = _machine_value("authorized_source_commit")
-    _require_commit(commit)
-    completed = _git(
-        "log",
-        "--oneline",
-        f"{commit}..HEAD",
-        "--",
-        "containers/",
-        ".github/workflows/",
-        "src/cardiosentinel/journal_extension/j1/",
+    if _git("cat-file", "-e", f"{commit}^{{commit}}").returncode != 0:
+        return  # shallow checkout: the divergence checks above still ran
+
+    workflow_changes = _git(
+        "log", "--oneline", f"{commit}..HEAD", "--", ".github/workflows/"
     )
-    assert completed.returncode == 0
-    assert not completed.stdout.strip(), completed.stdout.decode()
+    assert workflow_changes.returncode == 0
+    assert not workflow_changes.stdout.strip(), (
+        "the controlled workflow's directory moved, which this repair must not "
+        "do: " + workflow_changes.stdout.decode()
+    )
+
+    container_changes = _git(
+        "log", "--oneline", f"{commit}..HEAD", "--", "containers/"
+    )
+    assert container_changes.returncode == 0
+    assert container_changes.stdout.strip(), (
+        "the Containerfile repair is missing from history between the "
+        "authorized source commit and HEAD"
+    )
 
 
 def test_protocol_digest_recomputed_from_the_checkout() -> None:
@@ -639,16 +674,40 @@ def test_the_live_configuration_has_moved_away_from_what_v4_reviewed(
     assert result["inputs"]["workflow"] == _machine_value("workflow_sha256")
 
 
-def test_v4_still_describes_the_configuration_it_reviewed(tmp_path: Path) -> None:
-    """Recomputed from git at the commit V4 named, not from the working tree.
+def test_v4_still_describes_the_configuration_it_reviewed() -> None:
+    """What V4 reviewed is cross-checked against the record of what ran.
 
-    A packet is only worth anything if what it recorded can still be checked
-    against the object it recorded it for. That object is a commit, so this
-    reads the members out of git's object store rather than from disk, and skips
-    loudly where the checkout is too shallow to answer.
+    Deliberately written so it **never skips**. The obvious form -- recompute
+    every member from git at `authorized_source_commit` -- needs history the CI
+    checkout does not have, and a check that only runs on a developer's machine
+    is the failure ECG 29 named. So the always-available evidence comes first:
+
+    - the `containerfile` digest V4 recorded is the one the 002 post-claim
+      failure receipt independently records for the object that was built;
+    - the six members this repair did not touch are still on disk unchanged.
+
+    Where git history *is* present the stronger check runs as well, but its
+    absence weakens this test rather than silencing it.
     """
+    receipt = " ".join(
+        (REPOSITORY_ROOT / J1_DOCS / RECEIPT_002_NAME).read_text(
+            encoding="utf-8"
+        ).split()
+    )
+    reviewed_containerfile = _machine_value_member("containerfile")
+    assert reviewed_containerfile in receipt
+
+    for role, relative in BUILD_CONFIGURATION_PATHS.items():
+        if role == "containerfile":
+            continue  # repaired; the live value is asserted to differ above
+        on_disk = hashlib.sha256(
+            (REPOSITORY_ROOT / relative).read_bytes()
+        ).hexdigest()
+        assert on_disk == _machine_value_member(role), role
+
     commit = _machine_value("authorized_source_commit")
-    _require_commit(commit)
+    if _git("cat-file", "-e", f"{commit}^{{commit}}").returncode != 0:
+        return  # shallow checkout: the checks above still ran
     for role, relative in BUILD_CONFIGURATION_PATHS.items():
         completed = _git("cat-file", "blob", f"{commit}:{relative}")
         assert completed.returncode == 0, relative
