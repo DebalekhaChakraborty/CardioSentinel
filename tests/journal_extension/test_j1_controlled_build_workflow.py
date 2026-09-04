@@ -38,6 +38,10 @@ WORKFLOW_PATH = (
     REPOSITORY_ROOT / ".github/workflows/j1-environment-artifact-build.yml"
 )
 
+#: The source commit V5 machine-verified and 003 authorizes. Deliberately NOT
+#: the #160 merge, which added only the review packet and its tests.
+AUTHORIZED_SOURCE_COMMIT = "bc9337aed38b7ce3f48a47f917a2f4e320e7368a"
+
 #: Jobs that could touch a base image, a registry or an artifact.
 ARTIFACT_PRODUCING_JOBS = ("build-a", "build-b", "reproducibility")
 
@@ -237,18 +241,27 @@ def _require_reviewed_commit_readable() -> None:
         )
 
 
-def test_the_gate_refuses_again_now_that_002_is_spent() -> None:
-    """002 was spent by run 33902875021 and retired, so the gate refuses again.
+def test_the_gate_admits_003_and_the_admission_is_its_own() -> None:
+    """`J1-ENV-BUILDER-AUTH-003` is active, so the gate admits -- on its own logic.
 
-    The refusal must be the gate's own. Run 33800630377 produced a non-zero exit
-    and the words "builder authorization absent" on stderr while the gate had in
-    fact crashed during import, having verified nothing. An exit code alone
-    cannot tell those two apart, so the scientific stack must never be the reason
-    this exits non-zero.
+    Run 33800630377 produced a non-zero exit and the words "builder
+    authorization absent" while the gate had in fact crashed during import,
+    having verified nothing. An exit code alone cannot tell those apart in either
+    direction, so this requires the gate to have reached its own logic and to
+    have recomputed both workflow digests rather than echoed a declared one.
     """
+    _require_reviewed_commit_readable()
     completed = _run_gate(REPOSITORY_ROOT)
-    assert completed.returncode != 0
-    assert "builder authorization absent" in completed.stderr
+    assert completed.returncode == 0, completed.stderr
+    admitted = json.loads(completed.stdout)
+    assert admitted["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-003"
+    assert admitted["authorized_source_commit"] == AUTHORIZED_SOURCE_COMMIT
+    assert admitted["workflow_sha256_recomputed_from_review_commit"] == (
+        admitted["workflow_sha256"]
+    )
+    assert admitted["workflow_sha256_recomputed_from_checkout"] == (
+        admitted["workflow_sha256"]
+    )
     assert "ModuleNotFoundError" not in completed.stderr, completed.stderr
     for package in ("numpy", "torch", "scipy", "sklearn"):
         assert f"No module named '{package}'" not in completed.stderr
@@ -461,18 +474,23 @@ def test_no_automatic_retry_loop() -> None:
 # -- the future authorization schema ---------------------------------------
 
 
-def test_no_builder_authorization_is_active() -> None:
-    """Both authorizations are retired, for different reasons, and none is live.
+def test_the_active_authorization_is_003_and_not_a_retired_one() -> None:
+    """003 is live; 001 and 002 are retired for different reasons.
 
     001 was **retired, not spent**: its run failed in the gate before any
     qualification claim. 002 **is spent**: run 33902875021 recorded the canonical
     claim, and a builder authorization is single-claim. Neither may be reused,
-    and a third attempt needs a new id and a new lineage.
+    which is why this is a third id over a new lineage rather than a retry.
     """
-    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
-    assert load_builder_authorization(REPOSITORY_ROOT) is None
-    with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
-        verify_builder_authorization(load_builder_authorization(REPOSITORY_ROOT))
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    assert document is not None
+    assert document["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-003"
+    assert document["builder_authorization_id"] not in {
+        "J1-ENV-BUILDER-AUTH-001",
+        "J1-ENV-BUILDER-AUTH-002",
+    }
+    assert document["authorized_source_commit"] == AUTHORIZED_SOURCE_COMMIT
+    verify_builder_authorization(document)
 
 
 def test_an_absent_authorization_refuses_in_its_own_words() -> None:
