@@ -213,6 +213,18 @@ def _run_gate(repository_root: Path) -> subprocess.CompletedProcess[str]:
     )
 
 
+def _reviewed_commit_is_readable() -> bool:
+    """Whether the reviewed commit is in this checkout's object store."""
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    assert document is not None
+    commit = str(document["workflow_review_commit"])
+    return subprocess.run(
+        ["git", "-C", str(REPOSITORY_ROOT), "cat-file", "-e", f"{commit}^{{commit}}"],
+        capture_output=True,
+        check=False,
+    ).returncode == 0
+
+
 def _require_reviewed_commit_readable() -> None:
     """Skip loudly where git cannot answer, rather than assert into a refusal.
 
@@ -250,8 +262,14 @@ def test_the_gate_admits_003_and_the_admission_is_its_own() -> None:
     direction, so this requires the gate to have reached its own logic and to
     have recomputed both workflow digests rather than echoed a declared one.
     """
-    _require_reviewed_commit_readable()
     completed = _run_gate(REPOSITORY_ROOT)
+    if not _reviewed_commit_is_readable():
+        # Shallow checkout: the gate cannot read the reviewed bytes and refuses,
+        # which is correct and fail-closed. Assert that rather than skipping --
+        # a skip here would report a pass for a check that never ran.
+        assert completed.returncode != 0
+        assert "ModuleNotFoundError" not in completed.stderr, completed.stderr
+        return
     assert completed.returncode == 0, completed.stderr
     admitted = json.loads(completed.stdout)
     assert admitted["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-003"

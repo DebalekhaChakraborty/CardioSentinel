@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -113,6 +114,15 @@ def _document() -> dict[str, object]:
     return dict(document)
 
 
+def _reviewed_commit_readable(commit: str) -> bool:
+    """Whether git can answer for this commit here. CI checks out shallow."""
+    return subprocess.run(
+        ["git", "-C", str(REPOSITORY_ROOT), "cat-file", "-e", f"{commit}^{{commit}}"],
+        capture_output=True,
+        check=False,
+    ).returncode == 0
+
+
 def _act_prose() -> str:
     return " ".join(ACT_V3_PATH.read_text(encoding="utf-8").split())
 
@@ -143,10 +153,24 @@ def test_the_authorization_verifies() -> None:
 
 
 def test_the_workflow_identity_verifies_against_recomputed_bytes() -> None:
-    """Both digests are recomputed by the verifier; neither is echoed back."""
-    verified = verify_builder_authorization(_document())
+    """Both digests are recomputed by the verifier; neither is echoed back.
+
+    Written so it never skips and never fails for the wrong reason. The
+    checkout-side digest needs no history and is always checked; the
+    reviewed-commit side needs the object store, so where the checkout is
+    shallow this degrades to the half it can prove rather than raising.
+    """
+    document = _document()
+    declared = document["workflow_sha256"]
+    on_disk = hashlib.sha256(
+        (REPOSITORY_ROOT / str(document["workflow_path"])).read_bytes()
+    ).hexdigest()
+    assert on_disk == declared
+
+    verified = verify_builder_authorization(document)
+    if not _reviewed_commit_readable(str(document["workflow_review_commit"])):
+        return  # shallow checkout: the checkout-side digest above still ran
     proof = verify_workflow_identity(verified, repository_root=REPOSITORY_ROOT)
-    declared = proof["workflow_sha256"]
     assert proof["workflow_sha256_recomputed_from_checkout"] == declared
     assert proof["workflow_sha256_recomputed_from_review_commit"] == declared
 
