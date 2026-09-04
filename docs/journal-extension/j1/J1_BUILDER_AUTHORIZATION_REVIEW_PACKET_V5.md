@@ -343,9 +343,14 @@ set would defeat it. That authority is already inside the residual trust in §12
 no control prevented the dispatch, and none was supposed to. What the mechanism
 did was make the outcome undeniable afterwards.
 
-**Canonical qualification is scoped by `builder_authorization_id`.**
-`require_canonical_qualification_run` compares a claim against the claims
-observed *under that authorization*. 001 recorded no claim at all. 002's claim
+**Canonical qualification is scoped by `builder_authorization_id`, in code.**
+`require_canonical_qualification_run` builds `same_authorization` by filtering
+`observed_claims` on `authorization_id` before taking the earliest, so the
+scoping is a property of the implementation rather than of this sentence.
+Demonstrated both ways: 002's earlier claim pooled with a prospective 003 claim
+leaves `claims_observed = 1` and 003 canonical, while two claims under the *same*
+authorization still refuse the later one — the ordering rule keeps biting where
+it should. 001 recorded no claim at all. 002's claim
 names `J1-ENV-BUILDER-AUTH-002`. Neither is a claim under a future 003, so
 neither competes with a future 003 canonical run — and equally, **a future 003
 run cannot inherit 002's claim or reuse its lineage.**
@@ -434,6 +439,36 @@ The pip invocation is now executed by a test before it is executed by a builder.
 Nothing analogous yet covers `build.sh` or `validate_artifact.sh` end to end —
 those are proven by digest and by structure, exactly as the Containerfile was
 when 002 was authorized. **That is a disclosed limit, not a resolved one.**
+
+### The pins are name-and-version authority, not wheel-byte authority
+
+# `NO HERMETIC WHEEL-LEVEL REPRODUCIBILITY IS CLAIMED`
+
+`requirements.pypi.txt` and `requirements.pytorch-cpu.txt` are exact
+`name==version` pins, mechanically derived from the frozen mapping and proven
+byte-identical across regenerations. **That fixes which distribution is
+requested. It does not fix the bytes that arrive.**
+
+There is no `--require-hashes` input, no wheel-hash manifest and no local
+wheelhouse in this build. What a pin resolves to is whatever the index serves
+for that name and version at build time. So:
+
+- an index that served different bytes for the same `name==version` would not be
+  detected by any digest in this packet;
+- `dependency_digest` `b0fd6eaa…` is authority over the **approved package set**,
+  not over the wheel bytes installed;
+- `build_configuration_digest` covers the requirements *files*, not their
+  resolved artifacts.
+
+This is exactly why the repair omitted the flag rather than turning hash checking
+on: **adding `--require-hashes` would demand a hash for every pin, which is a
+different and stronger guarantee than the frozen mapping currently supports.**
+Supplying that authority — a wheelhouse, or hashes carried in the frozen lock —
+is separate work that no one has done, and it must not be implied by silence.
+
+`BUILD_A`/`BUILD_B` is a **falsifiable reproducibility test**, not a guarantee.
+Two builds close together in time will usually resolve identical wheels and
+agree; that agreement is evidence, and it is not proof of hermeticity.
 
 ---
 

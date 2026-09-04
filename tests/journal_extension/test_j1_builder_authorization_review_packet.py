@@ -67,6 +67,7 @@ from cardiosentinel.journal_extension.j1.qualification import (
     QUALIFICATION_POLICY,
     SINGLE_CLAIM_POLICY,
     durable_evidence_destination,
+    verify_qualification_claim,
 )
 
 REPOSITORY_ROOT = Path(preflight.J1_PACKAGE_ROOT).parents[3]
@@ -967,6 +968,59 @@ def test_the_residual_trust_statement_is_not_softened() -> None:
         "falsifiable property",
     ):
         assert clause in text, clause
+
+
+def test_the_packet_does_not_claim_wheel_level_reproducibility() -> None:
+    """The pins fix which distribution is requested, not the bytes that arrive.
+
+    There is no `--require-hashes`, no wheel-hash manifest and no wheelhouse, so
+    `name==version` is name-and-version authority only. Claiming hermetic
+    wheel-level reproducibility would overstate exactly the guarantee the repair
+    deliberately did not turn on, and silence would imply it.
+    """
+    prose = _packet_prose()
+    assert "NO HERMETIC WHEEL-LEVEL REPRODUCIBILITY IS CLAIMED" in prose
+    assert "not wheel-byte authority" in prose
+    assert "falsifiable reproducibility test" in prose
+    assert "not a guarantee" in prose
+    # The stronger guarantee is named as absent, not quietly assumed present.
+    assert "no wheel-hash manifest" in prose
+    assert "wheelhouse" in prose
+
+
+def test_the_canonical_run_rule_scopes_by_authorization_in_code() -> None:
+    """The packet says the scoping is implemented. This is that claim, executed.
+
+    A claim under a *different* authorization must not enter the comparison set
+    (or 002's earlier run would displace a later authorization's canonical run),
+    while two claims under the *same* authorization must still refuse the later.
+    """
+    from cardiosentinel.journal_extension.j1.qualification import (
+        QualificationError,
+        require_canonical_qualification_run,
+    )
+
+    base = json.loads(COMMITTED_CLAIM_PATH.read_bytes())
+    claim_002 = verify_qualification_claim(base)
+
+    def synthetic(authorization: str, run_id: str) -> Any:
+        document = dict(base)
+        document["builder_authorization_id"] = authorization
+        document["workflow_run_id"] = run_id
+        return verify_qualification_claim(document)
+
+    later = synthetic("SYNTHETIC-NEXT-NOT-REAL", "99999999999")
+    result = require_canonical_qualification_run(
+        claim=later, observed_claims=[claim_002, later]
+    )
+    assert result["claims_observed"] == 1, "002's claim was not scoped out"
+    assert str(result["canonical_run_id"]) == "99999999999"
+
+    earlier = synthetic("SYNTHETIC-NEXT-NOT-REAL", "88888888888")
+    with pytest.raises(QualificationError, match="not the canonical"):
+        require_canonical_qualification_run(
+            claim=later, observed_claims=[earlier, later]
+        )
 
 
 def test_the_packet_does_not_claim_dispatch_prevention() -> None:
