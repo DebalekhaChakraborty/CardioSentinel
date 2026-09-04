@@ -38,16 +38,6 @@ WORKFLOW_PATH = (
     REPOSITORY_ROOT / ".github/workflows/j1-environment-artifact-build.yml"
 )
 
-#: The authorization currently in the repository.
-ACTIVE_AUTHORIZATION_ID = "J1-ENV-BUILDER-AUTH-002"
-#: The source commit 002 names -- the #155 merge, carrying the import-boundary
-#: remediation.
-AUTHORIZED_SOURCE_COMMIT = "8c7a385ddd60072abaf8fd2cfe493f1cefe12885"
-#: The source commit retired `J1-ENV-BUILDER-AUTH-001` named. Its tree contains
-#: the broken gate, and `COPY .` makes the source tree image content, so this
-#: value must never reappear as an `authorized_source_commit`.
-RETIRED_001_SOURCE_COMMIT = "1983616f2021fa5587b7f6cec716501c610e4bf6"
-
 #: Jobs that could touch a base image, a registry or an artifact.
 ARTIFACT_PRODUCING_JOBS = ("build-a", "build-b", "reproducibility")
 
@@ -247,31 +237,18 @@ def _require_reviewed_commit_readable() -> None:
         )
 
 
-def test_the_gate_admits_002_and_the_admission_is_its_own() -> None:
-    """`J1-ENV-BUILDER-AUTH-002` is active, so the gate admits -- on its own logic.
+def test_the_gate_refuses_again_now_that_002_is_spent() -> None:
+    """002 was spent by run 33902875021 and retired, so the gate refuses again.
 
-    The interesting assertions are the last ones. Run 33800630377 produced a
-    non-zero exit and the words "builder authorization absent" on stderr while
-    the gate had in fact crashed during import, having verified nothing. An exit
-    code alone cannot tell those two apart in either direction, so this requires
-    the gate to have reached its own logic rather than died on the way there,
-    and to have recomputed both workflow digests rather than trusted a declared
-    one.
+    The refusal must be the gate's own. Run 33800630377 produced a non-zero exit
+    and the words "builder authorization absent" on stderr while the gate had in
+    fact crashed during import, having verified nothing. An exit code alone
+    cannot tell those two apart, so the scientific stack must never be the reason
+    this exits non-zero.
     """
-    _require_reviewed_commit_readable()
     completed = _run_gate(REPOSITORY_ROOT)
-    assert completed.returncode == 0, completed.stderr
-    admitted = json.loads(completed.stdout)
-    assert admitted["builder_authorization_id"] == ACTIVE_AUTHORIZATION_ID
-    assert admitted["authorized_source_commit"] == AUTHORIZED_SOURCE_COMMIT
-    # Both digests are recomputed by the gate; neither is the declared value
-    # echoed back. Equality across all three is the binding claim.
-    assert admitted["workflow_sha256_recomputed_from_review_commit"] == (
-        admitted["workflow_sha256"]
-    )
-    assert admitted["workflow_sha256_recomputed_from_checkout"] == (
-        admitted["workflow_sha256"]
-    )
+    assert completed.returncode != 0
+    assert "builder authorization absent" in completed.stderr
     assert "ModuleNotFoundError" not in completed.stderr, completed.stderr
     for package in ("numpy", "torch", "scipy", "sklearn"):
         assert f"No module named '{package}'" not in completed.stderr
@@ -314,14 +291,50 @@ def _synthetic_authorized_tree(tmp_path: Path) -> dict[str, Any]:
     git("commit", "--quiet", "-m", "synthetic reviewed workflow")
     review_commit = git("rev-parse", "HEAD")
 
-    document = dict(load_builder_authorization(REPOSITORY_ROOT))
-    document["workflow_review_commit"] = review_commit
-    document["builder_authorization_id"] = "SYNTHETIC-NOT-AN-AUTHORIZATION"
-    document["authorization_timestamp"] = "SYNTHETIC-NOT-AN-AUTHORIZATION-ACT"
-    document["human_authorizer_identity"] = "synthetic, not a signatory"
-    document["provenance_destination"] = durable_evidence_destination(
-        str(document["builder_authorization_id"])
+    from cardiosentinel.journal_extension.j1.approved_runtime import (
+        APPROVED_DEPENDENCY_DIGEST,
     )
+    from cardiosentinel.journal_extension.j1.builder_protocol import (
+        ARTIFACT_KIND,
+        TARGET_PLATFORM,
+    )
+    from cardiosentinel.journal_extension.j1.qualification import (
+        QUALIFICATION_POLICY,
+    )
+
+    # Built from frozen constants and the real workflow bytes, never from the
+    # canonical document: there is no canonical document any more, and a test of
+    # the *mechanism* must not depend on one existing.
+    synthetic_id = "SYNTHETIC-NOT-AN-AUTHORIZATION"
+    document: dict[str, Any] = {
+        "builder_authorization_id": synthetic_id,
+        "builder_candidate_id": (
+            f"github-actions:o/r//{workflow_relative}"
+            f"@{review_commit}#ubuntu-24.04"
+        ),
+        "provider": "github-actions",
+        "repository": "DebalekhaChakraborty/CardioSentinel",
+        "workflow_path": workflow_relative,
+        "workflow_review_commit": review_commit,
+        "workflow_sha256": hashlib.sha256(WORKFLOW_PATH.read_bytes()).hexdigest(),
+        "runner_class": "ubuntu-24.04",
+        "controlled_build_protocol_identity": (
+            "J1_CONTROLLED_ENVIRONMENT_BUILD_PROTOCOL_V2"
+        ),
+        "controlled_build_protocol_digest": "a" * 64,
+        "source_repository": "DebalekhaChakraborty/CardioSentinel",
+        "authorized_source_commit": "2" * 40,
+        "target_platform": TARGET_PLATFORM,
+        "artifact_type": ARTIFACT_KIND,
+        "base_image_digest": "python@sha256:" + "c" * 64,
+        "dependency_authority_identity": "v1-frozen-experiment-lock-335-packages",
+        "dependency_digest": APPROVED_DEPENDENCY_DIGEST,
+        "build_configuration_digest": "d" * 64,
+        "provenance_destination": durable_evidence_destination(synthetic_id),
+        "qualification_policy": QUALIFICATION_POLICY,
+        "authorization_timestamp": "SYNTHETIC-NOT-AN-AUTHORIZATION-ACT",
+        "human_authorizer_identity": "synthetic, not a signatory",
+    }
     authorization = tmp_path / BUILDER_AUTHORIZATION_PATH
     authorization.parent.mkdir(parents=True)
     authorization.write_text(json.dumps(document, indent=2), encoding="utf-8")
@@ -351,7 +364,9 @@ def test_the_gate_admit_path_runs_without_this_repositorys_history(
     assert admitted["workflow_sha256_recomputed_from_checkout"] == (
         document["workflow_sha256"]
     )
-    assert admitted["authorized_source_commit"] == AUTHORIZED_SOURCE_COMMIT
+    assert admitted["authorized_source_commit"] == (
+        document["authorized_source_commit"]
+    )
 
     # The ECG 28 failure: an exit code cannot tell "verified" from "crashed on
     # the way to verifying", so the scientific stack must never be the reason.
@@ -446,21 +461,18 @@ def test_no_automatic_retry_loop() -> None:
 # -- the future authorization schema ---------------------------------------
 
 
-def test_the_active_builder_authorization_is_002_and_not_001() -> None:
-    """`J1-ENV-BUILDER-AUTH-001` is retired, not spent, and was not reused.
+def test_no_builder_authorization_is_active() -> None:
+    """Both authorizations are retired, for different reasons, and none is live.
 
-    It was never spent -- its run failed before any qualification claim -- but
-    it names source commit `1983616f`, whose tree contains the broken gate, and
-    `COPY .` makes the source tree image content. Reusing it would build that
-    defect into the artifact, so 002 supersedes it by naming a different
-    `authorized_source_commit`.
+    001 was **retired, not spent**: its run failed in the gate before any
+    qualification claim. 002 **is spent**: run 33902875021 recorded the canonical
+    claim, and a builder authorization is single-claim. Neither may be reused,
+    and a third attempt needs a new id and a new lineage.
     """
-    document = load_builder_authorization(REPOSITORY_ROOT)
-    assert document is not None
-    assert document["builder_authorization_id"] == ACTIVE_AUTHORIZATION_ID
-    assert document["authorized_source_commit"] == AUTHORIZED_SOURCE_COMMIT
-    assert document["authorized_source_commit"] != RETIRED_001_SOURCE_COMMIT
-    verify_builder_authorization(document)
+    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
+    assert load_builder_authorization(REPOSITORY_ROOT) is None
+    with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
+        verify_builder_authorization(load_builder_authorization(REPOSITORY_ROOT))
 
 
 def test_an_absent_authorization_refuses_in_its_own_words() -> None:
