@@ -702,17 +702,14 @@ def test_the_only_trigger_is_manual_dispatch_with_no_inputs() -> None:
 # -- negative capability ---------------------------------------------------
 
 
-def test_the_active_authorization_is_002_and_the_refusal_mechanism_is_unchanged(
-) -> None:
-    """`J1-ENV-BUILDER-AUTH-001` is retired and 002 replaces it.
+def test_no_builder_authorization_is_active() -> None:
+    """001 is retired-not-spent; 002 is spent. The refusal mechanism is unchanged.
 
-    An authorization existing does not soften the mechanism: absence is still
-    refused in its own words, which is what every other tree in the world sees.
+    The remediation this module proves is untouched by either outcome: it
+    verified an authorization when one existed and refuses when none does, which
+    is the same code taking the same decision on different inputs.
     """
-    document = load_builder_authorization(REPOSITORY_ROOT)
-    assert document is not None
-    assert document["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-002"
-    verify_builder_authorization(document)
+    assert load_builder_authorization(REPOSITORY_ROOT) is None
     with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
         verify_builder_authorization(None)
 
@@ -728,10 +725,20 @@ def test_j1_science_is_unauthorized_independently_of_the_builder() -> None:
         verify_authorization(None)
 
 
-def test_nothing_was_built_and_no_evidence_directory_exists() -> None:
+def test_nothing_was_built_and_the_only_evidence_is_the_002_claim() -> None:
+    """Two dispatches, no artifact. The evidence root holds a claim and nothing else.
+
+    Run 33902875021 recorded a qualification claim and then failed in both
+    builds, so the durable evidence root now exists -- carrying the claim alone.
+    An OCI archive or a build record appearing beside it would mean something
+    was built, and nothing was.
+    """
     for pattern in ("*.oci.tar", "build-a.json", "build-b.json"):
         assert not list(REPOSITORY_ROOT.glob(pattern)), pattern
-    assert not (REPOSITORY_ROOT / DURABLE_EVIDENCE_ROOT).exists()
+    evidence = REPOSITORY_ROOT / DURABLE_EVIDENCE_ROOT
+    assert evidence.is_dir()
+    preserved = sorted(p.name for p in evidence.rglob("*") if p.is_file())
+    assert preserved == ["j1-qualification-claim.json"], preserved
 
 
 def test_the_controlled_build_module_still_cannot_build_anything() -> None:

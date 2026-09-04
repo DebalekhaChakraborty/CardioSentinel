@@ -1,0 +1,12 @@
+{
+  "authorized_source_commit": "8c7a385ddd60072abaf8fd2cfe493f1cefe12885",
+  "build_configuration_digest": "c9e9b5a636e65957c19103c22d29fdaf7d0dc8b9ed073a2aab146a86b2adf12c",
+  "builder_authorization_id": "J1-ENV-BUILDER-AUTH-002",
+  "claimed_at": "2026-09-04T17:52:46Z",
+  "provider": "github-actions",
+  "qualification_policy": "FIRST_AUTHORIZED_QUALIFICATION_RUN_IS_CANONICAL",
+  "workflow_run_attempt": "1",
+  "workflow_run_id": "33902875021",
+  "workflow_run_number": "2",
+  "workflow_sha256": "6bf187e25367a9cdd267f19cec27b0c0bb58dd6cc0142b26d670df3998ad5f53"
+}
