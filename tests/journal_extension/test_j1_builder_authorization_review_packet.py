@@ -72,13 +72,17 @@ from cardiosentinel.journal_extension.j1.qualification import (
 REPOSITORY_ROOT = Path(preflight.J1_PACKAGE_ROOT).parents[3]
 J1_DOCS = "docs/journal-extension/j1"
 
-PACKET_RELATIVE = f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V4.md"
+PACKET_RELATIVE = f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V5.md"
 PACKET_PATH = REPOSITORY_ROOT / PACKET_RELATIVE
 #: The act receipt for `J1-ENV-BUILDER-AUTH-002`, recorded from this packet.
 ACT_V2_RELATIVE = f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_ACT_V2.md"
 #: The account of what 002's canonical run did. It independently records the
 #: Containerfile digest of the object that was actually built.
 RECEIPT_002_NAME = "J1_ENV_BUILDER_AUTH_002_POSTCLAIM_FAILURE_RECEIPT.md"
+#: The packet that reviewed the object `J1-ENV-BUILDER-AUTH-002` authorized.
+#: Retained, and the authority for anything said about that spent object.
+V4_RELATIVE = f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V4.md"
+V4_SHA256 = "0658525ec29c00eef2d0e0eca7009cbc9c8e325fc61d7eef38f1932de8202c13"
 #: The canonical qualification claim run 33902875021 produced under 002, as the
 #: provider emitted it. The object identity the build actually used lives here.
 COMMITTED_CLAIM_PATH = (
@@ -122,6 +126,22 @@ RETAINED_RECEIPTS = {
     #: do. V4 exists because of it, so it is evidence rather than a draft.
     f"{J1_DOCS}/J1_ENV_BUILDER_AUTH_001_PRECLAIM_FAILURE_RECEIPT.md": (
         "b02e61c14e0384775d586538e9b9dec5ef62a3922177e0dee469f17bb0599460"
+    ),
+    #: V4 joined them when the authorization it described was spent by run
+    #: 33902875021 and the remediation changed the source tree it names. Its
+    #: bytes record the object 002 reviewed, not the corrected Containerfile.
+    f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_REVIEW_PACKET_V4.md": (
+        "0658525ec29c00eef2d0e0eca7009cbc9c8e325fc61d7eef38f1932de8202c13"
+    ),
+    #: Retained unedited even though its headline says no build was dispatched.
+    #: That was true when it was written; a later dispatch makes it the record
+    #: of a moment rather than a false statement.
+    f"{J1_DOCS}/J1_BUILDER_AUTHORIZATION_ACT_V2.md": (
+        "c37209a901599f76061046049e50adfde8a207a64a10081be1f61d0acd539719"
+    ),
+    #: What 002's canonical run did, and did not, produce.
+    f"{J1_DOCS}/J1_ENV_BUILDER_AUTH_002_POSTCLAIM_FAILURE_RECEIPT.md": (
+        "9dace21e089c3f745cda4452f3c793a57a088a545000d2d30a705a1c5c64daa7"
     ),
 }
 
@@ -245,6 +265,24 @@ def _machine_value_member(role: str) -> str:
     return _member_table()[role]
 
 
+def _v4_member_table() -> dict[str, str]:
+    """Section 7 of the **retained** V4 packet, role -> SHA-256.
+
+    V4 is a receipt now. What it recorded is still checkable, and checking it
+    against V4's own bytes rather than against the live packet is the whole
+    point of retaining it.
+    """
+    table: dict[str, str] = {}
+    v4 = (REPOSITORY_ROOT / V4_RELATIVE).read_text(encoding="utf-8")
+    for line in v4.splitlines():
+        if not line.startswith("| `"):
+            continue
+        cells = [cell.strip().strip("`") for cell in line.strip("|").split("|")]
+        if len(cells) == 3 and cells[1] in {"tracked", "derived"}:
+            table[cells[0]] = cells[2]
+    return table
+
+
 def _live_containerfile_digest() -> str:
     relative = BUILD_CONFIGURATION_PATHS["containerfile"]
     return hashlib.sha256((REPOSITORY_ROOT / relative).read_bytes()).hexdigest()
@@ -339,25 +377,37 @@ def test_the_packet_exists_and_is_not_the_canonical_authorization() -> None:
     assert PACKET_RELATIVE != BUILDER_AUTHORIZATION_PATH
 
 
-def test_this_packet_still_describes_the_object_002_actually_ran() -> None:
-    """V4 is historical now, and it is bound to the run that consumed it.
 
-    The authorization it reviewed is gone -- 002 was spent by run 33902875021
-    and retired -- so there is no live document left to compare against. What
-    remains checkable is stronger than a document comparison: the qualification
-    claim the provider produced carries the object identity the build actually
-    used, and it must equal what this packet reviewed. A packet quietly
-    re-pointed at some later object would fail here.
+def test_v4_still_describes_the_object_002_actually_ran() -> None:
+    """V4 is a receipt now, and it is still bound to the run that consumed it.
+
+    The live packet describes a *different* object -- the remediated one -- so
+    this checks the qualification claim against **V4's own retained bytes**. The
+    claim carries the object identity the build actually used; if V4 had ever
+    been quietly re-pointed at the corrected Containerfile, it would disagree
+    here.
     """
+    assert hashlib.sha256(
+        (REPOSITORY_ROOT / V4_RELATIVE).read_bytes()
+    ).hexdigest() == V4_SHA256
+
     claim = json.loads(COMMITTED_CLAIM_PATH.read_bytes())
+    assert claim["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-002"
+    v4 = (REPOSITORY_ROOT / V4_RELATIVE).read_text(encoding="utf-8")
     for field in (
         "authorized_source_commit",
         "build_configuration_digest",
         "workflow_sha256",
     ):
-        assert claim[field] == _machine_value(field), field
-    assert claim["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-002"
-    assert claim["qualification_policy"] == _machine_value("qualification_policy")
+        assert claim[field] in v4, field
+
+    # And the live packet must NOT claim that object: it describes the repair.
+    assert claim["authorized_source_commit"] != _machine_value(
+        "authorized_source_commit"
+    )
+    assert claim["build_configuration_digest"] != _machine_value(
+        "build_configuration_digest"
+    )
 
 
 def test_the_act_receipt_records_002_and_agrees_with_the_canonical_json() -> None:
@@ -375,7 +425,8 @@ def test_the_act_receipt_records_002_and_agrees_with_the_canonical_json() -> Non
     assert claim["builder_authorization_id"] in prose
     assert claim["authorized_source_commit"] in prose
     assert "DebalekhaChakraborty" in prose
-    assert hashlib.sha256(PACKET_PATH.read_bytes()).hexdigest() in prose
+    # ACT_V2 was recorded from V4, so it names V4's digest -- not this packet's.
+    assert V4_SHA256 in prose
 
     # 001 is named to be refused, never as something this act may fall back on.
     assert "must never be reused" in prose
@@ -563,48 +614,38 @@ def test_the_authorized_source_commit_holds_every_build_input() -> None:
         )
 
 
-def test_the_build_inputs_moved_and_the_move_is_not_silent() -> None:
-    """Authority may not be moved forward *silently*. This move is not silent.
 
-    While 002 was live this asserted that nothing had touched a build input
-    since `authorized_source_commit`. The apparatus remediation deliberately
-    does touch one -- the Containerfile carried the defect that spent 002 -- so
-    the guarantee changes shape rather than being deleted:
+def test_no_later_commit_touches_a_build_input() -> None:
+    """Authority may not be moved forward silently.
 
-    # SOURCE IDENTITY CHANGED -- RE-DERIVATION REQUIRED
-
-    What must remain true is that the divergence is *visible*: the live
-    configuration no longer matches the packet, exactly one member accounts for
-    it, and the workflow is not among the things that moved. None of those need
-    git history, so this never skips; where history is present it also names the
-    commits responsible.
+    This packet's `authorized_source_commit` is the current merge commit, so
+    there is again nowhere to move. Written so it never skips: the live-tree
+    comparison needs no history, and the commit-range check runs only where the
+    object store can answer.
     """
-    assert _live_containerfile_digest() != _machine_value_member("containerfile")
-    assert _machine_value_member("workflow") == hashlib.sha256(
-        (REPOSITORY_ROOT / WORKFLOW_RELATIVE).read_bytes()
-    ).hexdigest()
+    for role in REQUIRED_BUILD_CONFIGURATION_INPUTS:
+        if role in ("dependency_input_pypi", "dependency_input_pytorch"):
+            continue  # derived; covered by the recomputation above
+        relative = BUILD_CONFIGURATION_PATHS[role]
+        on_disk = hashlib.sha256(
+            (REPOSITORY_ROOT / relative).read_bytes()
+        ).hexdigest()
+        assert on_disk == _machine_value_member(role), role
 
     commit = _machine_value("authorized_source_commit")
     if _git("cat-file", "-e", f"{commit}^{{commit}}").returncode != 0:
-        return  # shallow checkout: the divergence checks above still ran
-
-    workflow_changes = _git(
-        "log", "--oneline", f"{commit}..HEAD", "--", ".github/workflows/"
+        return  # shallow checkout: the on-disk comparison above still ran
+    completed = _git(
+        "log",
+        "--oneline",
+        f"{commit}..HEAD",
+        "--",
+        "containers/",
+        ".github/workflows/",
+        "src/cardiosentinel/journal_extension/j1/",
     )
-    assert workflow_changes.returncode == 0
-    assert not workflow_changes.stdout.strip(), (
-        "the controlled workflow's directory moved, which this repair must not "
-        "do: " + workflow_changes.stdout.decode()
-    )
-
-    container_changes = _git(
-        "log", "--oneline", f"{commit}..HEAD", "--", "containers/"
-    )
-    assert container_changes.returncode == 0
-    assert container_changes.stdout.strip(), (
-        "the Containerfile repair is missing from history between the "
-        "authorized source commit and HEAD"
-    )
+    assert completed.returncode == 0
+    assert not completed.stdout.strip(), completed.stdout.decode()
 
 
 def test_protocol_digest_recomputed_from_the_checkout() -> None:
@@ -643,76 +684,44 @@ def _live_configuration(tmp_path: Path) -> dict[str, Any]:
     return configuration_digest(paths)
 
 
-def test_the_live_configuration_has_moved_away_from_what_v4_reviewed(
+
+def test_the_live_configuration_is_exactly_what_this_packet_records(
     tmp_path: Path,
 ) -> None:
-    """The apparatus remediation changed the object, and V4 is not rewritten.
+    """V5 describes the working tree, recomputed rather than asserted.
 
-    V4 describes what `J1-ENV-BUILDER-AUTH-002` authorized. That authorization
-    is spent and the Containerfile has since been repaired, so the working tree
-    is a *different* build configuration and this must say so out loud.
-
-    # SOURCE IDENTITY CHANGED -- RE-DERIVATION REQUIRED
-
-    Six members are still what V4 recorded; only `containerfile` moved. That is
-    the whole remediation, and a second member drifting here would mean the
-    change was not the single-defect repair it claims to be.
+    Every member is recomputed from disk (the two derived inputs regenerated)
+    and must equal what this packet records, and the seven must recombine to the
+    configuration digest it names.
     """
     result = _live_configuration(tmp_path)
     assert result["member_count"] == 7
-    assert result["build_configuration_digest"] != _machine_value(
+    for role in REQUIRED_BUILD_CONFIGURATION_INPUTS:
+        assert result["inputs"][role] == _machine_value_member(role), role
+    assert result["build_configuration_digest"] == _machine_value(
         "build_configuration_digest"
     )
-    assert result["inputs"]["containerfile"] != _machine_value_member(
-        "containerfile"
-    )
-    for role in REQUIRED_BUILD_CONFIGURATION_INPUTS:
-        if role == "containerfile":
-            continue
-        assert result["inputs"][role] == _machine_value_member(role), role
-    # The workflow is untouched by this repair and is still the reviewed one.
     assert result["inputs"]["workflow"] == _machine_value("workflow_sha256")
 
 
-def test_v4_still_describes_the_configuration_it_reviewed() -> None:
-    """What V4 reviewed is cross-checked against the record of what ran.
 
-    Deliberately written so it **never skips**. The obvious form -- recompute
-    every member from git at `authorized_source_commit` -- needs history the CI
-    checkout does not have, and a check that only runs on a developer's machine
-    is the failure ECG 29 named. So the always-available evidence comes first:
+def test_exactly_one_member_moved_between_v4_and_v5() -> None:
+    """The repair was a single defect, and the digests must show only that.
 
-    - the `containerfile` digest V4 recorded is the one the 002 post-claim
-      failure receipt independently records for the object that was built;
-    - the six members this repair did not touch are still on disk unchanged.
-
-    Where git history *is* present the stronger check runs as well, but its
-    absence weakens this test rather than silencing it.
+    Six members are byte-identical between the retained V4 and this packet;
+    `containerfile` is not. A second member drifting would mean the remediation
+    was broader than it claims.
     """
-    receipt = " ".join(
-        (REPOSITORY_ROOT / J1_DOCS / RECEIPT_002_NAME).read_text(
-            encoding="utf-8"
-        ).split()
+    v4_members = _v4_member_table()
+    changed = [
+        role
+        for role in REQUIRED_BUILD_CONFIGURATION_INPUTS
+        if _machine_value_member(role) != v4_members[role]
+    ]
+    assert changed == ["containerfile"], changed
+    assert _machine_value("build_configuration_digest") != (
+        "c9e9b5a636e65957c19103c22d29fdaf7d0dc8b9ed073a2aab146a86b2adf12c"
     )
-    reviewed_containerfile = _machine_value_member("containerfile")
-    assert reviewed_containerfile in receipt
-
-    for role, relative in BUILD_CONFIGURATION_PATHS.items():
-        if role == "containerfile":
-            continue  # repaired; the live value is asserted to differ above
-        on_disk = hashlib.sha256(
-            (REPOSITORY_ROOT / relative).read_bytes()
-        ).hexdigest()
-        assert on_disk == _machine_value_member(role), role
-
-    commit = _machine_value("authorized_source_commit")
-    if _git("cat-file", "-e", f"{commit}^{{commit}}").returncode != 0:
-        return  # shallow checkout: the checks above still ran
-    for role, relative in BUILD_CONFIGURATION_PATHS.items():
-        completed = _git("cat-file", "blob", f"{commit}:{relative}")
-        assert completed.returncode == 0, relative
-        recomputed = hashlib.sha256(completed.stdout).hexdigest()
-        assert recomputed == _machine_value_member(role), role
 
 
 def test_every_member_digest_in_the_packet_is_a_digest_it_combined(
