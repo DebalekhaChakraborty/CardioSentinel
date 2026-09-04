@@ -56,6 +56,7 @@ from cardiosentinel.journal_extension.j1.builder_protocol import (
     REQUIRED_BUILD_CONFIGURATION_INPUTS,
     TARGET_PLATFORM,
     ControlledBuilderIdentity,
+    build_configuration_digest,
     require_specific_builder_identity,
 )
 from cardiosentinel.journal_extension.j1.controlled_build import (
@@ -218,6 +219,27 @@ def _machine_value(field: str) -> str:
         f"{field} is {row['status']}, so it carries no verified value"
     )
     return row["value"]
+
+
+def _member_table() -> dict[str, str]:
+    """The packet's section 7 build-configuration member table, role -> SHA-256.
+
+    Parsed from the packet's own rows for the same reason the field table is:
+    the packet is the source of truth for what it reviewed, and a second copy
+    written here would be free to disagree with it.
+    """
+    table: dict[str, str] = {}
+    for line in _packet_text().splitlines():
+        if not line.startswith("| `"):
+            continue
+        cells = [cell.strip().strip("`") for cell in line.strip("|").split("|")]
+        if len(cells) == 3 and cells[1] in {"tracked", "derived"}:
+            table[cells[0]] = cells[2]
+    return table
+
+
+def _machine_value_member(role: str) -> str:
+    return _member_table()[role]
 
 
 def _git(*arguments: str) -> subprocess.CompletedProcess[bytes]:
@@ -573,8 +595,8 @@ def test_the_protocol_identity_names_the_document_that_was_digested() -> None:
     )
 
 
-def test_build_configuration_digest_recomputed_canonically(tmp_path: Path) -> None:
-    """Recomputed with the repository's own implementation, over all seven members."""
+def _live_configuration(tmp_path: Path) -> dict[str, Any]:
+    """The seven-member configuration of the working tree, recomputed."""
     write_dependency_input(REPOSITORY_ROOT, tmp_path)
     paths = {
         name: REPOSITORY_ROOT / relative
@@ -583,27 +605,75 @@ def test_build_configuration_digest_recomputed_canonically(tmp_path: Path) -> No
     paths["dependency_input_pypi"] = tmp_path / "requirements.pypi.txt"
     paths["dependency_input_pytorch"] = tmp_path / "requirements.pytorch-cpu.txt"
     assert set(paths) == set(REQUIRED_BUILD_CONFIGURATION_INPUTS)
+    return configuration_digest(paths)
 
-    result = configuration_digest(paths)
-    assert result["build_configuration_digest"] == _machine_value(
+
+def test_the_live_configuration_has_moved_away_from_what_v4_reviewed(
+    tmp_path: Path,
+) -> None:
+    """The apparatus remediation changed the object, and V4 is not rewritten.
+
+    V4 describes what `J1-ENV-BUILDER-AUTH-002` authorized. That authorization
+    is spent and the Containerfile has since been repaired, so the working tree
+    is a *different* build configuration and this must say so out loud.
+
+    # SOURCE IDENTITY CHANGED -- RE-DERIVATION REQUIRED
+
+    Six members are still what V4 recorded; only `containerfile` moved. That is
+    the whole remediation, and a second member drifting here would mean the
+    change was not the single-defect repair it claims to be.
+    """
+    result = _live_configuration(tmp_path)
+    assert result["member_count"] == 7
+    assert result["build_configuration_digest"] != _machine_value(
         "build_configuration_digest"
     )
-    assert result["member_count"] == 7
-    # The digested workflow is the reviewed workflow, not a file of the same name.
+    assert result["inputs"]["containerfile"] != _machine_value_member(
+        "containerfile"
+    )
+    for role in REQUIRED_BUILD_CONFIGURATION_INPUTS:
+        if role == "containerfile":
+            continue
+        assert result["inputs"][role] == _machine_value_member(role), role
+    # The workflow is untouched by this repair and is still the reviewed one.
     assert result["inputs"]["workflow"] == _machine_value("workflow_sha256")
 
 
-def test_every_member_digest_appears_in_the_packet(tmp_path: Path) -> None:
-    """The member table must be the digests that were actually combined."""
-    write_dependency_input(REPOSITORY_ROOT, tmp_path)
-    paths = {
-        name: REPOSITORY_ROOT / relative
-        for name, relative in BUILD_CONFIGURATION_PATHS.items()
+def test_v4_still_describes_the_configuration_it_reviewed(tmp_path: Path) -> None:
+    """Recomputed from git at the commit V4 named, not from the working tree.
+
+    A packet is only worth anything if what it recorded can still be checked
+    against the object it recorded it for. That object is a commit, so this
+    reads the members out of git's object store rather than from disk, and skips
+    loudly where the checkout is too shallow to answer.
+    """
+    commit = _machine_value("authorized_source_commit")
+    _require_commit(commit)
+    for role, relative in BUILD_CONFIGURATION_PATHS.items():
+        completed = _git("cat-file", "blob", f"{commit}:{relative}")
+        assert completed.returncode == 0, relative
+        recomputed = hashlib.sha256(completed.stdout).hexdigest()
+        assert recomputed == _machine_value_member(role), role
+
+
+def test_every_member_digest_in_the_packet_is_a_digest_it_combined(
+    tmp_path: Path,
+) -> None:
+    """The member table must still be internally consistent.
+
+    Recomputing the packet's own recorded members must reproduce the packet's
+    own recorded configuration digest. This needs no git history and no working
+    tree, so it keeps holding after the tree moves on.
+    """
+    recorded = {
+        role: _machine_value_member(role)
+        for role in REQUIRED_BUILD_CONFIGURATION_INPUTS
     }
-    paths["dependency_input_pypi"] = tmp_path / "requirements.pypi.txt"
-    paths["dependency_input_pytorch"] = tmp_path / "requirements.pytorch-cpu.txt"
+    assert build_configuration_digest(recorded) == _machine_value(
+        "build_configuration_digest"
+    )
     text = _packet_text()
-    for role, digest in configuration_digest(paths)["inputs"].items():
+    for role, digest in recorded.items():
         assert digest in text, role
 
 
