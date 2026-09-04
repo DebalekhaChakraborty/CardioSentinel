@@ -35,7 +35,7 @@ WORKDIR /opt/cardiosentinel
 COPY containers/j1-environment/requirements.pypi.txt \
      containers/j1-environment/requirements.pytorch-cpu.txt ./
 
-RUN python -m pip install --no-deps --require-hashes=false \
+RUN python -m pip install --no-deps \
         --index-url https://pypi.org/simple \
         -r requirements.pypi.txt \
  && python -m pip install --no-deps \

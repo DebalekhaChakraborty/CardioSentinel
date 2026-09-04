@@ -27,13 +27,14 @@ open one.
 
 | | |
 |---|---|
-| **Latest** | **ECG 29** — the one to read |
-| Covers | one PR opened and **not merged**, #157 — `J1-ENV-BUILDER-AUTH-002` written and its act receipt recorded, re-derived rather than transcribed. Writing it broke **seven** tests that asserted the authorization was absent; all seven were rewritten to assert the new truth. **The first CI run was green and misleading**: the gate admit-path test had silently moved from passed to skipped, and the only tell was one digit in the skip column. The `fetch-depth: 0` fix for that was itself refused by the build-input guard, correctly, and was dropped. Artifact, environment authority and J1 authorization all remain absent |
+| **Latest** | **ECG 30** — the one to read |
+| Covers | #157 merged, **the first controlled build that ever passed its gate**, and its failure. Run `33902875021` recorded the canonical qualification claim — **spending `J1-ENV-BUILDER-AUTH-002`** — then failed in both builds on `--require-hashes option does not take a value`, a syntax defect in the authorized Containerfile. Classified `POST_CLAIM_PRE_ARTIFACT`, reproducibility `NONE` (no manifest ever existed, so not `DIVERGED`). #158 preserved the claim and retired 002; this session repaired the one line and added the executable pip-parser boundary nothing had ever crossed. **No authorization 003 exists.** Artifact, environment authority and J1 authorization all remain absent |
 
 ## Index, newest first
 
 | Session | Date | The danger it named for the session after it |
 |---|---|---|
+| **ECG 30** | 2026-09-04 | proving everything about an apparatus except that it runs |
 | **ECG 29** | 2026-09-03 | reading a green CI run as evidence that the test you just wrote had run |
 | **ECG 28** | 2026-09-03 | a test that passes tells you about the environment it ran in |
 | **ECG 27** | 2026-09-01 | writing the guarantee in prose and the weaker check in code, then building the fixture to the prose |
