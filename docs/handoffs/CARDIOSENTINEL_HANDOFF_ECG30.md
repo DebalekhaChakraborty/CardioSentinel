@@ -198,6 +198,39 @@ neither the known-boolean nor the known-value-taking table raises, because
 silently treating an unknown option as boolean would drop the token after it and
 test a command nobody wrote.
 
+### The first version of that guard was itself wrong, and review caught it
+
+# Options are preserved. Only values are replaced.
+
+The sanitizer originally did `index += 2` on every value-taking option, dropping
+the option **together with** its value — `--index-url https://pypi.org/simple`
+and `-r requirements.pypi.txt` disappeared before pip saw the command.
+
+That erased the grammar under test. A malformed `--index-url` would have
+vanished instead of being rejected, and the "derived from the committed bytes"
+check was **circular**: it compared against the options that survived the
+sanitizer, so an option the sanitizer dropped was also absent from the set it
+checked.
+
+Now a requirement path becomes a controlled empty file and an index location
+becomes the `file://` URI of an empty directory, while every option survives.
+Structure is validated rather than assumed: a value-taking option at the end of
+a command, or one followed by another option, raises **before** pip is invoked —
+so `--index-url -r requirements.txt` cannot swallow `-r` as a URL and report
+success for a command nobody wrote. Sanitization is defined per option; a
+recognised value-taking option with no explicitly safe test value raises rather
+than falling back to a guess.
+
+The test that keeps this honest is
+`test_the_sanitizer_preserves_the_historical_defect`: the *historical* broken
+command is passed through the same sanitizer and pip must still reject it. **A
+sanitizer that erases grammar returns a valid command there, and the guard is
+worthless.**
+
+**The lesson generalises: a harness that "cleans up" its input can clean away the
+defect it exists to find.** Whenever a test transforms what it tests, prove the
+transformation still fails on a known-bad input.
+
 ---
 
 ## 4. THE TRAP THAT ALMOST CAUGHT ME
