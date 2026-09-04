@@ -26,7 +26,6 @@ from cardiosentinel.journal_extension.j1.authorization import (
     verify_authorization,
 )
 from cardiosentinel.journal_extension.j1.builder_authorization import (
-    BUILDER_AUTHORIZATION_PATH,
     CONTROLLED_BUILD_WORKFLOW_PATH,
     BuilderAuthorizationError,
     load_builder_authorization,
@@ -703,10 +702,17 @@ def test_the_only_trigger_is_manual_dispatch_with_no_inputs() -> None:
 # -- negative capability ---------------------------------------------------
 
 
-def test_no_builder_authorization_is_active() -> None:
-    """`J1-ENV-BUILDER-AUTH-001` is retired; the refusal mechanism is unchanged."""
-    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
-    assert load_builder_authorization(REPOSITORY_ROOT) is None
+def test_the_active_authorization_is_002_and_the_refusal_mechanism_is_unchanged(
+) -> None:
+    """`J1-ENV-BUILDER-AUTH-001` is retired and 002 replaces it.
+
+    An authorization existing does not soften the mechanism: absence is still
+    refused in its own words, which is what every other tree in the world sees.
+    """
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    assert document is not None
+    assert document["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-002"
+    verify_builder_authorization(document)
     with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
         verify_builder_authorization(None)
 
