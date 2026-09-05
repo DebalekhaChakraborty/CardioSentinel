@@ -253,33 +253,18 @@ def _require_reviewed_commit_readable() -> None:
         )
 
 
-def test_the_gate_admits_003_and_the_admission_is_its_own() -> None:
-    """`J1-ENV-BUILDER-AUTH-003` is active, so the gate admits -- on its own logic.
+def test_the_gate_refuses_again_now_that_003_is_spent() -> None:
+    """003 was spent by run 33984680149 and retired, so the gate refuses again.
 
-    Run 33800630377 produced a non-zero exit and the words "builder
-    authorization absent" while the gate had in fact crashed during import,
-    having verified nothing. An exit code alone cannot tell those apart in either
-    direction, so this requires the gate to have reached its own logic and to
-    have recomputed both workflow digests rather than echoed a declared one.
+    The refusal must be the gate's own. Run 33800630377 produced a non-zero exit
+    and the words "builder authorization absent" while the gate had in fact
+    crashed during import, having verified nothing. An exit code alone cannot
+    tell those apart, so the scientific stack must never be the reason this
+    exits non-zero.
     """
     completed = _run_gate(REPOSITORY_ROOT)
-    if not _reviewed_commit_is_readable():
-        # Shallow checkout: the gate cannot read the reviewed bytes and refuses,
-        # which is correct and fail-closed. Assert that rather than skipping --
-        # a skip here would report a pass for a check that never ran.
-        assert completed.returncode != 0
-        assert "ModuleNotFoundError" not in completed.stderr, completed.stderr
-        return
-    assert completed.returncode == 0, completed.stderr
-    admitted = json.loads(completed.stdout)
-    assert admitted["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-003"
-    assert admitted["authorized_source_commit"] == AUTHORIZED_SOURCE_COMMIT
-    assert admitted["workflow_sha256_recomputed_from_review_commit"] == (
-        admitted["workflow_sha256"]
-    )
-    assert admitted["workflow_sha256_recomputed_from_checkout"] == (
-        admitted["workflow_sha256"]
-    )
+    assert completed.returncode != 0
+    assert "builder authorization absent" in completed.stderr
     assert "ModuleNotFoundError" not in completed.stderr, completed.stderr
     for package in ("numpy", "torch", "scipy", "sklearn"):
         assert f"No module named '{package}'" not in completed.stderr
@@ -492,23 +477,17 @@ def test_no_automatic_retry_loop() -> None:
 # -- the future authorization schema ---------------------------------------
 
 
-def test_the_active_authorization_is_003_and_not_a_retired_one() -> None:
-    """003 is live; 001 and 002 are retired for different reasons.
+def test_no_builder_authorization_is_active() -> None:
+    """All three authorizations are retired, and two of them are spent.
 
-    001 was **retired, not spent**: its run failed in the gate before any
-    qualification claim. 002 **is spent**: run 33902875021 recorded the canonical
-    claim, and a builder authorization is single-claim. Neither may be reused,
-    which is why this is a third id over a new lineage rather than a retry.
+    001 refused at its gate and recorded no claim -- retired, not spent. 002 and
+    003 each recorded a canonical claim and then failed before any artifact, so
+    each is spent. None may be reused.
     """
-    document = load_builder_authorization(REPOSITORY_ROOT)
-    assert document is not None
-    assert document["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-003"
-    assert document["builder_authorization_id"] not in {
-        "J1-ENV-BUILDER-AUTH-001",
-        "J1-ENV-BUILDER-AUTH-002",
-    }
-    assert document["authorized_source_commit"] == AUTHORIZED_SOURCE_COMMIT
-    verify_builder_authorization(document)
+    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
+    assert load_builder_authorization(REPOSITORY_ROOT) is None
+    with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
+        verify_builder_authorization(load_builder_authorization(REPOSITORY_ROOT))
 
 
 def test_an_absent_authorization_refuses_in_its_own_words() -> None:

@@ -94,16 +94,12 @@ def _prose(path: Path) -> str:
 def test_the_canonical_authorization_is_no_longer_002() -> None:
     """002 is spent, so the document that authorized it is gone for good.
 
-    A live authorization exists again -- 003, over a new lineage -- and the one
-    thing that must never be true is that the canonical path names 002 once more.
+    003 succeeded it over a new lineage and has since been spent and retired
+    too, so no authorization is live. What must never become true is that the
+    canonical path names 002 -- or 001 -- again.
     """
-    document = load_builder_authorization(REPOSITORY_ROOT)
-    assert document is not None
-    assert document["builder_authorization_id"] != AUTHORIZATION_002
-    assert document["builder_authorization_id"] != AUTHORIZATION_001
-    assert document["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-003"
-    verify_builder_authorization(document)
-    # The mechanism itself is unchanged: absence is still refused in its own words.
+    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
+    assert load_builder_authorization(REPOSITORY_ROOT) is None
     with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
         verify_builder_authorization(None)
 
@@ -191,7 +187,17 @@ def test_no_build_record_or_archive_is_committed() -> None:
     evidence = REPOSITORY_ROOT / DURABLE_EVIDENCE_ROOT
     assert evidence.is_dir()
     preserved = sorted(p.name for p in evidence.rglob("*") if p.is_file())
-    assert preserved == ["j1-qualification-claim.json"], preserved
+    # 002's claim, and 003's. Two claims, three dispatches, zero artifacts.
+    assert preserved == [
+        "j1-qualification-claim.json",
+        "j1-qualification-claim.json",
+    ], preserved
+    own = sorted(
+        p.name
+        for p in (evidence / AUTHORIZATION_002).rglob("*")
+        if p.is_file()
+    )
+    assert own == ["j1-qualification-claim.json"], own
 
 
 @pytest.mark.parametrize(
@@ -348,8 +354,6 @@ def test_no_scientific_authorization_or_environment_authority_exists() -> None:
     with pytest.raises(AuthorizationError, match="J1 authorization absent"):
         verify_authorization(None)
     assert not list(J1_DOCS.glob("*ENVIRONMENT_AUTHORITY_RECORD*"))
-    # A builder authorization is not a scientific one. The only JSON here is the
-    # builder authorization, and J1 science remains unauthorized regardless.
-    assert [path.name for path in J1_DOCS.glob("*.json")] == [
-        Path(BUILDER_AUTHORIZATION_PATH).name
-    ]
+    # No authorization is live, so no JSON sits directly under the J1 documents;
+    # the claims live under `evidence/`. J1 science is unauthorized regardless.
+    assert not list(J1_DOCS.glob("*.json"))
