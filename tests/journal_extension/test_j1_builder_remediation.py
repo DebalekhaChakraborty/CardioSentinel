@@ -702,16 +702,14 @@ def test_the_only_trigger_is_manual_dispatch_with_no_inputs() -> None:
 # -- negative capability ---------------------------------------------------
 
 
-def test_the_active_authorization_is_003_and_absence_still_refuses() -> None:
-    """003 is live; 001 is retired-not-spent and 002 is spent.
+def test_no_builder_authorization_is_active() -> None:
+    """001 retired-not-spent; 002 and 003 spent. The mechanism is unchanged.
 
-    An authorization existing does not soften the mechanism: absence is still
-    refused in its own words, which is what every other tree in the world sees.
+    The remediation this module proves is untouched by any of those outcomes: it
+    verified an authorization when one existed and refuses when none does, the
+    same code taking the same decision on different inputs.
     """
-    document = load_builder_authorization(REPOSITORY_ROOT)
-    assert document is not None
-    assert document["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-003"
-    verify_builder_authorization(document)
+    assert load_builder_authorization(REPOSITORY_ROOT) is None
     with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
         verify_builder_authorization(None)
 
@@ -727,20 +725,22 @@ def test_j1_science_is_unauthorized_independently_of_the_builder() -> None:
         verify_authorization(None)
 
 
-def test_nothing_was_built_and_the_only_evidence_is_the_002_claim() -> None:
-    """Two dispatches, no artifact. The evidence root holds a claim and nothing else.
+def test_nothing_was_built_and_the_evidence_root_holds_only_claims() -> None:
+    """Three dispatches, no artifact. Two claims, and nothing else at all.
 
-    Run 33902875021 recorded a qualification claim and then failed in both
-    builds, so the durable evidence root now exists -- carrying the claim alone.
-    An OCI archive or a build record appearing beside it would mean something
-    was built, and nothing was.
+    Runs 33902875021 and 33984680149 each recorded a qualification claim and
+    then failed in both builds. An OCI archive or a build record appearing
+    beside those claims would mean something was built, and nothing was.
     """
     for pattern in ("*.oci.tar", "build-a.json", "build-b.json"):
         assert not list(REPOSITORY_ROOT.glob(pattern)), pattern
     evidence = REPOSITORY_ROOT / DURABLE_EVIDENCE_ROOT
     assert evidence.is_dir()
     preserved = sorted(p.name for p in evidence.rglob("*") if p.is_file())
-    assert preserved == ["j1-qualification-claim.json"], preserved
+    assert preserved == [
+        "j1-qualification-claim.json",
+        "j1-qualification-claim.json",
+    ], preserved
 
 
 def test_the_controlled_build_module_still_cannot_build_anything() -> None:

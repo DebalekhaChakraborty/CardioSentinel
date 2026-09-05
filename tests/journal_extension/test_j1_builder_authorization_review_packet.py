@@ -882,15 +882,8 @@ def test_machine_sufficiency_is_still_not_authorization() -> None:
     assert "synthetic" in fixture["human_authorizer_identity"]
     assert fixture["builder_authorization_id"] not in _packet_text()
     verify_builder_authorization(fixture)
-
-    # Permission now exists, and it is a *different document*: the synthetic one
-    # passes every machine rule while signing nothing.
-    canonical = load_builder_authorization(REPOSITORY_ROOT)
-    assert canonical is not None
-    for field in HUMAN_FIELDS:
-        assert canonical[field] != fixture[field], field
-    assert "SYNTHETIC" not in canonical["builder_authorization_id"]
-    assert "synthetic" not in canonical["human_authorizer_identity"]
+    # 003 was spent by run 33984680149 and retired, so no permission exists again.
+    assert load_builder_authorization(REPOSITORY_ROOT) is None
 
 
 def test_j1_science_is_unauthorized_independently_of_the_builder() -> None:
@@ -1062,30 +1055,28 @@ def test_the_packet_poses_the_human_questions_without_answering_them() -> None:
 def test_nothing_was_built_and_no_evidence_directory_exists() -> None:
     """One dispatch happened and produced nothing. That is the whole record.
 
-    Run 33800630377 failed in its gate, so there is no claim, no build record,
-    no archive and no evidence directory. The one JSON under the J1 documents is
-    the canonical authorization itself; authorizing a builder produced no
-    evidence, which is exactly what an authorization is not allowed to do.
+    Three dispatches have happened and none produced an artifact. Two recorded a
+    qualification claim before failing; those claims are the entire durable
+    record, and nothing else may sit beside them.
     """
     for pattern in ("*.oci.tar", "build-a.json", "build-b.json"):
         assert not list(REPOSITORY_ROOT.glob(pattern)), pattern
-    # The only JSON directly under the J1 documents is the live authorization;
-    # the 002 claim lives under `evidence/`. Authorizing a builder produced no
-    # build evidence, which is exactly what an authorization may not do.
-    assert [
-        path.name for path in (REPOSITORY_ROOT / J1_DOCS).glob("*.json")
-    ] == [Path(BUILDER_AUTHORIZATION_PATH).name]
+    # No JSON sits directly under the J1 documents: the authorization was
+    # removed when 003 was retired, and the claims live under `evidence/`.
+    assert not list((REPOSITORY_ROOT / J1_DOCS).glob("*.json"))
     evidence = REPOSITORY_ROOT / J1_DOCS / "evidence"
     preserved = sorted(p.name for p in evidence.rglob("*") if p.is_file())
-    assert preserved == ["j1-qualification-claim.json"], preserved
+    assert preserved == [
+        "j1-qualification-claim.json",
+        "j1-qualification-claim.json",
+    ], preserved
 
 
-def test_no_synthetic_document_replaced_the_canonical_one() -> None:
-    """Every synthetic document in this module is built and verified in memory.
+def test_the_gate_still_refuses_after_every_test_in_this_module() -> None:
+    """Every synthetic document here is built and verified in memory.
 
-    If one had ever been written to the canonical path, the id would not be 003.
+    If one had ever been written to the canonical path, this would admit.
     """
-    document = load_builder_authorization(REPOSITORY_ROOT)
-    verified = verify_builder_authorization(document)
-    assert verified.fields["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-003"
-    assert "SYNTHETIC" not in str(verified.fields["builder_authorization_id"])
+    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
+    with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
+        verify_builder_authorization(load_builder_authorization(REPOSITORY_ROOT))
