@@ -77,25 +77,54 @@ def test_the_approved_fields_match_what_the_locks_record() -> None:
     assert machine in environment["platform"]
 
 
-def test_the_digest_is_imported_and_not_a_second_literal() -> None:
-    """A second literal of a frozen digest is a second authority.
+def test_the_digest_literal_is_bound_to_the_evidence_it_came_from() -> None:
+    """A second literal of a frozen digest is a second authority -- unless bound.
 
-    Structural, by AST over the module's own string constants: the value must
-    reach J1 by import from where V1 compiled it, never by being retyped.
+    **This test used to forbid the literal outright**, and the module resolved
+    the digest from the locks at import instead. That was the stronger design
+    right up until the package was installed: resolution needed a repository
+    root inferred from `__file__`, an installed package has no repository above
+    it, and five J1 gate modules became unimportable (PR #165, V2-BLOCKER-2).
+
+    So the literal exists now, and the guarantee moves here rather than
+    disappearing. One literal, reconciled against *both* independent records of
+    the same fact -- V1's own compiled constant, and the three frozen locks. It
+    is not a second authority while this test holds, and if the evidence ever
+    disagrees this fails rather than the constant quietly winning.
     """
-    assert ar.APPROVED_DEPENDENCY_DIGEST == FROZEN_DEPENDENCY_DIGEST
     tree = ast.parse(MODULE.read_text(encoding="utf-8"))
-    literals = [
+    hex64 = [
         node.value
         for node in ast.walk(tree)
-        if isinstance(node, ast.Constant) and isinstance(node.value, str)
+        if isinstance(node, ast.Constant)
+        and isinstance(node.value, str)
+        and len(node.value) == 64
+        and all(c in "0123456789abcdef" for c in node.value)
     ]
-    hex64 = [
-        text
-        for text in literals
-        if len(text) == 64 and all(c in "0123456789abcdef" for c in text)
-    ]
-    assert not hex64, f"a frozen digest is retyped in the module: {hex64}"
+    assert hex64 == [ar.V1_HISTORICAL_DEPENDENCY_DIGEST], (
+        f"exactly one bound digest literal is permitted here; found {hex64}"
+    )
+
+    assert ar.V1_HISTORICAL_DEPENDENCY_DIGEST == FROZEN_DEPENDENCY_DIGEST
+    assert ar.APPROVED_DEPENDENCY_DIGEST == ar.V1_HISTORICAL_DEPENDENCY_DIGEST
+    assert (
+        ar.verify_v1_historical_runtime_evidence(REPOSITORY_ROOT)
+        == ar.V1_HISTORICAL_DEPENDENCY_DIGEST
+    )
+
+
+def test_the_historical_evidence_audit_refuses_to_guess_its_root() -> None:
+    """Auto-discovery from `__file__` is the defect, not a convenience."""
+    with pytest.raises(ar.ApprovedRuntimeError, match="no repository root"):
+        ar.verify_v1_historical_runtime_evidence(None)  # type: ignore[arg-type]
+    assert not hasattr(ar, "REPOSITORY_ROOT")
+
+
+@pytest.mark.v1_historical_runtime
+def test_the_v1_gate_is_available_under_both_names_and_unweakened() -> None:
+    """`require_approved_dependencies` is V1_HISTORICAL_ONLY, and still refuses."""
+    assert ar.require_v1_historical_dependencies() == ar.V1_HISTORICAL_DEPENDENCY_DIGEST
+    assert ar.require_approved_dependencies() == ar.V1_HISTORICAL_DEPENDENCY_DIGEST
 
 
 def test_only_the_four_determined_fields_are_offered() -> None:
@@ -126,6 +155,7 @@ def _on_the_approved_runtime() -> bool:
         "different environment and cannot check for scientific drift"
     ),
 )
+@pytest.mark.v1_historical_runtime
 def test_the_scientific_environment_has_not_drifted() -> None:
     """On the approved interpreter this is a drift alarm, not a formality."""
     assert ar.require_approved_dependencies() == ar.APPROVED_DEPENDENCY_DIGEST

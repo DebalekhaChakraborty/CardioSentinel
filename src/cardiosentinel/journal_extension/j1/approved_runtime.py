@@ -73,9 +73,25 @@ import json
 from pathlib import Path
 from typing import Final
 
-#: Repository root, from this file's location. `src/cardiosentinel/journal_-
-#: extension/j1/approved_runtime.py` -> four parents up.
-REPOSITORY_ROOT: Final = Path(__file__).resolve().parents[4]
+#: The V1 historical dependency digest, carried as an explicit constant.
+#:
+#: **It used to be resolved from the locks at import.** That was the right
+#: instinct and the wrong place: `Path(__file__).parents[4]` is a repository
+#: layout, and an installed package has no repository above it. From
+#: `site-packages/cardiosentinel/journal_extension/j1/` those four parents land
+#: on `site-packages`'s parent, the locks are not there, and importing this
+#: module -- and the four gate modules that import a constant from it -- failed.
+#: PR #165 found that in the first clean-room install ever performed.
+#:
+#: **The resolution did not become an assumption; it became a test.** The value
+#: below is still checked against the frozen locks by
+#: `verify_v1_historical_runtime_evidence`, which a repository test calls with an
+#: explicit root. The check moved from import time, where it cannot run in a
+#: deployment, to test time, where it can run against the evidence -- the same
+#: discipline this module already applies to V1's own compiled constant.
+V1_HISTORICAL_DEPENDENCY_DIGEST: Final = (
+    "b0fd6eaa592537b7e4d5574ca68b675e85e923ae3c4a5ba411028ba6fcd7297a"
+)
 
 #: Recorded identically by the B4B, P1B and M1L experiment locks.
 APPROVED_PYTHON_RUNTIME_IDENTITY: Final = "CPython-3.12.6"
@@ -109,10 +125,13 @@ class ApprovedRuntimeError(RuntimeError):
     """The running interpreter is not the one J1's scaffold was built in."""
 
 
-def _resolve_approved_dependency_digest(
-    repository_root: Path | None = None,
-) -> str:
-    """Read the approved digest out of the frozen locks. Standard library only.
+def _resolve_approved_dependency_digest(repository_root: Path) -> str:
+    """Read the V1 historical digest out of the frozen locks. Standard library only.
+
+    **The root is required and never inferred.** Auto-discovering a repository by
+    walking up from `__file__` is what made this module unimportable once
+    installed; a caller that cannot say where the evidence is does not get a
+    guess.
 
     **Not a second authority.** V1 compiled this digest into
     `neural.p1_experiment.FROZEN_DEPENDENCY_DIGEST`, and that constant remains
@@ -127,7 +146,13 @@ def _resolve_approved_dependency_digest(
     scaffold was built in mean the question has no answer, and answering it
     anyway would invent one.
     """
-    root = repository_root or REPOSITORY_ROOT
+    if repository_root is None:
+        raise ApprovedRuntimeError(
+            "no repository root was supplied. The V1 establishing locks are "
+            "repository evidence, and their location is not something this "
+            "module may infer from its own installed path."
+        )
+    root = Path(repository_root)
     observed: dict[str, list[str]] = {}
     for relative in ESTABLISHING_EXPERIMENT_LOCKS:
         path = root / relative
@@ -165,10 +190,15 @@ def _resolve_approved_dependency_digest(
     return next(iter(observed))
 
 
-#: Resolved from frozen evidence at import, using the standard library only.
-#: Importing this module must not require numpy, torch, or anything else the
-#: scientific environment carries -- the authorization gate depends on it.
-APPROVED_DEPENDENCY_DIGEST: Final = _resolve_approved_dependency_digest()
+#: `V1_HISTORICAL_ONLY`. Retained under its original name because merged
+#: receipts, authorization acts and the builder protocol all quote it, and
+#: renaming a symbol underneath a receipt changes what the receipt says.
+#:
+#: **V2 execution code must not use this.** A V2 runtime is checked against an
+#: explicit V2 dependency authority -- see `v2_runtime_authority` -- not against
+#: the environment V1's scaffold was built in. Prefer
+#: `V1_HISTORICAL_DEPENDENCY_DIGEST` in new code.
+APPROVED_DEPENDENCY_DIGEST: Final = V1_HISTORICAL_DEPENDENCY_DIGEST
 
 
 def approved_runtime_fields() -> dict[str, str]:
@@ -221,6 +251,64 @@ def require_approved_dependencies() -> str:
             "this interpreter is not the environment J1's inherited scaffold "
             "was built in.\n"
             f"  approved: {APPROVED_DEPENDENCY_DIGEST}\n"
+            f"  observed: {observed}\n"
+            "Do not change packages to satisfy this check. A different "
+            "environment is a different environment, and the scaffold's "
+            "nuisance quantities were estimated in the approved one."
+        )
+    return observed
+
+
+def verify_v1_historical_runtime_evidence(repository_root: Path) -> str:
+    """Reconcile the V1 historical digest against the frozen locks. Explicit root.
+
+    This is the repository/audit operation the import-time resolution used to
+    perform implicitly. It reads the three establishing locks under
+    `repository_root`, requires them to agree, and requires the agreed value to
+    equal `V1_HISTORICAL_DEPENDENCY_DIGEST`.
+
+    **It is not a prerequisite for importing an installed runtime.** Nothing on
+    the import path calls it. A deployment with no repository checkout imports
+    this module and never reaches here; a repository test calls it and proves the
+    constant is still what the evidence says.
+
+    Standard library only.
+    """
+    if repository_root is None:
+        raise ApprovedRuntimeError(
+            "no repository root was supplied. V1 historical evidence lives in a "
+            "repository, and this function will not guess which one."
+        )
+    resolved = _resolve_approved_dependency_digest(Path(repository_root))
+    if resolved != V1_HISTORICAL_DEPENDENCY_DIGEST:
+        raise ApprovedRuntimeError(
+            "the frozen V1 establishing locks no longer resolve to the recorded "
+            "historical dependency digest.\n"
+            f"  recorded: {V1_HISTORICAL_DEPENDENCY_DIGEST}\n"
+            f"  resolved: {resolved}\n"
+            "The constant is not the authority here; the locks are. A "
+            "disagreement means the evidence changed, and the constant must not "
+            "be edited to match it without deciding why."
+        )
+    return resolved
+
+
+def require_v1_historical_dependencies() -> str:
+    """Refuse unless the running interpreter is V1's scientific environment.
+
+    `V1_HISTORICAL_ONLY`, and deliberately unweakened. Its job is to prove an
+    interpreter reproduces V1, and a V2 environment is *supposed* to fail it: a
+    V2 runtime is a different environment with a different authority, not a
+    lapse in this one.
+
+    Requires the scientific stack, through `observed_dependency_digest`.
+    """
+    observed = observed_dependency_digest()
+    if observed != V1_HISTORICAL_DEPENDENCY_DIGEST:
+        raise ApprovedRuntimeError(
+            "this interpreter is not the environment J1's inherited scaffold "
+            "was built in.\n"
+            f"  approved: {V1_HISTORICAL_DEPENDENCY_DIGEST}\n"
             f"  observed: {observed}\n"
             "Do not change packages to satisfy this check. A different "
             "environment is a different environment, and the scaffold's "

@@ -61,6 +61,14 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+# Runtime classification. A V2 clean room deselects `v1_historical_runtime`,
+# because a test whose purpose is "this interpreter must equal V1" is a
+# V1-reproduction test and a V2 environment is supposed to fail it. Deselecting
+# is not suppression: the test keeps running, and keeps meaning what it says, in
+# the V1 environment it was written for.
+markers = [
+  "v1_historical_runtime: asserts the running interpreter reproduces the V1 historical environment",
+]
 
 [tool.ruff]
 target-version = "py311"
