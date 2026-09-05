@@ -132,10 +132,13 @@ top_level.txt  : absent
 
 ## 6. What the observation is consistent with
 
-`direct_url.json` carries `"editable": true` with a `file://` URL. That is a
-PEP 660 editable install from a local directory — **a distribution that never
-existed on any index**, which is consistent with the build error
-`from versions: none`.
+`direct_url.json` carries `"editable": true` with a `file://` URL. That is
+**an editable installation sourced from a local filesystem path**.
+
+**This local observation does not establish whether the same distribution
+name/version exists, existed, or was obtainable through any package index or
+other repository.** It records how *this* environment came to hold the
+distribution, and nothing about its publication history anywhere else.
 
 The directory it points at, `/home/AI_POC/adk-incident-mgmt-agent`, is not part
 of the CardioSentinel repository.
