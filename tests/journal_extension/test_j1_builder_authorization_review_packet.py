@@ -882,7 +882,15 @@ def test_machine_sufficiency_is_still_not_authorization() -> None:
     assert "synthetic" in fixture["human_authorizer_identity"]
     assert fixture["builder_authorization_id"] not in _packet_text()
     verify_builder_authorization(fixture)
-    assert load_builder_authorization(REPOSITORY_ROOT) is None
+
+    # Permission now exists, and it is a *different document*: the synthetic one
+    # passes every machine rule while signing nothing.
+    canonical = load_builder_authorization(REPOSITORY_ROOT)
+    assert canonical is not None
+    for field in HUMAN_FIELDS:
+        assert canonical[field] != fixture[field], field
+    assert "SYNTHETIC" not in canonical["builder_authorization_id"]
+    assert "synthetic" not in canonical["human_authorizer_identity"]
 
 
 def test_j1_science_is_unauthorized_independently_of_the_builder() -> None:
@@ -1061,20 +1069,23 @@ def test_nothing_was_built_and_no_evidence_directory_exists() -> None:
     """
     for pattern in ("*.oci.tar", "build-a.json", "build-b.json"):
         assert not list(REPOSITORY_ROOT.glob(pattern)), pattern
-    # No JSON sits directly under the J1 documents: the authorization was
-    # removed when 002 was retired, and the claim lives under `evidence/`.
-    assert not list((REPOSITORY_ROOT / J1_DOCS).glob("*.json"))
+    # The only JSON directly under the J1 documents is the live authorization;
+    # the 002 claim lives under `evidence/`. Authorizing a builder produced no
+    # build evidence, which is exactly what an authorization may not do.
+    assert [
+        path.name for path in (REPOSITORY_ROOT / J1_DOCS).glob("*.json")
+    ] == [Path(BUILDER_AUTHORIZATION_PATH).name]
     evidence = REPOSITORY_ROOT / J1_DOCS / "evidence"
     preserved = sorted(p.name for p in evidence.rglob("*") if p.is_file())
     assert preserved == ["j1-qualification-claim.json"], preserved
 
 
-def test_the_gate_still_refuses_after_every_test_in_this_module() -> None:
-    """Nothing above wrote an authorization to disk.
+def test_no_synthetic_document_replaced_the_canonical_one() -> None:
+    """Every synthetic document in this module is built and verified in memory.
 
-    Every synthetic document in this module is built and verified in memory. If
-    one had ever been written to the canonical path, this would admit.
+    If one had ever been written to the canonical path, the id would not be 003.
     """
-    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
-    with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
-        verify_builder_authorization(load_builder_authorization(REPOSITORY_ROOT))
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    verified = verify_builder_authorization(document)
+    assert verified.fields["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-003"
+    assert "SYNTHETIC" not in str(verified.fields["builder_authorization_id"])

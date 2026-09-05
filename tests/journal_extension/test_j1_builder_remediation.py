@@ -702,14 +702,16 @@ def test_the_only_trigger_is_manual_dispatch_with_no_inputs() -> None:
 # -- negative capability ---------------------------------------------------
 
 
-def test_no_builder_authorization_is_active() -> None:
-    """001 is retired-not-spent; 002 is spent. The refusal mechanism is unchanged.
+def test_the_active_authorization_is_003_and_absence_still_refuses() -> None:
+    """003 is live; 001 is retired-not-spent and 002 is spent.
 
-    The remediation this module proves is untouched by either outcome: it
-    verified an authorization when one existed and refuses when none does, which
-    is the same code taking the same decision on different inputs.
+    An authorization existing does not soften the mechanism: absence is still
+    refused in its own words, which is what every other tree in the world sees.
     """
-    assert load_builder_authorization(REPOSITORY_ROOT) is None
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    assert document is not None
+    assert document["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-003"
+    verify_builder_authorization(document)
     with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
         verify_builder_authorization(None)
 

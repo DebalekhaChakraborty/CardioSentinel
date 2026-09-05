@@ -91,12 +91,21 @@ def _prose(path: Path) -> str:
 # -- 1. the canonical authorization file is gone ---------------------------
 
 
-def test_the_canonical_002_authorization_file_is_absent() -> None:
-    """002 is spent, so the document that authorized it is removed."""
-    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
-    assert load_builder_authorization(REPOSITORY_ROOT) is None
+def test_the_canonical_authorization_is_no_longer_002() -> None:
+    """002 is spent, so the document that authorized it is gone for good.
+
+    A live authorization exists again -- 003, over a new lineage -- and the one
+    thing that must never be true is that the canonical path names 002 once more.
+    """
+    document = load_builder_authorization(REPOSITORY_ROOT)
+    assert document is not None
+    assert document["builder_authorization_id"] != AUTHORIZATION_002
+    assert document["builder_authorization_id"] != AUTHORIZATION_001
+    assert document["builder_authorization_id"] == "J1-ENV-BUILDER-AUTH-003"
+    verify_builder_authorization(document)
+    # The mechanism itself is unchanged: absence is still refused in its own words.
     with pytest.raises(BuilderAuthorizationError, match="authorization absent"):
-        verify_builder_authorization(load_builder_authorization(REPOSITORY_ROOT))
+        verify_builder_authorization(None)
 
 
 # -- 2. the act receipt is history and stays byte-identical -----------------
@@ -339,4 +348,8 @@ def test_no_scientific_authorization_or_environment_authority_exists() -> None:
     with pytest.raises(AuthorizationError, match="J1 authorization absent"):
         verify_authorization(None)
     assert not list(J1_DOCS.glob("*ENVIRONMENT_AUTHORITY_RECORD*"))
-    assert not list(J1_DOCS.glob("*.json"))
+    # A builder authorization is not a scientific one. The only JSON here is the
+    # builder authorization, and J1 science remains unauthorized regardless.
+    assert [path.name for path in J1_DOCS.glob("*.json")] == [
+        Path(BUILDER_AUTHORIZATION_PATH).name
+    ]
