@@ -1,0 +1,619 @@
+{
+  "ambiguous_roots": [],
+  "caveat": "distribution name != import package name; ambiguities are flagged rather than resolved by string normalization",
+  "created_from_commit": "1ec6dc6a4a0737de128a15598be0d5929c469dca",
+  "external_import_roots": {
+    "__future__": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 103
+    },
+    "argparse": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 5
+    },
+    "ast": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 4
+    },
+    "collections": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 19
+    },
+    "contextlib": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 3
+    },
+    "contextvars": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 1
+    },
+    "dataclasses": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 73
+    },
+    "datetime": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 2
+    },
+    "enum": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 4
+    },
+    "hashlib": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 26
+    },
+    "heapq": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 1
+    },
+    "importlib": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 1
+    },
+    "inspect": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 3
+    },
+    "itertools": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 1
+    },
+    "json": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 27
+    },
+    "math": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 11
+    },
+    "numpy": {
+      "ambiguous": false,
+      "classification": "THIRD_PARTY",
+      "distributions": [
+        "numpy"
+      ],
+      "evidence": "importlib.metadata.packages_distributions()",
+      "import_sites": 55,
+      "sites": [
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "numpy",
+          "importing_file": "src/cardiosentinel/signal/preprocessing.py",
+          "importing_module": "cardiosentinel.signal.preprocessing",
+          "kind": "import",
+          "line": 10
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "numpy.typing",
+          "importing_file": "src/cardiosentinel/signal/preprocessing.py",
+          "importing_module": "cardiosentinel.signal.preprocessing",
+          "kind": "from",
+          "line": 11
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "numpy",
+          "importing_file": "src/cardiosentinel/signal/provenance.py",
+          "importing_module": "cardiosentinel.signal.provenance",
+          "kind": "import",
+          "line": 9
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "numpy",
+          "importing_file": "src/cardiosentinel/signal/models.py",
+          "importing_module": "cardiosentinel.signal.models",
+          "kind": "import",
+          "line": 9
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "numpy.typing",
+          "importing_file": "src/cardiosentinel/signal/models.py",
+          "importing_module": "cardiosentinel.signal.models",
+          "kind": "from",
+          "line": 10
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "numpy",
+          "importing_file": "src/cardiosentinel/signal/validation.py",
+          "importing_module": "cardiosentinel.signal.validation",
+          "kind": "import",
+          "line": 5
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "numpy.typing",
+          "importing_file": "src/cardiosentinel/signal/validation.py",
+          "importing_module": "cardiosentinel.signal.validation",
+          "kind": "from",
+          "line": 6
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "numpy",
+          "importing_file": "src/cardiosentinel/neural/provenance.py",
+          "importing_module": "cardiosentinel.neural.provenance",
+          "kind": "import",
+          "line": 13
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "numpy",
+          "importing_file": "src/cardiosentinel/baseline/cache.py",
+          "importing_module": "cardiosentinel.baseline.cache",
+          "kind": "import",
+          "line": 13
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "numpy.typing",
+          "importing_file": "src/cardiosentinel/baseline/cache.py",
+          "importing_module": "cardiosentinel.baseline.cache",
+          "kind": "from",
+          "line": 14
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "numpy",
+          "importing_file": "src/cardiosentinel/features/signal_features.py",
+          "importing_module": "cardiosentinel.features.signal_features",
+          "kind": "import",
+          "line": 7
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "numpy.typing",
+          "importing_file": "src/cardiosentinel/features/signal_features.py",
+          "importing_module": "cardiosentinel.features.signal_features",
+          "kind": "from",
+          "line": 8
+        }
+      ]
+    },
+    "os": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 9
+    },
+    "pathlib": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 55
+    },
+    "platform": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 4
+    },
+    "random": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 2
+    },
+    "re": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 12
+    },
+    "resource": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 1
+    },
+    "scipy": {
+      "ambiguous": false,
+      "classification": "THIRD_PARTY",
+      "distributions": [
+        "scipy"
+      ],
+      "evidence": "importlib.metadata.packages_distributions()",
+      "import_sites": 4,
+      "sites": [
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "scipy",
+          "importing_file": "src/cardiosentinel/signal/preprocessing.py",
+          "importing_module": "cardiosentinel.signal.preprocessing",
+          "kind": "from",
+          "line": 12
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "scipy",
+          "importing_file": "src/cardiosentinel/signal/provenance.py",
+          "importing_module": "cardiosentinel.signal.provenance",
+          "kind": "import",
+          "line": 10
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "scipy",
+          "importing_file": "src/cardiosentinel/signal/quality.py",
+          "importing_module": "cardiosentinel.signal.quality",
+          "kind": "from",
+          "line": 6
+        },
+        {
+          "conditional": false,
+          "function_local": true,
+          "import": "scipy.optimize",
+          "importing_file": "src/cardiosentinel/neural/u1_calibration.py",
+          "importing_module": "cardiosentinel.neural.u1_calibration",
+          "kind": "from",
+          "line": 335
+        }
+      ]
+    },
+    "shutil": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 2
+    },
+    "sklearn": {
+      "ambiguous": false,
+      "classification": "THIRD_PARTY",
+      "distributions": [
+        "scikit-learn"
+      ],
+      "evidence": "importlib.metadata.packages_distributions()",
+      "import_sites": 2,
+      "sites": [
+        {
+          "conditional": false,
+          "function_local": true,
+          "import": "sklearn.metrics",
+          "importing_file": "src/cardiosentinel/neural/training.py",
+          "importing_module": "cardiosentinel.neural.training",
+          "kind": "from",
+          "line": 175
+        },
+        {
+          "conditional": false,
+          "function_local": true,
+          "import": "sklearn.metrics",
+          "importing_file": "src/cardiosentinel/baseline/metrics.py",
+          "importing_module": "cardiosentinel.baseline.metrics",
+          "kind": "from",
+          "line": 60
+        }
+      ]
+    },
+    "statistics": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 1
+    },
+    "subprocess": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 6
+    },
+    "sys": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 11
+    },
+    "tarfile": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 1
+    },
+    "textwrap": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 2
+    },
+    "time": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 13
+    },
+    "torch": {
+      "ambiguous": false,
+      "classification": "THIRD_PARTY",
+      "distributions": [
+        "torch"
+      ],
+      "evidence": "importlib.metadata.packages_distributions()",
+      "import_sites": 33,
+      "sites": [
+        {
+          "conditional": false,
+          "function_local": true,
+          "import": "torch",
+          "importing_file": "src/cardiosentinel/neural/provenance.py",
+          "importing_module": "cardiosentinel.neural.provenance",
+          "kind": "import",
+          "line": 111
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "torch",
+          "importing_file": "src/cardiosentinel/neural/p1_experiment.py",
+          "importing_module": "cardiosentinel.neural.p1_experiment",
+          "kind": "import",
+          "line": 28
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "torch",
+          "importing_file": "src/cardiosentinel/neural/p1_experiment.py",
+          "importing_module": "cardiosentinel.neural.p1_experiment",
+          "kind": "from",
+          "line": 29
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "torch",
+          "importing_file": "src/cardiosentinel/neural/m1_experiment.py",
+          "importing_module": "cardiosentinel.neural.m1_experiment",
+          "kind": "import",
+          "line": 30
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "torch",
+          "importing_file": "src/cardiosentinel/neural/m1_experiment.py",
+          "importing_module": "cardiosentinel.neural.m1_experiment",
+          "kind": "from",
+          "line": 31
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "torch",
+          "importing_file": "src/cardiosentinel/neural/validation_challenge.py",
+          "importing_module": "cardiosentinel.neural.validation_challenge",
+          "kind": "import",
+          "line": 43
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "torch",
+          "importing_file": "src/cardiosentinel/neural/resource_benchmark.py",
+          "importing_module": "cardiosentinel.neural.resource_benchmark",
+          "kind": "import",
+          "line": 35
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "torch",
+          "importing_file": "src/cardiosentinel/neural/model.py",
+          "importing_module": "cardiosentinel.neural.model",
+          "kind": "import",
+          "line": 5
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "torch",
+          "importing_file": "src/cardiosentinel/neural/model.py",
+          "importing_module": "cardiosentinel.neural.model",
+          "kind": "from",
+          "line": 6
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "torch",
+          "importing_file": "src/cardiosentinel/neural/candidates.py",
+          "importing_module": "cardiosentinel.neural.candidates",
+          "kind": "import",
+          "line": 24
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "torch",
+          "importing_file": "src/cardiosentinel/neural/candidates.py",
+          "importing_module": "cardiosentinel.neural.candidates",
+          "kind": "from",
+          "line": 25
+        },
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "torch",
+          "importing_file": "src/cardiosentinel/neural/candidate_experiment.py",
+          "importing_module": "cardiosentinel.neural.candidate_experiment",
+          "kind": "import",
+          "line": 26
+        }
+      ]
+    },
+    "traceback": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 9
+    },
+    "typing": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 87
+    },
+    "warnings": {
+      "ambiguous": false,
+      "classification": "STDLIB",
+      "distributions": [],
+      "import_sites": 1
+    },
+    "wfdb": {
+      "ambiguous": false,
+      "classification": "THIRD_PARTY",
+      "distributions": [
+        "wfdb"
+      ],
+      "evidence": "importlib.metadata.packages_distributions()",
+      "import_sites": 8,
+      "sites": [
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "wfdb",
+          "importing_file": "src/cardiosentinel/signal/provenance.py",
+          "importing_module": "cardiosentinel.signal.provenance",
+          "kind": "import",
+          "line": 11
+        },
+        {
+          "conditional": true,
+          "function_local": true,
+          "import": "wfdb.processing",
+          "importing_file": "src/cardiosentinel/features/morphology.py",
+          "importing_module": "cardiosentinel.features.morphology",
+          "kind": "from",
+          "line": 32
+        },
+        {
+          "conditional": false,
+          "function_local": true,
+          "import": "wfdb",
+          "importing_file": "src/cardiosentinel/neural/m1_experiment.py",
+          "importing_module": "cardiosentinel.neural.m1_experiment",
+          "kind": "import",
+          "line": 370
+        },
+        {
+          "conditional": false,
+          "function_local": true,
+          "import": "wfdb",
+          "importing_file": "src/cardiosentinel/signal/io.py",
+          "importing_module": "cardiosentinel.signal.io",
+          "kind": "import",
+          "line": 51
+        },
+        {
+          "conditional": false,
+          "function_local": true,
+          "import": "wfdb",
+          "importing_file": "src/cardiosentinel/signal/io.py",
+          "importing_module": "cardiosentinel.signal.io",
+          "kind": "import",
+          "line": 148
+        },
+        {
+          "conditional": false,
+          "function_local": true,
+          "import": "wfdb",
+          "importing_file": "src/cardiosentinel/neural/waveform_cache.py",
+          "importing_module": "cardiosentinel.neural.waveform_cache",
+          "kind": "import",
+          "line": 118
+        },
+        {
+          "conditional": false,
+          "function_local": true,
+          "import": "wfdb",
+          "importing_file": "src/cardiosentinel/data/ltstdb.py",
+          "importing_module": "cardiosentinel.data.ltstdb",
+          "kind": "import",
+          "line": 366
+        },
+        {
+          "conditional": false,
+          "function_local": true,
+          "import": "wfdb",
+          "importing_file": "src/cardiosentinel/data/ltstdb.py",
+          "importing_module": "cardiosentinel.data.ltstdb",
+          "kind": "import",
+          "line": 391
+        }
+      ]
+    },
+    "yaml": {
+      "ambiguous": false,
+      "classification": "THIRD_PARTY",
+      "distributions": [
+        "pyyaml"
+      ],
+      "evidence": "importlib.metadata.packages_distributions()",
+      "import_sites": 1,
+      "sites": [
+        {
+          "conditional": false,
+          "function_local": false,
+          "import": "yaml",
+          "importing_file": "src/cardiosentinel/neural/t1_config.py",
+          "importing_module": "cardiosentinel.neural.t1_config",
+          "kind": "import",
+          "line": 34
+        }
+      ]
+    }
+  },
+  "j1_closure_module_count": 113,
+  "method": "AST parse of the J1 static closure; import roots mapped via importlib.metadata.packages_distributions()",
+  "unmapped_roots": []
+}

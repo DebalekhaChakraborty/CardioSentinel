@@ -507,4 +507,7 @@ def test_no_environment_authority_or_scientific_authorization_exists() -> None:
         verify_authorization(None)
     assert not list(J1_DOCS.glob("*ENVIRONMENT_AUTHORITY_RECORD*"))
     assert not list(J1_DOCS.glob("*ATTEMPT*"))
-    assert not list(J1_DOCS.glob("*.json"))
+    # Narrowed from "no JSON at all": the V2 dependency audit adds analysis
+    # artifacts alongside. What must stay absent is the *authorization* JSON.
+    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
+    assert load_builder_authorization(REPOSITORY_ROOT) is None

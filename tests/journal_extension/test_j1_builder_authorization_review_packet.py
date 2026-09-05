@@ -1063,7 +1063,10 @@ def test_nothing_was_built_and_no_evidence_directory_exists() -> None:
         assert not list(REPOSITORY_ROOT.glob(pattern)), pattern
     # No JSON sits directly under the J1 documents: the authorization was
     # removed when 003 was retired, and the claims live under `evidence/`.
-    assert not list((REPOSITORY_ROOT / J1_DOCS).glob("*.json"))
+    # Narrowed from "no JSON at all": the V2 dependency audit adds analysis
+    # artifacts alongside. What must stay absent is the *authorization* JSON.
+    assert not (REPOSITORY_ROOT / BUILDER_AUTHORIZATION_PATH).exists()
+    assert load_builder_authorization(REPOSITORY_ROOT) is None
     evidence = REPOSITORY_ROOT / J1_DOCS / "evidence"
     preserved = sorted(p.name for p in evidence.rglob("*") if p.is_file())
     assert preserved == [
