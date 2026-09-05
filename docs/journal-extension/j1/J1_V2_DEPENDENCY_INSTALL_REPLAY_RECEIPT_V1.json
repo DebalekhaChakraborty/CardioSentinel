@@ -1,0 +1,162 @@
+{
+  "authorization_status": "NOT_AUTHORIZED",
+  "candidate_digest": "cb4ec16d399db7c85095ab9a6410afd226092d718b2e45497865aee8c9c2d94f",
+  "candidate_id": "J1-V2-DEPENDENCY-AUTHORITY-CANDIDATE-V2",
+  "checkpoints_loaded": 0,
+  "classification": "DEPENDENCY_INSTALL_REPLAY",
+  "derived_from_commit": "76ebcca9bc618b187434b029de2fa01ece962bf8",
+  "direct_scientific_roots": {
+    "numpy": "2.3.2",
+    "scipy": "1.18.0",
+    "sklearn": "1.9.0",
+    "torch": "2.13.0+cpu",
+    "wfdb": "4.3.1",
+    "yaml": "6.0.2"
+  },
+  "environments": {
+    "A": {
+      "network": "AVAILABLE",
+      "qualification_result": "PASS",
+      "receipt": {
+        "artifact_manifest_digest": "a2e2cec5899d6ecec094553afcdfd1bbe5ae64e9cea3fc0a32527eac0d386483",
+        "authority_authorization_status": "NOT_AUTHORIZED",
+        "authority_or_candidate_digest": "cb4ec16d399db7c85095ab9a6410afd226092d718b2e45497865aee8c9c2d94f",
+        "authority_or_candidate_id": "J1-V2-DEPENDENCY-AUTHORITY-CANDIDATE-V2",
+        "authority_status": "CANDIDATE_ONLY",
+        "first_party_observed_version": "0.1.0",
+        "first_party_source_identity": {
+          "installed_from": "tracked working tree export",
+          "observed_version": "0.1.0",
+          "source_kind": "FIRST_PARTY_CARDIOSENTINEL"
+        },
+        "governed_dependency_inventory_digest": "c4f18b4b49535b8d7c6800ca082e0395052a6d5c1870f00b44868b6054e0f709",
+        "governed_dependency_inventory_digest_method": "sha256(json.dumps([{\"name\": n, \"version\": v}, ...], sort_keys=True, separators=(\",\", \":\")).encode(\"utf-8\")) over authority-governed external distributions only, PEP 503 normalized, sorted by name",
+        "governed_package_count": 47,
+        "hash_locked_requirement_digests": {
+          "containers/j1-environment/requirements.v2-candidate-pypi.txt": "eba96c15ebdf6c27f42e4f886976fa99ebb4c8e9070baa30ce52ccdcc2cc8aea",
+          "containers/j1-environment/requirements.v2-candidate-pytorch.txt": "3ab6cf3ed0eadbe46e10ceec48358c4cebd687938302c4d112c2318961abe2f2"
+        },
+        "installation_timestamp": "2026-09-05T22:15:53+00:00",
+        "qualification_only": true,
+        "qualification_result": "PASS",
+        "receipt_kind": "J1_V2_DEPENDENCY_INSTALL_RECEIPT",
+        "scientific_attempt": false,
+        "scientific_data_accessed": false,
+        "substrate_allowlist": [
+          "pip"
+        ],
+        "substrate_inventory": {
+          "pip": "26.2.1"
+        },
+        "target_platform": {
+          "architecture": "x86_64",
+          "libc": "glibc 2.36 (Debian 12 bookworm)",
+          "os": "Linux"
+        },
+        "target_python": {
+          "implementation": "CPython",
+          "major_minor": "3.12",
+          "version": "3.12.6"
+        },
+        "wheelhouse_manifest_digest": "e6684bd90f2cb6782e1e183d13e81bca14632692881877d78129b703c7dadc0b"
+      }
+    },
+    "B": {
+      "network": "UNAVAILABLE (unshare -rn network namespace)",
+      "qualification_result": "PASS",
+      "receipt": {
+        "artifact_manifest_digest": "a2e2cec5899d6ecec094553afcdfd1bbe5ae64e9cea3fc0a32527eac0d386483",
+        "authority_authorization_status": "NOT_AUTHORIZED",
+        "authority_or_candidate_digest": "cb4ec16d399db7c85095ab9a6410afd226092d718b2e45497865aee8c9c2d94f",
+        "authority_or_candidate_id": "J1-V2-DEPENDENCY-AUTHORITY-CANDIDATE-V2",
+        "authority_status": "CANDIDATE_ONLY",
+        "first_party_observed_version": "0.1.0",
+        "first_party_source_identity": {
+          "installed_from": "tracked working tree export",
+          "observed_version": "0.1.0",
+          "source_kind": "FIRST_PARTY_CARDIOSENTINEL"
+        },
+        "governed_dependency_inventory_digest": "c4f18b4b49535b8d7c6800ca082e0395052a6d5c1870f00b44868b6054e0f709",
+        "governed_dependency_inventory_digest_method": "sha256(json.dumps([{\"name\": n, \"version\": v}, ...], sort_keys=True, separators=(\",\", \":\")).encode(\"utf-8\")) over authority-governed external distributions only, PEP 503 normalized, sorted by name",
+        "governed_package_count": 47,
+        "hash_locked_requirement_digests": {
+          "containers/j1-environment/requirements.v2-candidate-pypi.txt": "eba96c15ebdf6c27f42e4f886976fa99ebb4c8e9070baa30ce52ccdcc2cc8aea",
+          "containers/j1-environment/requirements.v2-candidate-pytorch.txt": "3ab6cf3ed0eadbe46e10ceec48358c4cebd687938302c4d112c2318961abe2f2"
+        },
+        "installation_timestamp": "2026-09-05T22:18:49+00:00",
+        "qualification_only": true,
+        "qualification_result": "PASS",
+        "receipt_kind": "J1_V2_DEPENDENCY_INSTALL_RECEIPT",
+        "scientific_attempt": false,
+        "scientific_data_accessed": false,
+        "substrate_allowlist": [
+          "pip"
+        ],
+        "substrate_inventory": {
+          "pip": "24.2"
+        },
+        "target_platform": {
+          "architecture": "x86_64",
+          "libc": "glibc 2.36 (Debian 12 bookworm)",
+          "os": "Linux"
+        },
+        "target_python": {
+          "implementation": "CPython",
+          "major_minor": "3.12",
+          "version": "3.12.6"
+        },
+        "wheelhouse_manifest_digest": "e6684bd90f2cb6782e1e183d13e81bca14632692881877d78129b703c7dadc0b"
+      }
+    }
+  },
+  "gates": {
+    "qualify_v2_dependency_candidate": {
+      "A": "PASS",
+      "B": "PASS"
+    },
+    "require_authorized_v2_runtime_refused": {
+      "A": true,
+      "B": true
+    },
+    "require_v1_historical_dependencies_refused": {
+      "A": true,
+      "B": true
+    }
+  },
+  "installed_runtime_import_qualification": {
+    "A": {
+      "failures": {},
+      "modules_attempted": 118,
+      "modules_failed": 0,
+      "modules_passed": 118
+    },
+    "B": {
+      "failures": {},
+      "modules_attempted": 118,
+      "modules_failed": 0,
+      "modules_passed": 118
+    }
+  },
+  "not_claimed": "BIT_REPRODUCIBLE_ENVIRONMENT -- no OCI image has been built",
+  "real_data_paths_mounted": false,
+  "receipt_kind": "J1_V2_DEPENDENCY_INSTALL_REPLAY_RECEIPT",
+  "replay_agreement": {
+    "artifact_manifest_digest_identical": true,
+    "first_party_source_identity_identical": true,
+    "governed_dependency_inventory_digest": "c4f18b4b49535b8d7c6800ca082e0395052a6d5c1870f00b44868b6054e0f709",
+    "governed_dependency_inventory_digest_identical": true,
+    "governed_package_count": 47,
+    "substrate_differs_and_is_reported": true,
+    "substrate_inventory_A": {
+      "pip": "26.2.1"
+    },
+    "substrate_inventory_B": {
+      "pip": "24.2"
+    }
+  },
+  "scientific_attempt": false,
+  "scientific_metrics_produced": 0,
+  "scientific_rows_read": 0,
+  "status": "QUALIFICATION_ONLY",
+  "subjects_enumerated": 0
+}
