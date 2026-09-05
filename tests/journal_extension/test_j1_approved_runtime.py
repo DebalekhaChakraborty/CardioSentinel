@@ -120,11 +120,28 @@ def test_the_historical_evidence_audit_refuses_to_guess_its_root() -> None:
     assert not hasattr(ar, "REPOSITORY_ROOT")
 
 
-@pytest.mark.v1_historical_runtime
-def test_the_v1_gate_is_available_under_both_names_and_unweakened() -> None:
-    """`require_approved_dependencies` is V1_HISTORICAL_ONLY, and still refuses."""
-    assert ar.require_v1_historical_dependencies() == ar.V1_HISTORICAL_DEPENDENCY_DIGEST
-    assert ar.require_approved_dependencies() == ar.V1_HISTORICAL_DEPENDENCY_DIGEST
+def test_the_v1_gate_is_available_under_both_names_and_unweakened(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`require_approved_dependencies` is V1_HISTORICAL_ONLY, and still refuses.
+
+    Runs everywhere, because it tests the rule rather than the interpreter: the
+    observation is supplied, so the old name and the new one are proven to accept
+    exactly V1's digest and to refuse anything else without needing a machine
+    that happens to be V1.
+    """
+    gates = (ar.require_v1_historical_dependencies, ar.require_approved_dependencies)
+
+    monkeypatch.setattr(
+        ar, "observed_dependency_digest", lambda: ar.V1_HISTORICAL_DEPENDENCY_DIGEST
+    )
+    for gate in gates:
+        assert gate() == ar.V1_HISTORICAL_DEPENDENCY_DIGEST
+
+    monkeypatch.setattr(ar, "observed_dependency_digest", lambda: "0" * 64)
+    for gate in gates:
+        with pytest.raises(ar.ApprovedRuntimeError, match="not the environment"):
+            gate()
 
 
 def test_only_the_four_determined_fields_are_offered() -> None:
