@@ -27,13 +27,14 @@ open one.
 
 | | |
 |---|---|
-| **Latest** | **ECG 30** — the one to read |
-| Covers | #157 merged, **the first controlled build that ever passed its gate**, and its failure. Run `33902875021` recorded the canonical qualification claim — **spending `J1-ENV-BUILDER-AUTH-002`** — then failed in both builds on `--require-hashes option does not take a value`, a syntax defect in the authorized Containerfile. Classified `POST_CLAIM_PRE_ARTIFACT`, reproducibility `NONE` (no manifest ever existed, so not `DIVERGED`). #158 preserved the claim and retired 002; this session repaired the one line and added the executable pip-parser boundary nothing had ever crossed. **No authorization 003 exists.** Artifact, environment authority and J1 authorization all remain absent |
+| **Latest** | **ECG 31** — the one to read |
+| Covers | eight PRs merged, #157–#164, and **two spent authorizations**. `002` and `003` were each authorized, each recorded a canonical qualification claim, and each failed in both builds before any artifact — 002 on a pip syntax defect, 003 on `incident-management==0.1.0` not resolving from the configured source. Both preserved and retired. The full **335-member dependency audit** then found the general problem: every historical record carries `name` and `version` only, so byte authority is ABSENT for all 335 and the snapshot cannot say where anything came from. J1 needs 48 of the 335. **Blocked on a human decision about a V2 dependency authority** — not on a defect. Artifact, environment authority and J1 authorization all remain absent |
 
 ## Index, newest first
 
 | Session | Date | The danger it named for the session after it |
 |---|---|---|
+| **ECG 31** | 2026-09-05 | reaching past the evidence to the stronger claim that reads better |
 | **ECG 30** | 2026-09-04 | proving everything about an apparatus except that it runs |
 | **ECG 29** | 2026-09-03 | reading a green CI run as evidence that the test you just wrote had run |
 | **ECG 28** | 2026-09-03 | a test that passes tells you about the environment it ran in |
