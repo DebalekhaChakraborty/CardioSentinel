@@ -9,8 +9,9 @@
 
 The second controlled build to pass its authorization gate. It recorded the
 canonical qualification claim, then failed in **both** independent builds before
-either produced an OCI artifact — this time on a dependency that cannot be
-resolved from any public index.
+either produced an OCI artifact — this time on a dependency that could not be
+resolved through the dependency-source mapping used by the authorized
+reconstruction path.
 
 **No image was produced. No OCI manifest exists. No reproducibility comparison
 was performed. No scientific data was accessed.**
@@ -100,7 +101,8 @@ would lose the only thing this run actually established.
 
 ---
 
-## 3. Root cause — a dependency that cannot be obtained
+## 3. Root cause — dependency source unresolved under the authorized
+reconstruction path
 
 Both builds failed at the step `Build the artifact as an OCI layout archive`,
 independently, with the identical error:
@@ -193,12 +195,18 @@ the package-list evidence is not, by itself,
 a reconstructible dependency-source authority for V2
 ```
 
-A list of `name==version` pairs records *what was present*. It does not
-establish that each member is *obtainable*, and one member is not. This is the
-sharper form of the limitation V5 §12 disclosed: V5 recorded that pins are not
-wheel-byte authority — that they fix which distribution is requested rather than
-the bytes that arrive. Run `33984680149` shows that for at least one pin, no
-distribution is requested successfully at all.
+A list of `name==version` pairs records *what was present*. It does not, by
+itself, establish source provenance, current availability, or reconstructibility
+for every member — and for one member the configured source supplied nothing.
+This is the sharper form of the limitation V5 §12 disclosed: V5 recorded that
+pins are not wheel-byte authority — that they fix which distribution is requested
+rather than the bytes that arrive. Run `33984680149` shows that for at least one
+pin, the authorized reconstruction path obtained no distribution at all.
+
+**What this does not say.** The run queried one configured source. It establishes
+nothing about other public indices, private indices, historical repositories,
+source archives or any other package source, and this receipt makes no claim
+about them.
 
 ---
 

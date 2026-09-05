@@ -3,7 +3,7 @@
 **No builder is authorized, no image exists, and J1 science remains
 unauthorized.** Run `33984680149` admitted at its gate, recorded the canonical
 qualification claim, and then failed in both builds -- this time on a dependency
-that no index can supply.
+the configured source did not supply.
 
 Three authorizations, three lifecycles, and the differences are load-bearing:
 
@@ -19,7 +19,8 @@ Three authorizations, three lifecycles, and the differences are load-bearing:
 **002 and 003 share a failure class and do not share a cause.** The #159
 apparatus repair worked: pip parsed its arguments and resolved 128 packages
 before stopping on `incident-management==0.1.0`, which is present in all three
-frozen locks and obtainable from nowhere.
+frozen locks and was not supplied by the configured source. Whether it is
+obtainable elsewhere is not something this run tested.
 
 This module asserts the preserved record, never a live authorization -- there
 is none.
@@ -94,6 +95,22 @@ RECEIPT_001 = J1_DOCS / "J1_ENV_BUILDER_AUTH_001_PRECLAIM_FAILURE_RECEIPT.md"
 RECEIPT_002 = J1_DOCS / "J1_ENV_BUILDER_AUTH_002_POSTCLAIM_FAILURE_RECEIPT.md"
 RECEIPT_003 = J1_DOCS / "J1_ENV_BUILDER_AUTH_003_POSTCLAIM_FAILURE_RECEIPT.md"
 DIAGNOSTIC_003 = J1_DOCS / "J1_ENV_BUILDER_AUTH_003_LOCAL_ORIGIN_DIAGNOSTIC.md"
+CORRECTION_003 = J1_DOCS / "J1_ENV_BUILDER_AUTH_003_EVIDENTIARY_CORRECTION.md"
+
+#: The PR #162 merge, where the overbroad wording was merged and still lives.
+PR_162_MERGE_COMMIT = "b0ddc50dba32172ae0b32e44ccf26d82c209db5c"
+
+#: Universal negatives one query against one configured source cannot support.
+#: These are claims *we* would be making, not provider output we quote.
+UNIVERSAL_NEGATIVES = (
+    "any public index",
+    "never existed on any index",
+    "not obtainable anywhere",
+    "globally unavailable",
+    "no distribution exists",
+    "unresolvable anywhere",
+    "safe to remove",
+)
 
 #: Documents whose bytes are the record. Retiring 003 revises none of them.
 PINNED_BYTES = {
@@ -377,6 +394,83 @@ def test_the_local_origin_evidence_is_kept_separate_and_labelled() -> None:
     assert '"editable": true' in diagnostic
     assert "was not imported and not executed" in diagnostic
     assert "does not establish that the package is extraneous" in diagnostic.lower()
+
+
+# -- the claim boundary, which must not regress ----------------------------
+
+
+@pytest.mark.parametrize("document", [RECEIPT_003, DIAGNOSTIC_003])
+@pytest.mark.parametrize("phrase", UNIVERSAL_NEGATIVES)
+def test_no_universal_negative_is_asserted(document: Path, phrase: str) -> None:
+    """One query against one configured source cannot support a universal negative.
+
+    Qualification 003 established that `incident-management==0.1.0` was not
+    supplied by the configured package source on the authorized reconstruction
+    path. It established nothing about other public indices, private indices,
+    historical repositories or source archives -- and the record must not claim
+    otherwise.
+    """
+    assert phrase not in _prose(document).lower(), f"{document.name}: {phrase}"
+
+
+@pytest.mark.parametrize("document", [RECEIPT_003, DIAGNOSTIC_003])
+def test_the_bounded_claim_is_stated_positively(document: Path) -> None:
+    """Bounding must not become vagueness: the real finding still has to be there."""
+    prose = _prose(document).lower()
+    assert "configured" in prose
+    assert any(
+        marker in prose
+        for marker in ("reconstruction path", "package source", "package index")
+    )
+
+
+def test_the_provider_error_is_quoted_verbatim() -> None:
+    """Provider output is evidence. Only our interpretation of it was bounded."""
+    receipt = _prose(RECEIPT_003)
+    assert (
+        "Could not find a version that satisfies the requirement "
+        "incident-management==0.1.0 (from versions: none)"
+    ) in receipt
+    assert "No matching distribution found for incident-management==0.1.0" in receipt
+
+
+def test_the_local_diagnostic_bounds_its_publication_history_claim() -> None:
+    """A `direct_url.json` says how *this* environment got the distribution.
+
+    It carries no information about publication history anywhere else, and the
+    diagnostic must say so rather than inferring one.
+    """
+    prose = _prose(DIAGNOSTIC_003)
+    assert "editable installation sourced from a local filesystem path" in prose
+    assert (
+        "does not establish whether the same distribution name/version exists, "
+        "existed, or was obtainable through any package index or other repository"
+    ) in prose
+
+
+# -- the correction is dated, attributed, and not mistaken for the original --
+
+
+def test_the_correction_document_names_the_merge_it_corrects() -> None:
+    """So it can never be read as original contemporaneous evidence."""
+    assert CORRECTION_003.is_file()
+    prose = _prose(CORRECTION_003)
+    assert PR_162_MERGE_COMMIT in prose
+    assert "CLAIM-BOUNDARY CORRECTION, NOT A CHANGE TO THE FAILURE OUTCOME" in prose
+
+
+def test_the_correction_leaves_the_qualification_outcome_alone() -> None:
+    """Bounding a claim must not quietly relitigate the outcome it describes."""
+    prose = _prose(CORRECTION_003)
+    # `_prose` collapses whitespace, so the aligned blocks lose their padding.
+    assert f"failure_class = {POST_CLAIM_PRE_ARTIFACT}" in prose
+    assert "reproducibility_classification = NONE" in prose
+    assert "authorization_spent = true" in prose
+    assert "claim_recorded = true" in prose
+    assert "SPENT, RETIRED, NOT REUSABLE" in prose
+    assert "b0fd6eaa592537b7e4d5574ca68b675e85e923ae3c4a5ba411028ba6fcd7297a" in prose
+    assert "remains the valid digest" in prose
+    assert "not** the V2" in prose or "is **not** the V2" in prose
 
 
 # -- 15. the three lifecycles stay distinguishable -------------------------
