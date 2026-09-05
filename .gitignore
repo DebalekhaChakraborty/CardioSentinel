@@ -84,3 +84,10 @@ docs/paper/
 # The generator and its proof are tracked; its output is not, so a
 # stale copy can never be mistaken for the authority.
 containers/j1-environment/requirements.*.txt
+
+# The V2 artifact-bound candidate files are the exception, and deliberately so.
+# They are not generated from the 335-package authority at build time: they are
+# the candidate evidence itself, and the artifact hashes they carry cannot be
+# reviewed, tested or superseded if they never reach the repository.
+!containers/j1-environment/requirements.v2-candidate-pypi.txt
+!containers/j1-environment/requirements.v2-candidate-pytorch.txt

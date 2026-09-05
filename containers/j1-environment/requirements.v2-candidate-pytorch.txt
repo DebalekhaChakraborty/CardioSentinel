@@ -1,0 +1,13 @@
+# J1 V2 artifact-bound dependency candidate -- PyTorch CPU index members.
+#
+# CANDIDATE ONLY. NOT AUTHORIZED.
+#
+# torch carries a +cpu local version identifier that PyPI does not serve. This
+# file exists because the source differs, not for convenience.
+#
+#   artifact_manifest_digest = a2e2cec5899d6ecec094553afcdfd1bbe5ae64e9cea3fc0a32527eac0d386483
+#   source_index             = https://download.pytorch.org/whl/cpu
+#   member_count             = 1
+
+torch==2.13.0+cpu \
+    --hash=sha256:4ca4a9394b0c771238a4f73590fdbbc4debad85ed0fa63d026ae1b085da7d6e2
