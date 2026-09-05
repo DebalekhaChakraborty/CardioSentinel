@@ -1,0 +1,2408 @@
+{
+  "artifact_byte_authority_status": "ABSENT_FOR_ALL_MEMBERS",
+  "audit_ledger_digest": "e34d8f2a40b207f4b15b1398697fdd5a651e58b6a0552a538ea6c9bc5e152c84",
+  "authorization_status": "NOT_AUTHORIZED",
+  "candidate_dependency_set_digest": "b8bc79688126a31e5a3d3420d07197e107c55f4a2aec98d5af9a0fdaf16d2b40",
+  "candidate_id": "J1-V2-DEPENDENCY-AUTHORITY-CANDIDATE-V1",
+  "candidate_package_count": 48,
+  "candidate_packages": [
+    {
+      "name": "aiohappyeyeballs",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "aiohappyeyeballs",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "2.6.1",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "aiohttp",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "aiohttp",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "3.13.3",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "aiosignal",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "aiosignal",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "1.4.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "attrs",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "attrs",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "25.3.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "cardiosentinel",
+      "necessity": "REQUIRED_FOR_J1_EXECUTION",
+      "normalized_name": "cardiosentinel",
+      "reconstructibility": "FIRST_PARTY_BOUND_TO_SOURCE_COMMIT",
+      "role": "FIRST_PARTY",
+      "source_kind": "FIRST_PARTY_CARDIOSENTINEL",
+      "version": "0.1.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "certifi",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "certifi",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "2025.8.3",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "cffi",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "cffi",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "2.0.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "charset-normalizer",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "charset-normalizer",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "3.4.3",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "contourpy",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "contourpy",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "1.3.3",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "cycler",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "cycler",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "0.12.1",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "filelock",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "filelock",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "3.20.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "fonttools",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "fonttools",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "4.61.1",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "frozenlist",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "frozenlist",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "1.8.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "fsspec",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "fsspec",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "2025.9.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "idna",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "idna",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "3.10",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "jinja2",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "jinja2",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "3.1.6",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "joblib",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "joblib",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "1.5.3",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "kiwisolver",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "kiwisolver",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "1.4.9",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "markupsafe",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "markupsafe",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "3.0.3",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "matplotlib",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "matplotlib",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "3.10.8",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "mpmath",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "mpmath",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "1.3.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "multidict",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "multidict",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "6.7.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "narwhals",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "narwhals",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "2.10.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "networkx",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "networkx",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "3.6.1",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "numpy",
+      "necessity": "REQUIRED_FOR_J1_EXECUTION",
+      "normalized_name": "numpy",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "DIRECT_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "2.3.2",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "packaging",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "packaging",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "25.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "pandas",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "pandas",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "2.3.3",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "pillow",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "pillow",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "12.0.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "propcache",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "propcache",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "0.4.1",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "pycparser",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "pycparser",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "2.22",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "pyparsing",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "pyparsing",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "3.2.3",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "python-dateutil",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "python-dateutil",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "2.9.0.post0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "pytz",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "pytz",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "2025.2",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "pyyaml",
+      "necessity": "REQUIRED_FOR_J1_EXECUTION",
+      "normalized_name": "pyyaml",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "DIRECT_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "6.0.2",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "requests",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "requests",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "2.32.4",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "scikit-learn",
+      "necessity": "REQUIRED_FOR_J1_EXECUTION",
+      "normalized_name": "scikit-learn",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "DIRECT_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "1.9.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "scipy",
+      "necessity": "REQUIRED_FOR_J1_EXECUTION",
+      "normalized_name": "scipy",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "DIRECT_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "1.18.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "setuptools",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "setuptools",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "80.9.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "six",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "six",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "1.17.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "soundfile",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "soundfile",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "0.14.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "sympy",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "sympy",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "1.14.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "threadpoolctl",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "threadpoolctl",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "3.6.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "torch",
+      "necessity": "REQUIRED_FOR_J1_EXECUTION",
+      "normalized_name": "torch",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "DIRECT_SCIENTIFIC",
+      "source_kind": "PYTORCH_CPU_INDEX",
+      "version": "2.13.0+cpu",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "typing-extensions",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "typing-extensions",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "4.14.1",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "tzdata",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "tzdata",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "2025.2",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "urllib3",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "urllib3",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "2.5.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "wfdb",
+      "necessity": "REQUIRED_FOR_J1_EXECUTION",
+      "normalized_name": "wfdb",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "DIRECT_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "4.3.1",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    },
+    {
+      "name": "yarl",
+      "necessity": "REQUIRED_ONLY_TRANSITIVELY",
+      "normalized_name": "yarl",
+      "reconstructibility": "RECONSTRUCTIBLE_FROM_IDENTIFIED_SOURCE_BUT_BYTES_UNBOUND",
+      "role": "TRANSITIVE_SCIENTIFIC",
+      "source_kind": "PYPI_INDEX",
+      "version": "1.22.0",
+      "wheel_or_sdist_byte_authority": "ABSENT"
+    }
+  ],
+  "created_from_commit": "1ec6dc6a4a0737de128a15598be0d5929c469dca",
+  "excluded_or_deferred_packages": [
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "a2a-sdk",
+      "role": "UNRESOLVED",
+      "version": "0.3.1"
+    },
+    {
+      "disposition": "EXCLUDE_IF_HUMAN_APPROVED",
+      "name": "absolufy-imports",
+      "role": "INTERACTIVE_TOOLING",
+      "version": "0.3.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "aiosqlite",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.21.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "alembic",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.17.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "altair",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "5.5.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "annotated-doc",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.0.3"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "annotated-types",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.7.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "anthropic",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.72.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "anyio",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "4.10.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "apprise",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.9.5"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "asgi-lifespan",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.1.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "asttokens",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.0.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "asyncpg",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.30.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "authlib",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.7.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "backports-tarfile",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.2.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "bcrypt",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "5.0.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "beautifulsoup4",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "4.14.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "blinker",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.9.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "boto",
+      "role": "UNRESOLVED",
+      "version": "2.49.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "build",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.3.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "cachecontrol",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.14.3"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "cachetools",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "5.5.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "cleo",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.1.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "click",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "8.4.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "cloudpickle",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.1.1"
+    },
+    {
+      "disposition": "EXCLUDE_TOOLING_FROM_SCIENTIFIC_RUNTIME",
+      "name": "colorama",
+      "role": "TEST_TOOLING",
+      "version": "0.4.6"
+    },
+    {
+      "disposition": "EXCLUDE_IF_HUMAN_APPROVED",
+      "name": "controlflow",
+      "role": "INTERACTIVE_TOOLING",
+      "version": "0.12.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "coolname",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.2.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "crashtest",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.4.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "cryptography",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "48.0.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "dateparser",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.2.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "decorator",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "5.2.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "defusedxml",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.7.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "deprecated",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.2.18"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "distlib",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.4.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "distro",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.9.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "dnspython",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.8.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "docker",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "7.1.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "docstring-parser",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.17.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "dulwich",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.24.7"
+    },
+    {
+      "disposition": "EXCLUDE_IF_HUMAN_APPROVED",
+      "name": "email-validator",
+      "role": "INTERACTIVE_TOOLING",
+      "version": "2.3.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "et-xmlfile",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.0.0"
+    },
+    {
+      "disposition": "EXCLUDE_TOOLING_FROM_SCIENTIFIC_RUNTIME",
+      "name": "exceptiongroup",
+      "role": "TEST_TOOLING",
+      "version": "1.3.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "executing",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.2.1"
+    },
+    {
+      "disposition": "EXCLUDE_IF_HUMAN_APPROVED",
+      "name": "fabric",
+      "role": "INTERACTIVE_TOOLING",
+      "version": "3.2.3"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "fastapi",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.136.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "fastapi-cli",
+      "role": "UNRESOLVED",
+      "version": "0.0.14"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "fastapi-cloud-cli",
+      "role": "UNRESOLVED",
+      "version": "0.3.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "fastjsonschema",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.21.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "fastuuid",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.14.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "filetype",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.2.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "findpython",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.7.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "gh",
+      "role": "UNRESOLVED",
+      "version": "0.0.4"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "gitdb",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "4.0.12"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "gitpython",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.1.40"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-adk",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.31.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-ai-generativelanguage",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.6.15"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-api-core",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.25.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-api-python-client",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.179.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-auth",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.53.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-auth-httplib2",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.2.0"
+    },
+    {
+      "disposition": "EXCLUDE_IF_HUMAN_APPROVED",
+      "name": "google-auth-oauthlib",
+      "role": "INTERACTIVE_TOOLING",
+      "version": "1.2.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-aiplatform",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.153.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-appengine-logging",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.6.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-audit-log",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.3.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-bigquery",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.35.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-bigquery-storage",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.38.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-bigtable",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.34.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "google-cloud-compute",
+      "role": "UNRESOLVED",
+      "version": "1.42.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-core",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.4.3"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-dataplex",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.19.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-discoveryengine",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.13.12"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "google-cloud-documentai",
+      "role": "UNRESOLVED",
+      "version": "3.7.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "google-cloud-firestore",
+      "role": "UNRESOLVED",
+      "version": "2.25.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "google-cloud-iam",
+      "role": "UNRESOLVED",
+      "version": "2.23.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-logging",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.12.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-monitoring",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.28.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-pubsub",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.34.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-resource-manager",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.14.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-secret-manager",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.24.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-spanner",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.59.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-speech",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.33.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-storage",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.19.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-cloud-trace",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.16.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-crc32c",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.7.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-genai",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.75.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "google-generativeai",
+      "role": "UNRESOLVED",
+      "version": "0.8.5"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "google-resumable-media",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.7.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "googleapis-common-protos",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.70.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "graphviz",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.21"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "greenlet",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.2.4"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "griffe",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.14.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "grpc-google-iam-v1",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.14.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "grpc-interceptor",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.15.4"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "grpcio",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.74.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "grpcio-status",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.71.2"
+    },
+    {
+      "disposition": "EXCLUDE_IF_HUMAN_APPROVED",
+      "name": "gunicorn",
+      "role": "INTERACTIVE_TOOLING",
+      "version": "23.0.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "h11",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.16.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "h2",
+      "role": "UNRESOLVED",
+      "version": "4.3.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "hf-xet",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.5.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "hnswlib",
+      "role": "UNRESOLVED",
+      "version": "0.8.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "hpack",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "4.1.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "httpcore",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.0.9"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "httplib2",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.22.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "httptools",
+      "role": "UNRESOLVED",
+      "version": "0.7.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "httpx",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.28.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "httpx-sse",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.4.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "huggingface-hub",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.24.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "humanize",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "4.14.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "hyperframe",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "6.1.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "importlib-metadata",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "8.7.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "incident-management",
+      "role": "UNRELATED_OR_CONTAMINATING_CANDIDATE",
+      "version": "0.1.0"
+    },
+    {
+      "disposition": "EXCLUDE_TOOLING_FROM_SCIENTIFIC_RUNTIME",
+      "name": "iniconfig",
+      "role": "TEST_TOOLING",
+      "version": "2.3.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "installer",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.7.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "invoke",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.2.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "ipython",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "9.6.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "ipython-pygments-lexers",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.1.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "jaraco-classes",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.4.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "jaraco-context",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "6.0.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "jaraco-functools",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "4.3.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "jedi",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.19.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "jeepney",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.9.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "jinja2-humanize-extension",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.4.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "jiter",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.11.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "joserfc",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.6.5"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "jsonpatch",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.33"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "jsonpointer",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.0.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "jsonschema",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "4.25.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "jsonschema-specifications",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2025.4.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "keyring",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "25.6.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "langchain-anthropic",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.0.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "langchain-core",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.0.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "langchain-google-genai",
+      "role": "UNRESOLVED",
+      "version": "3.0.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "langchain-openai",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.0.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "langsmith",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.4.38"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "linkify-it-py",
+      "role": "UNRESOLVED",
+      "version": "2.0.3"
+    },
+    {
+      "disposition": "EXCLUDE_IF_HUMAN_APPROVED",
+      "name": "litellm",
+      "role": "INTERACTIVE_TOOLING",
+      "version": "1.80.17"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "lxml",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "6.0.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "mako",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.3.10"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "markdown",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.9"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "markdown-it-py",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "4.0.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "markdownify",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.2.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "matplotlib-inline",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.2.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "mcp",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.27.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "mdit-py-plugins",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.5.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "mdurl",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.1.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "more-itertools",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "10.8.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "msal",
+      "role": "UNRESOLVED",
+      "version": "1.34.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "msgpack",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.1.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "nest-asyncio",
+      "role": "UNRESOLVED",
+      "version": "1.6.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "oauthlib",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.2.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "openai",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.15.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "opencv-python",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "5.0.0.93"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "opencv-python-headless",
+      "role": "UNRESOLVED",
+      "version": "5.0.0.93"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "openpyxl",
+      "role": "UNRESOLVED",
+      "version": "3.1.5"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "opentelemetry-api",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.38.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "opentelemetry-exporter-gcp-logging",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.11.0a0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "opentelemetry-exporter-gcp-monitoring",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.10.0a0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "opentelemetry-exporter-gcp-trace",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.9.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "opentelemetry-exporter-otlp",
+      "role": "UNRESOLVED",
+      "version": "1.39.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "opentelemetry-exporter-otlp-proto-common",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.38.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "opentelemetry-exporter-otlp-proto-grpc",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.39.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "opentelemetry-exporter-otlp-proto-http",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.38.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "opentelemetry-instrumentation",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.60b1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "opentelemetry-instrumentation-google-genai",
+      "role": "UNRESOLVED",
+      "version": "0.5b0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "opentelemetry-proto",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.38.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "opentelemetry-resourcedetector-gcp",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.9.0a0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "opentelemetry-sdk",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.38.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "opentelemetry-semantic-conventions",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.59b0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "opentelemetry-util-genai",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.2b0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "orjson",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.11.4"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "paramiko",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "5.0.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "parso",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.8.5"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pathspec",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.12.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pbs-installer",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2025.10.14"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pendulum",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.1.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pexpect",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "4.9.0"
+    },
+    {
+      "disposition": "EXCLUDE_IF_HUMAN_APPROVED",
+      "name": "pip",
+      "role": "INTERACTIVE_TOOLING",
+      "version": "26.0.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pkginfo",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.12.1.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "platformdirs",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "4.5.0"
+    },
+    {
+      "disposition": "EXCLUDE_IF_HUMAN_APPROVED",
+      "name": "plotly",
+      "role": "INTERACTIVE_TOOLING",
+      "version": "6.3.1"
+    },
+    {
+      "disposition": "EXCLUDE_TOOLING_FROM_SCIENTIFIC_RUNTIME",
+      "name": "pluggy",
+      "role": "TEST_TOOLING",
+      "version": "1.6.0"
+    },
+    {
+      "disposition": "EXCLUDE_IF_HUMAN_APPROVED",
+      "name": "poetry",
+      "role": "INTERACTIVE_TOOLING",
+      "version": "2.2.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "poetry-core",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.2.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "portalocker",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.2.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "prefect",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.4.25"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "prettytable",
+      "role": "UNRESOLVED",
+      "version": "3.18.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "prometheus-client",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.23.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "prompt-toolkit",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.0.52"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "proto-plus",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.26.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "protobuf",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "5.29.5"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "ptyprocess",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.7.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pure-eval",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.2.3"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "py-spy",
+      "role": "UNRESOLVED",
+      "version": "0.4.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pyarrow",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "21.0.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pyasn1",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.6.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pyasn1-modules",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.4.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pydantic",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.13.4"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pydantic-core",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.46.4"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pydantic-extra-types",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.10.6"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pydantic-settings",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.10.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pydeck",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.9.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pydeprecate",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.9.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "pygithub",
+      "role": "UNRESOLVED",
+      "version": "2.8.1"
+    },
+    {
+      "disposition": "EXCLUDE_TOOLING_FROM_SCIENTIFIC_RUNTIME",
+      "name": "pygments",
+      "role": "TEST_TOOLING",
+      "version": "2.19.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pyjwt",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.10.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pynacl",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.6.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "pyopenssl",
+      "role": "UNRESOLVED",
+      "version": "26.2.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "pypdf",
+      "role": "UNRESOLVED",
+      "version": "6.5.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "pypdf2",
+      "role": "UNRESOLVED",
+      "version": "3.0.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pyproject-hooks",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.2.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "pyspnego",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.12.0"
+    },
+    {
+      "disposition": "EXCLUDE_TOOLING_FROM_SCIENTIFIC_RUNTIME",
+      "name": "pytest",
+      "role": "TEST_TOOLING",
+      "version": "8.4.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "pytest-asyncio",
+      "role": "UNRESOLVED",
+      "version": "1.2.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "pytest-mock",
+      "role": "UNRESOLVED",
+      "version": "3.15.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "python-docx",
+      "role": "UNRESOLVED",
+      "version": "1.2.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "python-dotenv",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.0.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "python-multipart",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.0.20"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "python-slugify",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "8.0.4"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "pywinrm",
+      "role": "UNRESOLVED",
+      "version": "0.5.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "qdrant-client",
+      "role": "UNRESOLVED",
+      "version": "1.17.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "rapidfuzz",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.14.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "readchar",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "4.2.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "referencing",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.36.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "regex",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2025.10.23"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "requests-ntlm",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.3.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "requests-oauthlib",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.0.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "requests-toolbelt",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.0.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "rfc3339-validator",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.1.4"
+    },
+    {
+      "disposition": "EXCLUDE_IF_HUMAN_APPROVED",
+      "name": "rfdetr",
+      "role": "INTERACTIVE_TOOLING",
+      "version": "1.8.3"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "rich",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "14.2.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "rich-toolkit",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.15.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "rignore",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.7.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "rpds-py",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.27.0"
+    },
+    {
+      "disposition": "EXCLUDE_IF_HUMAN_APPROVED",
+      "name": "rsa",
+      "role": "INTERACTIVE_TOOLING",
+      "version": "4.9.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "ruamel-yaml",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.18.16"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "ruamel-yaml-clib",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.2.14"
+    },
+    {
+      "disposition": "EXCLUDE_TOOLING_FROM_SCIENTIFIC_RUNTIME",
+      "name": "ruff",
+      "role": "TEST_TOOLING",
+      "version": "0.16.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "safetensors",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.8.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "secretstorage",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.4.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "semver",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.0.4"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "sentry-sdk",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.42.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "shapely",
+      "role": "UNRESOLVED",
+      "version": "2.1.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "shellingham",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.5.4"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "smmap",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "5.0.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "sniffio",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.3.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "soupsieve",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.8"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "sqlalchemy",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2.0.43"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "sqlalchemy-spanner",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.17.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "sqlparse",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.5.3"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "sse-starlette",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.0.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "stack-data",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.6.3"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "starlette",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.52.1"
+    },
+    {
+      "disposition": "EXCLUDE_IF_HUMAN_APPROVED",
+      "name": "streamlit",
+      "role": "INTERACTIVE_TOOLING",
+      "version": "1.51.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "supervision",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.29.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "tenacity",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "9.1.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "text-unidecode",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.3"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "textual",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "6.4.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "tiktoken",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.12.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "tokenizers",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.22.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "toml",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.10.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "tomlkit",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.13.3"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "torchvision",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.28.0+cpu"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "tornado",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "6.5.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "tqdm",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "4.67.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "traitlets",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "5.14.3"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "transformers",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "5.14.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "trove-classifiers",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "2025.9.11.17"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "typer",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.19.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "typer-slim",
+      "role": "UNRESOLVED",
+      "version": "0.21.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "typing-inspection",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.4.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "tzlocal",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "5.3.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "uc-micro-py",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.0.3"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "uritemplate",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "4.2.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "uv",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.9.6"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "uvicorn",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.35.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_EXCLUDE",
+      "name": "uvloop",
+      "role": "UNRESOLVED",
+      "version": "0.22.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "virtualenv",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "20.35.3"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "watchdog",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "6.0.0"
+    },
+    {
+      "disposition": "EXCLUDE_IF_HUMAN_APPROVED",
+      "name": "watchfiles",
+      "role": "INTERACTIVE_TOOLING",
+      "version": "1.1.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "wcwidth",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.8.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "websockets",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "15.0.1"
+    },
+    {
+      "disposition": "EXCLUDE_IF_HUMAN_APPROVED",
+      "name": "wheel",
+      "role": "INTERACTIVE_TOOLING",
+      "version": "0.45.1"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "wrapt",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.17.3"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "xmltodict",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "1.0.2"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "zipp",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "3.23.0"
+    },
+    {
+      "disposition": "UNRESOLVED_DO_NOT_RETAIN",
+      "name": "zstandard",
+      "role": "TRANSITIVE_RUNTIME_SUPPORT",
+      "version": "0.25.0"
+    }
+  ],
+  "historical_package_count": 335,
+  "historical_snapshot_digest": "b0fd6eaa592537b7e4d5574ca68b675e85e923ae3c4a5ba411028ba6fcd7297a",
+  "limitations": [
+    "The historical locks record name and version only. No artifact filename, hash, index URL or installer is carried by the historical evidence, so artifact-byte authority is ABSENT for every member without exception.",
+    "Transitive relations were computed from the CURRENTLY INSTALLED Requires-Dist metadata in the tactics venv, a local mutable observation. Dependency metadata can differ between the historical artifact and today's, so this is diagnostic evidence, not proof of what was historically required.",
+    "Source availability was established by querying one index per package (PyPI, or the PyTorch CPU index for '+cpu' local versions). A successful query proves that source serves the version today; it binds no bytes and proves nothing about other sources.",
+    "Provenance for index-served packages rests on a diagnostic query, not on an authority recorded at install time.",
+    "This candidate set is sufficient for the J1 static import closure on paper. It has not been built, installed or executed."
+  ],
+  "scientific_closure_digest": "2c1376fc12144b4d8433941900c1769dce3c1a5ed813aa19c2e29e8895aa23c8",
+  "status": "CANDIDATE_ONLY",
+  "unresolved_packages": [
+    {
+      "name": "a2a-sdk",
+      "role": "UNRESOLVED",
+      "version": "0.3.1"
+    },
+    {
+      "name": "boto",
+      "role": "UNRESOLVED",
+      "version": "2.49.0"
+    },
+    {
+      "name": "fastapi-cli",
+      "role": "UNRESOLVED",
+      "version": "0.0.14"
+    },
+    {
+      "name": "fastapi-cloud-cli",
+      "role": "UNRESOLVED",
+      "version": "0.3.1"
+    },
+    {
+      "name": "gh",
+      "role": "UNRESOLVED",
+      "version": "0.0.4"
+    },
+    {
+      "name": "google-cloud-compute",
+      "role": "UNRESOLVED",
+      "version": "1.42.0"
+    },
+    {
+      "name": "google-cloud-documentai",
+      "role": "UNRESOLVED",
+      "version": "3.7.0"
+    },
+    {
+      "name": "google-cloud-firestore",
+      "role": "UNRESOLVED",
+      "version": "2.25.0"
+    },
+    {
+      "name": "google-cloud-iam",
+      "role": "UNRESOLVED",
+      "version": "2.23.0"
+    },
+    {
+      "name": "google-generativeai",
+      "role": "UNRESOLVED",
+      "version": "0.8.5"
+    },
+    {
+      "name": "h2",
+      "role": "UNRESOLVED",
+      "version": "4.3.0"
+    },
+    {
+      "name": "hnswlib",
+      "role": "UNRESOLVED",
+      "version": "0.8.0"
+    },
+    {
+      "name": "httptools",
+      "role": "UNRESOLVED",
+      "version": "0.7.1"
+    },
+    {
+      "name": "incident-management",
+      "role": "UNRELATED_OR_CONTAMINATING_CANDIDATE",
+      "version": "0.1.0"
+    },
+    {
+      "name": "langchain-google-genai",
+      "role": "UNRESOLVED",
+      "version": "3.0.0"
+    },
+    {
+      "name": "linkify-it-py",
+      "role": "UNRESOLVED",
+      "version": "2.0.3"
+    },
+    {
+      "name": "msal",
+      "role": "UNRESOLVED",
+      "version": "1.34.0"
+    },
+    {
+      "name": "nest-asyncio",
+      "role": "UNRESOLVED",
+      "version": "1.6.0"
+    },
+    {
+      "name": "opencv-python-headless",
+      "role": "UNRESOLVED",
+      "version": "5.0.0.93"
+    },
+    {
+      "name": "openpyxl",
+      "role": "UNRESOLVED",
+      "version": "3.1.5"
+    },
+    {
+      "name": "opentelemetry-exporter-otlp",
+      "role": "UNRESOLVED",
+      "version": "1.39.1"
+    },
+    {
+      "name": "opentelemetry-instrumentation-google-genai",
+      "role": "UNRESOLVED",
+      "version": "0.5b0"
+    },
+    {
+      "name": "prettytable",
+      "role": "UNRESOLVED",
+      "version": "3.18.0"
+    },
+    {
+      "name": "py-spy",
+      "role": "UNRESOLVED",
+      "version": "0.4.2"
+    },
+    {
+      "name": "pygithub",
+      "role": "UNRESOLVED",
+      "version": "2.8.1"
+    },
+    {
+      "name": "pyopenssl",
+      "role": "UNRESOLVED",
+      "version": "26.2.0"
+    },
+    {
+      "name": "pypdf",
+      "role": "UNRESOLVED",
+      "version": "6.5.0"
+    },
+    {
+      "name": "pypdf2",
+      "role": "UNRESOLVED",
+      "version": "3.0.1"
+    },
+    {
+      "name": "pytest-asyncio",
+      "role": "UNRESOLVED",
+      "version": "1.2.0"
+    },
+    {
+      "name": "pytest-mock",
+      "role": "UNRESOLVED",
+      "version": "3.15.1"
+    },
+    {
+      "name": "python-docx",
+      "role": "UNRESOLVED",
+      "version": "1.2.0"
+    },
+    {
+      "name": "pywinrm",
+      "role": "UNRESOLVED",
+      "version": "0.5.0"
+    },
+    {
+      "name": "qdrant-client",
+      "role": "UNRESOLVED",
+      "version": "1.17.0"
+    },
+    {
+      "name": "shapely",
+      "role": "UNRESOLVED",
+      "version": "2.1.1"
+    },
+    {
+      "name": "typer-slim",
+      "role": "UNRESOLVED",
+      "version": "0.21.1"
+    },
+    {
+      "name": "uvloop",
+      "role": "UNRESOLVED",
+      "version": "0.22.1"
+    }
+  ]
+}
